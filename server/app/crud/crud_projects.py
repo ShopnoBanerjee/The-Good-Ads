@@ -12,7 +12,7 @@ async def get_projects(db: AsyncSession, skip: int = 0, limit: int = 10):
     return result.scalars().all()
 
 async def create_project(db: AsyncSession, project: ProjectCreate):
-    db_project = Project(**project.dict())
+    db_project = Project(**project.model_dump())
     db.add(db_project)
     await db.commit()
     await db.refresh(db_project)

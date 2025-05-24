@@ -3,8 +3,8 @@ from sqlalchemy.future import select
 from app.models.business import Business
 from app.schemas.business import BusinessCreate, BusinessUpdate
 
-async def get_business(db: AsyncSession, business_id: int):
-    result = await db.execute(select(Business).filter(Business.id == business_id))
+async def get_business(db: AsyncSession, owner_id: int):
+    result = await db.execute(select(Business).filter(Business.owner_id == owner_id))
     return result.scalars().first()
 
 async def get_businesses(db: AsyncSession, skip: int = 0, limit: int = 10):
@@ -24,7 +24,7 @@ async def create_business(db: AsyncSession, business: BusinessCreate, owner_id: 
     return db_business
 
 async def update_business(db: AsyncSession, db_business: Business, business_update: BusinessUpdate):
-    for key, value in business_update.dict(exclude_unset=True).items():
+    for key, value in business_update.model_dump(exclude_unset=True).items():
         setattr(db_business, key, value)
     await db.commit()
     await db.refresh(db_business)

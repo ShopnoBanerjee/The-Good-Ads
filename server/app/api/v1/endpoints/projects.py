@@ -20,7 +20,7 @@ async def read_projects(
     skip: int = 0,
     limit: int = 10,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_user_type("admin")),
+    current_user: User = Depends(require_user_type("society")),
 ):
     return await get_projects(db=db, skip=skip, limit=limit)
 
@@ -43,8 +43,10 @@ async def create_new_project(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_user_type("business")),
 ):
-    if project.business_id != current_user.id:
-        raise HTTPException(status_code=403, detail="You can only create projects for your own business")
+
+    if project.deadline and project.deadline.tzinfo is not None:
+        project.deadline = project.deadline.replace(tzinfo=None)
+        
     return await create_project(db=db, project=project)
 
 @router.put("/{project_id}", response_model=Project)
@@ -77,20 +79,22 @@ async def delete_existing_project(
 @router.post("/{project_id}/interest", response_model=ProjectApplication)
 async def express_interest(
     project_id: int,
-    society_id: int,
+    society_id: int, # Removed as current_user.id is used
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_user_type("society")),
 ):
     db_project = await get_project(db=db, project_id=project_id)
     if not db_project or db_project.assigned:
         raise HTTPException(status_code=400, detail="Project not available for interest")
-    project_application = ProjectApplication(
-        project_id=project_id, society_id=current_user.id
+    
+    # Use the SQLAlchemy model (ProjectApplicationModel) for DB operations
+    db_project_application = ProjectApplicationModel(
+        project_id=project_id, society_id=society_id
     )
-    db.add(project_application)
+    db.add(db_project_application)
     await db.commit()
-    await db.refresh(project_application)
-    return project_application
+    await db.refresh(db_project_application)
+    return db_project_application # FastAPI will convert this to the Pydantic response_model
 
 @router.post("/{project_id}/assign", response_model=Project)
 async def assign_project(

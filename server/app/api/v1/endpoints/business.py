@@ -59,11 +59,11 @@ async def update_existing_business(
 
 @router.delete("/{business_id}", response_model=Business)
 async def delete_existing_business(
-    business_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: UserModel.User = Depends(get_current_user),
 ):
-    db_business = await get_business(db=db, business_id=business_id)
+    owner_id = current_user.id
+    db_business = await get_business(db=db, owner_id=owner_id)
     if not db_business:
         raise HTTPException(status_code=404, detail="Business not found")
     if db_business.owner_id != current_user.id and current_user.user_type != "admin":
