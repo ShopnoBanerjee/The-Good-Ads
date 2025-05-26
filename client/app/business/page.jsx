@@ -127,7 +127,7 @@ const navigationItems = [
 export default function BusinessDashboard() {
   const [selectedProject, setSelectedProject] = useState(null)
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case "Active":
         return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"

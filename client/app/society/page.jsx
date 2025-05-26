@@ -136,12 +136,12 @@ const projectTypes = ["Full Project", "Research Project", "Innovation Challenge"
 
 export default function StudentDashboard() {
   const [viewMode, setViewMode] = useState("grid")
-  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([])
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+  const [selectedIndustries, setSelectedIndustries] = useState([])
+  const [selectedSkills, setSelectedSkills] = useState([])
   const [selectedProjectType, setSelectedProjectType] = useState("")
   const [dateFilter, setDateFilter] = useState("")
 
-  const handleIndustryChange = (industry: string, checked: boolean) => {
+  const handleIndustryChange = (industry, checked) => {
     if (checked) {
       setSelectedIndustries([...selectedIndustries, industry])
     } else {
@@ -149,7 +149,7 @@ export default function StudentDashboard() {
     }
   }
 
-  const handleSkillChange = (skill: string, checked: boolean) => {
+  const handleSkillChange = (skill, checked) => {
     if (checked) {
       setSelectedSkills([...selectedSkills, skill])
     } else {
@@ -157,7 +157,7 @@ export default function StudentDashboard() {
     }
   }
 
-  const getCompensationColor = (compensation: string) => {
+  const getCompensationColor = (compensation) => {
     switch (compensation) {
       case "Paid":
         return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
@@ -191,7 +191,7 @@ export default function StudentDashboard() {
                     <Checkbox
                       id={industry}
                       checked={selectedIndustries.includes(industry)}
-                      onCheckedChange={(checked) => handleIndustryChange(industry, checked as boolean)}
+                      onCheckedChange={(checked) => handleIndustryChange(industry, checked)}
                       className="border-white/30 data-[state=checked]:bg-secondary data-[state=checked]:border-secondary"
                     />
                     <Label htmlFor={industry} className="text-sm text-white cursor-pointer">
@@ -211,7 +211,7 @@ export default function StudentDashboard() {
                     <Checkbox
                       id={skill}
                       checked={selectedSkills.includes(skill)}
-                      onCheckedChange={(checked) => handleSkillChange(skill, checked as boolean)}
+                      onCheckedChange={(checked) => handleSkillChange(skill, checked)}
                       className="border-white/30 data-[state=checked]:bg-secondary data-[state=checked]:border-secondary"
                     />
                     <Label htmlFor={skill} className="text-sm text-white cursor-pointer">
