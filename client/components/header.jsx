@@ -4,7 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import { FaCaretDown } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 
 // Reusable Dropdown Component
 const Dropdown = ({ title, menuItems }) => {
@@ -51,6 +53,41 @@ const handleMouseLeave = () => {
 };
 
 const Header = () => {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const getSession = async () => {
+      try {
+        const { data: session } = await authClient.getSession();
+        if (session) {
+          setUser(session.user);
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getSession();
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            setUser(null);
+            window.location.href = '/';
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   return (
     <header className="bg-white shadow-md px-6 py-4 flex items-center justify-between h-20">
       {/* Logo here */}
@@ -70,6 +107,10 @@ const Header = () => {
       <nav className="hidden md:flex gap-6 text-[#15325a] text-lg font-medium font-outfit">
         <Link href="/">Home</Link>
 
+        {user && (
+          <Link href="/dashboard">Dashboard</Link>
+        )}
+
         <Dropdown
           title="About Us"
           menuItems={[
@@ -81,8 +122,8 @@ const Header = () => {
         <Dropdown
           title="Our Services"
           menuItems={[
-            { label: "College Societies", href: "/collegesocieties" },
-            { label: "Companies / Startups", href: "/businesses" },
+            { label: "College Societies", href: "/society" },
+            { label: "Companies / Startups", href: "/business" },
           ]}
         />
 
@@ -95,15 +136,30 @@ const Header = () => {
         />
       </nav>
 
-      {/* Login/Signup buttons */}
+      {/* Auth buttons */}
       <div className="font-inter pr-12">
-        <Link
-          href="/login"
-          className="flex font-outfit items-center gap-2 px-4 py-2 bg-accent text-white rounded-[4px] text-lg transition-colors"
-        >
-          Login / Signup
-          <FiArrowRight size={16} />
-        </Link>
+        {isLoading ? (
+          <div className="w-32 h-10 bg-gray-200 animate-pulse rounded-[4px]"></div>
+        ) : user ? (
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-700">Hi, {user.name}</span>
+            <Button 
+              variant="outline" 
+              onClick={handleSignOut}
+              className="text-sm"
+            >
+              Sign Out
+            </Button>
+          </div>
+        ) : (
+          <Link
+            href="/auth"
+            className="flex font-outfit items-center gap-2 px-4 py-2 bg-accent text-white rounded-[4px] text-lg transition-colors"
+          >
+            Login / Signup
+            <FiArrowRight size={16} />
+          </Link>
+        )}
       </div>
     </header>
   );
