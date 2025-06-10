@@ -18,6 +18,6 @@ class Business(Base):
     contact_email = Column(String(255), nullable=True)
     contact_phone = Column(String(50), nullable=True)
 
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(String, ForeignKey("user.id"), nullable=False)
 
     owner = relationship("User", backref="businesses")
