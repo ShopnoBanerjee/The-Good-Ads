@@ -13,6 +13,6 @@ class Society(Base):
     logo_url = Column(String(500), nullable=True)
     website_url = Column(String(500), nullable=True)
 
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(String, ForeignKey("user.id"), nullable=False)
 
     owner = relationship("User", backref="societies")
