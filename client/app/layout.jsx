@@ -14,7 +14,7 @@ const outfit = Outfit({
 });
 
 export const metadata = {
-  title: "The GoodAds",
+  title: "inHalt",
   description: "A Title Description To Go Here!",
 };
 

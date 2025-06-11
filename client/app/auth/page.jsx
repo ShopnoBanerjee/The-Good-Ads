@@ -7,6 +7,22 @@ import Link from "next/link"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons"
 import { authClient } from "@/lib/auth-client"
+import { z } from 'zod'
+
+const signUpSchema = z.object({
+  name: z.string().min(1, "Full Name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+const signInSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters")
+})
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -14,44 +30,45 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
-  const [signUpForm, setSignUpForm] = useState({
-    name: '',
-    email: '',
-    password: ''
-  })
+  const [signUpForm, setSignUpForm] = useState({ name: '', email: '', password: '' , confirmPassword: '',})
+  const [signInForm, setSignInForm] = useState({ email: '', password: '', rememberMe: true })
 
-  const [signInForm, setSignInForm] = useState({
-    email: '',
-    password: '',
-    rememberMe: true
-  })
+  const [signUpErrors, setSignUpErrors] = useState({})
+  const [signInErrors, setSignInErrors] = useState({})
 
   const handleSignUp = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    const result = signUpSchema.safeParse(signUpForm)
+
+    if (!result.success) {
+      const fieldErrors = result.error.format()
+      setSignUpErrors({
+        name: fieldErrors.name?._errors[0],
+        email: fieldErrors.email?._errors[0],
+        password: fieldErrors.password?._errors[0],
+        confirmPassword: fieldErrors.confirmPassword?._errors[0],
+      })
+      setIsLoading(false)
+      return
+    }
+
+    setSignUpErrors({})
 
     try {
-      const { data, error } = await authClient.signUp.email({
-        email: signUpForm.email,
-        password: signUpForm.password,
-        name: signUpForm.name,
+      const { error } = await authClient.signUp.email({
+        ...signUpForm,
         callbackURL: "/dashboard"
       }, {
-        onRequest: () => {
-          setIsLoading(true)
-        },
-        onSuccess: () => {
-          router.push("/dashboard")
-        },
+        onRequest: () => setIsLoading(true),
+        onSuccess: () => router.push("/dashboard"),
         onError: (ctx) => {
           alert(ctx.error.message)
           setIsLoading(false)
         },
       })
 
-      if (error) {
-        alert(error.message)
-      }
+      if (error) alert(error.message)
     } catch (error) {
       alert(error.message)
     } finally {
@@ -62,29 +79,34 @@ export default function AuthPage() {
   const handleSignIn = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    const result = signInSchema.safeParse(signInForm)
+
+    if (!result.success) {
+      const fieldErrors = result.error.format()
+      setSignInErrors({
+        email: fieldErrors.email?._errors[0],
+        password: fieldErrors.password?._errors[0]
+      })
+      setIsLoading(false)
+      return
+    }
+
+    setSignInErrors({})
 
     try {
-      const { data, error } = await authClient.signIn.email({
-        email: signInForm.email,
-        password: signInForm.password,
-        callbackURL: "/dashboard",
-        rememberMe: signInForm.rememberMe
+      const { error } = await authClient.signIn.email({
+        ...signInForm,
+        callbackURL: "/dashboard"
       }, {
-        onRequest: () => {
-          setIsLoading(true)
-        },
-        onSuccess: () => {
-          router.push("/dashboard")
-        },
+        onRequest: () => setIsLoading(true),
+        onSuccess: () => router.push("/dashboard"),
         onError: (ctx) => {
           alert(ctx.error.message)
           setIsLoading(false)
         },
       })
 
-      if (error) {
-        alert(error.message)
-      }
+      if (error) alert(error.message)
     } catch (error) {
       alert(error.message)
     } finally {
@@ -107,97 +129,49 @@ export default function AuthPage() {
 
   return (
     <div className="relative min-h-screen grid grid-cols-12 overflow-hidden">
-      {/* Left Illus */}
       <div className="col-span-2 lg:col-span-3 -ml-3 hidden md:flex items-center justify-center bg-white">
-        <Image
-          src="/illustrations/login illus1.png"
-          alt="img1"
-          width={466}
-          height={600}
-        />
+        <Image src="/illustrations/login illus1.png" alt="img1" width={466} height={600} />
       </div>
 
-      {/* Auth Form */}
       <div className="col-span-12 md:col-span-8 lg:col-span-6 flex flex-col items-center justify-center px-6 py-10 bg-white">
-        <div className="overflow-hidden mb-2">
-          <Image
-            src="/logo/our-logo.png"
-            alt="Logo"
-            width={140}
-            height={85}
-            className="object-contain"
-          />
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab('signin')}
-            className={`px-6 py-2 rounded-md font-outfit font-medium transition-colors ${
-              activeTab === 'signin'
-                ? 'bg-white text-black shadow-sm'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => setActiveTab('signup')}
-            className={`px-6 py-2 rounded-md font-outfit font-medium transition-colors ${
-              activeTab === 'signup'
-                ? 'bg-white text-black shadow-sm'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            Sign Up
-          </button>
+        <div className="overflow-hidden mb-6">
+          <Image src="/logo/our-logo.png" alt="Logo" width={140} height={85} className="object-contain" />
         </div>
 
         {activeTab === 'signin' ? (
           <>
             <h1 className="text-2xl font-semibold font-outfit text-black mb-2">Log In</h1>
             <p className="mb-6 text-base font-outfit text-[#00000066]">
-              Don't have an account yet?{" "}
-              <button 
-                onClick={() => setActiveTab('signup')}
-                className="text-[#009dc9] font-outfit hover:underline"
-              >
-                Sign up
-              </button>
+              Don't have an account yet?{' '}
+              <button onClick={() => setActiveTab('signup')} className="text-[#009dc9] font-outfit hover:underline">Sign up</button>
             </p>
 
-            <form className="w-full max-w-md space-y-4" onSubmit={handleSignIn}>
+            <form className="w-full max-w-md space-y-4" onSubmit={handleSignIn} noValidate>
               <div className="flex flex-col space-y-1">
                 <label className="text-black font-outfit text-sm">Email</label>
                 <input
-                  type="email"
-                  placeholder="user@goodads.in"
+                  type="text"
                   value={signInForm.email}
                   onChange={(e) => setSignInForm({ ...signInForm, email: e.target.value })}
                   className="w-full border border-[#dcdcdc] rounded-xl px-4 py-2 text-black"
-                  required
                 />
+                {signInErrors.email && <p className="text-red-500 text-sm">{signInErrors.email}</p>}
               </div>
-              
+
               <div className="flex flex-col space-y-1">
                 <label className="text-black font-outfit text-sm">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Password"
                     value={signInForm.password}
                     onChange={(e) => setSignInForm({ ...signInForm, password: e.target.value })}
                     className="w-full border border-[#dcdcdc] rounded-xl px-4 py-2 text-black pr-10"
-                    required
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                  >
+                  <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                     <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                   </button>
                 </div>
+                {signInErrors.password && <p className="text-red-500 text-sm">{signInErrors.password}</p>}
               </div>
 
               <div className="flex items-center space-x-2">
@@ -208,16 +182,10 @@ export default function AuthPage() {
                   onChange={(e) => setSignInForm({ ...signInForm, rememberMe: e.target.checked })}
                   className="rounded"
                 />
-                <label htmlFor="remember-me" className="text-sm font-outfit text-black">
-                  Remember me
-                </label>
+                <label htmlFor="remember-me" className="text-sm font-outfit text-black">Remember me</label>
               </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-[#11aad4] border border-[#11aad4] text-white py-2 rounded-[40px] hover:text-[#11aad4] hover:bg-white hover:border hover:border-[#11aad4] font-outfit font-semibold transition duration-300"
-              >
+              <button type="submit" disabled={isLoading} className="w-full bg-[#11aad4] border border-[#11aad4] text-white py-2 rounded-[40px] hover:text-[#11aad4] hover:bg-white hover:border hover:border-[#11aad4] font-outfit font-semibold transition duration-300">
                 {isLoading ? "Signing in..." : "Sign In"}
               </button>
 
@@ -227,12 +195,7 @@ export default function AuthPage() {
                 <div className="flex-1 border-t border-gray-300"></div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-                className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-[40px] hover:bg-gray-50 font-outfit font-medium transition duration-300 flex items-center justify-center space-x-2"
-              >
+              <button type="button" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-[40px] hover:bg-gray-50 font-outfit font-medium transition duration-300 flex items-center justify-center space-x-2">
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -241,64 +204,65 @@ export default function AuthPage() {
                 </svg>
                 <span>Continue with Google</span>
               </button>
-              
-              <Link
-                href="/"
-                className="block mt-2 w-full text-center text-base font-outfit text-[#11aad4] bg-white border border-[#11aad4] py-2 rounded-[40px] hover:bg-[#11aad4] hover:text-white transition duration-300"
-              >
-                Back to Home
-              </Link>
+
+              <Link href="/" className="block mt-2 w-full text-center text-base font-outfit text-[#11aad4] bg-white border border-[#11aad4] py-2 rounded-[40px] hover:bg-[#11aad4] hover:text-white transition duration-300">Back to Home</Link>
             </form>
           </>
         ) : (
           <>
             <h1 className="text-2xl font-semibold font-outfit text-black mb-2">Sign Up</h1>
             <p className="mb-6 text-base font-outfit text-[#00000066]">
-              Already have an account?{" "}
-              <button 
-                onClick={() => setActiveTab('signin')}
-                className="text-[#009dc9] font-outfit hover:underline"
-              >
-                Sign in
-              </button>
+              Already have an account?{' '}
+              <button onClick={() => setActiveTab('signin')} className="text-[#009dc9] font-outfit hover:underline">Sign in</button>
             </p>
 
-            <form className="w-full max-w-md space-y-4" onSubmit={handleSignUp}>
+            <form className="w-full max-w-md space-y-4" onSubmit={handleSignUp} noValidate>
               <div className="flex flex-col space-y-1">
                 <label className="text-black font-outfit text-sm">Full Name</label>
                 <input
                   type="text"
-                  placeholder="Enter your full name"
                   value={signUpForm.name}
                   onChange={(e) => setSignUpForm({ ...signUpForm, name: e.target.value })}
                   className="w-full border border-[#dcdcdc] rounded-xl px-4 py-2 text-black"
-                  required
                 />
+                {signUpErrors.name && <p className="text-red-500 text-sm">{signUpErrors.name}</p>}
               </div>
 
               <div className="flex flex-col space-y-1">
                 <label className="text-black font-outfit text-sm">Email</label>
                 <input
-                  type="email"
-                  placeholder="user@goodads.in"
+                  type="text"
                   value={signUpForm.email}
                   onChange={(e) => setSignUpForm({ ...signUpForm, email: e.target.value })}
                   className="w-full border border-[#dcdcdc] rounded-xl px-4 py-2 text-black"
-                  required
                 />
+                {signUpErrors.email && <p className="text-red-500 text-sm">{signUpErrors.email}</p>}
               </div>
-              
+
               <div className="flex flex-col space-y-1">
                 <label className="text-black font-outfit text-sm">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Create a password (min 8 characters)"
                     value={signUpForm.password}
                     onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
                     className="w-full border border-[#dcdcdc] rounded-xl px-4 py-2 text-black pr-10"
-                    minLength={8}
-                    required
+                  />
+                  <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                  </button>
+                </div>
+                {signUpErrors.password && <p className="text-red-500 text-sm">{signUpErrors.password}</p>}
+              </div>
+
+              <div className="flex flex-col space-y-1">
+                <label className="text-black font-outfit text-sm">Confirm Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={signUpForm.confirmPassword}
+                    onChange={(e) => setSignUpForm({ ...signUpForm, confirmPassword: e.target.value })}
+                    className="w-full border border-[#dcdcdc] rounded-xl px-4 py-2 text-black pr-10"
                   />
                   <button
                     type="button"
@@ -308,13 +272,11 @@ export default function AuthPage() {
                     <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                   </button>
                 </div>
+                {signUpErrors.confirmPassword && <p className="text-red-500 text-sm">{signUpErrors.confirmPassword}</p>}
               </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-[#11aad4] border border-[#11aad4] text-white py-2 rounded-[40px] hover:text-[#11aad4] hover:bg-white hover:border hover:border-[#11aad4] font-outfit font-semibold transition duration-300"
-              >
+
+              <button type="submit" disabled={isLoading} className="w-full bg-[#11aad4] border border-[#11aad4] text-white py-2 rounded-[40px] hover:text-[#11aad4] hover:bg-white hover:border hover:border-[#11aad4] font-outfit font-semibold transition duration-300">
                 {isLoading ? "Creating account..." : "Sign Up"}
               </button>
 
@@ -324,12 +286,7 @@ export default function AuthPage() {
                 <div className="flex-1 border-t border-gray-300"></div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-                className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-[40px] hover:bg-gray-50 font-outfit font-medium transition duration-300 flex items-center justify-center space-x-2"
-              >
+              <button type="button" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-[40px] hover:bg-gray-50 font-outfit font-medium transition duration-300 flex items-center justify-center space-x-2">
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -339,27 +296,14 @@ export default function AuthPage() {
                 <span>Continue with Google</span>
               </button>
 
-              <Link
-                href="/"
-                className="block mt-2 w-full text-center text-base font-outfit text-[#11aad4] bg-white border border-[#11aad4] py-2 rounded-[40px] hover:bg-[#11aad4] hover:text-white transition duration-300"
-              >
-                Back to Home
-              </Link>
+              <Link href="/" className="block mt-2 w-full text-center text-base font-outfit text-[#11aad4] bg-white border border-[#11aad4] py-2 rounded-[40px] hover:bg-[#11aad4] hover:text-white transition duration-300">Back to Home</Link>
             </form>
           </>
         )}
       </div>
 
-      {/* Right Illus */}
       <div className="col-span-2 lg:col-span-3 hidden md:flex items-center justify-center bg-white">
-        <Image
-          src="/illustrations/login illus2.png"
-          alt="img2"
-          width={1250}
-          height={100}
-          className="absolute top-0 right-0 z-50 pointer-events-none"
-          priority
-        />
+        <Image src="/illustrations/login illus2.png" alt="img2" width={1250} height={100} className="absolute top-0 right-0 z-50 pointer-events-none" priority />
       </div>
     </div>
   )
