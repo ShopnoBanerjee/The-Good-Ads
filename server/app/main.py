@@ -1,24 +1,25 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from app.api.v1 import api_router  # make sure this path is correct
-from app.db.session import engine
-from app.db.base import Base
+from fastapi.middleware.cors import CORSMiddleware
+from app.api import post_login
+from app.api import complete_registration
+from app.api import create_project
+from app.api import marketplace
+from app.api import proposals
+from app.api import portfolio
 
-async def lifespan(app: FastAPI):
-    # Create tables if they do not exist
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
+app = FastAPI()
 
-app = FastAPI(
-    title="The Good Ads API",
-    lifespan=lifespan,
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-app.mount("/app", StaticFiles(directory="app/static"), name="static")  # match the correct folder
-
-app.include_router(api_router, prefix="/api/v1")
-
-@app.get("/")
-async def root():
-    return {"message": "Welcome to The Good Ads API"}
+app.include_router(post_login.router)
+app.include_router(complete_registration.router)
+app.include_router(create_project.router)
+app.include_router(marketplace.router)
+app.include_router(proposals.router)
+app.include_router(portfolio.router)    
