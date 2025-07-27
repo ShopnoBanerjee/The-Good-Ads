@@ -1,22 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { API_URL } from "../../lib/constants";
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Building2, Users, Phone, Globe, Briefcase, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
-
 import { z } from "zod";
+import { useAuth } from "@/app/providers"; // <-- import useAuth
 
 export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userType = searchParams.get("userType") || "business";
+  const { session } = useAuth();
+
+  useEffect(() => {
+    console.log("[RegisterPage] session from useAuth:", session);
+    if (typeof window !== "undefined") {
+      // Log cookies for debugging
+      console.log("[RegisterPage] document.cookie:", document.cookie);
+      // Log localStorage for debugging
+      console.log("[RegisterPage] localStorage keys:", Object.keys(localStorage));
+      // Log the supabase session in localStorage
+      const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.split("https://")[1]?.split(".")[0];
+      if (projectRef) {
+        const key = `sb-${projectRef}-auth-token`;
+        console.log(`[RegisterPage] localStorage[${key}]:`, localStorage.getItem(key));
+      }
+    }
+  }, [session]);
 
   const [form, setForm] = useState({
     businessName: "",
@@ -80,11 +96,8 @@ export default function RegisterPage() {
         return;
       }
 
-      const {
-        data: { session },
-        error: supabaseError,
-      } = await supabase.auth.getSession();
-      if (supabaseError || !session) throw new Error("Not authenticated");
+      // Use session from context
+      if (!session) throw new Error("Not authenticated. Please refresh the page or try again.");
       const token = session.access_token;
 
       const payload =
@@ -164,6 +177,33 @@ export default function RegisterPage() {
     </div>
   );
 
+  // Show spinner while session is undefined (hydrating)
+  if (typeof session === "undefined") {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin" />
+        <span className="ml-2">Loading authentication...</span>
+      </main>
+    );
+  }
+
+  // Show error and reload option if session is null
+  if (session === null) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <AlertCircle className="w-8 h-8 text-red-500" />
+          <span className="text-lg font-medium text-red-700">
+            Not authenticated. Please refresh the page or try clicking your magic link again.
+          </span>
+          <Button onClick={() => window.location.reload()} className="mt-2">
+            Refresh Page
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
       {/* Background decoration */}
@@ -216,7 +256,7 @@ export default function RegisterPage() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6 text-black">
             {userType === "business" ? (
               <>
                 <FormField

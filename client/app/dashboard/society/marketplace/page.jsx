@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/constants";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +15,7 @@ export default function MarketplacePage() {
 
   useEffect(() => {
     const fetchProjects = async () => {
+      const supabase = getSupabaseClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setError("Not authenticated");

@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/constants";
+import { useAuth } from "@/app/providers"; // adjust path as needed
+import { useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,10 +12,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function SocietyPortfolioPage() {
+  const { userType } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (userType && userType !== "society") {
+      router.replace("/dashboard/business");
+    }
+  }, [userType, router]);
+
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
+  const supabase = getSupabaseClient();
 
   const [profile, setProfile] = useState(null);
   const [items, setItems] = useState([]);

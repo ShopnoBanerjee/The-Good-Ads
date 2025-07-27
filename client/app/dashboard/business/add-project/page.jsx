@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/constants";
 
 import { z } from "zod";
@@ -57,6 +57,7 @@ export default function AddProjectPage() {
     }
 
     try {
+      const supabase = getSupabaseClient(); // <-- get the client here
       const {
         data: { session },
         error: supabaseError,

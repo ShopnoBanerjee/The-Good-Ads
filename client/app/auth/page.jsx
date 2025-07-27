@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Image from "next/image"
 import Link from "next/link"
-import { supabase } from "@/lib/supabaseClient"
 import { z } from 'zod'
-import { API_URL } from '@/lib/constants'
+import { useActionState } from 'react'
+import { signInWithOtpAction, signUpWithOtpAction } from './actions'
 
 const emailSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -16,65 +16,23 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signup');
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [signUpForm, setSignUpForm] = useState({ email: '', userType: 'business' });
   const [signInForm, setSignInForm] = useState({ email: '' });
   const [signUpErrors, setSignUpErrors] = useState({});
   const [signInErrors, setSignInErrors] = useState({});
 
-  const handleSignUp = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    const result = emailSchema.safeParse({ email: signUpForm.email });
-    if (!result.success) {
-      setSignUpErrors({ email: result.error.format().email?._errors[0] });
-      setIsLoading(false);
-      return;
-    }
-    setSignUpErrors({});
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: signUpForm.email,
-        options: {
-          emailRedirectTo: `${location.origin}/auth/callback?mode=signup&userType=${signUpForm.userType}`,
-        },
-      });
-      if (error) throw error;
-      alert('Check your email for the magic link!');
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [signInState, signInAction] = useActionState(
+    async (prevState, formData) => await signInWithOtpAction(formData),
+    null
+  )
+  const [signUpState, signUpAction] = useActionState(
+    async (prevState, formData) => await signUpWithOtpAction(formData),
+    null
+  )
 
-  const handleSignIn = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    const result = emailSchema.safeParse({ email: signInForm.email });
-    if (!result.success) {
-      setSignInErrors({ email: result.error.format().email?._errors[0] });
-      setIsLoading(false);
-      return;
-    }
-    setSignInErrors({});
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: signInForm.email,
-        options: {
-          emailRedirectTo: `${location.origin}/auth/callback?mode=login`,
-        },
-      });
-      if (error) throw error;
-      alert('Check your email for the magic link!');
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  
   return (
     <div className="relative min-h-screen grid grid-cols-12 overflow-hidden">
       <div className="col-span-2 lg:col-span-3 -ml-3 hidden md:flex items-center justify-center bg-white">
@@ -94,11 +52,12 @@ export default function AuthPage() {
               <button onClick={() => setActiveTab('signup')} className="text-[#009dc9] font-outfit hover:underline">Sign up</button>
             </p>
 
-            <form className="w-full max-w-md space-y-4" onSubmit={handleSignIn} noValidate>
+            <form className="w-full max-w-md space-y-4" action={signInAction}>
               <div className="flex flex-col space-y-1">
                 <label className="text-black font-outfit text-sm">Email</label>
                 <input
                   type="email"
+                  name="email"
                   value={signInForm.email}
                   onChange={(e) => setSignInForm({ ...signInForm, email: e.target.value })}
                   className="w-full border border-[#dcdcdc] rounded-xl px-4 py-2 text-black"
@@ -106,11 +65,11 @@ export default function AuthPage() {
                 />
                 {signInErrors.email && <p className="text-red-500 text-sm">{signInErrors.email}</p>}
               </div>
-
-              <button type="submit" disabled={isLoading} className="w-full bg-[#11aad4] border border-[#11aad4] text-white py-2 rounded-[40px] hover:text-[#11aad4] hover:bg-white hover:border hover:border-[#11aad4] font-outfit font-semibold transition duration-300">
-                {isLoading ? "Sending..." : "Sign In"}
+              {signInState?.success && <p className="text-green-600">Magic link sent! Check your email.</p>}
+              {signInState?.error && <p className="text-red-600">{signInState.error}</p>}
+              <button type="submit" className="w-full bg-[#11aad4] border border-[#11aad4] text-white py-2 rounded-[40px] hover:text-[#11aad4] hover:bg-white hover:border hover:border-[#11aad4] font-outfit font-semibold transition duration-300">
+                Sign In
               </button>
-
               <Link href="/" className="block mt-2 w-full text-center text-base font-outfit text-[#11aad4] bg-white border border-[#11aad4] py-2 rounded-[40px] hover:bg-[#11aad4] hover:text-white transition duration-300">Back to Home</Link>
             </form>
           </>
@@ -122,7 +81,7 @@ export default function AuthPage() {
               <button onClick={() => setActiveTab('signin')} className="text-[#009dc9] font-outfit hover:underline">Sign in</button>
             </p>
 
-            <form className="w-full max-w-md space-y-4" onSubmit={handleSignUp} noValidate>
+            <form className="w-full max-w-md space-y-4" action={signUpAction} noValidate>
               <div className="flex space-x-2 mb-4">
                 <button
                   type="button"
@@ -139,11 +98,12 @@ export default function AuthPage() {
                   College Society
                 </button>
               </div>
-
+              <input type="hidden" name="userType" value={signUpForm.userType} />
               <div className="flex flex-col space-y-1">
                 <label className="text-black font-outfit text-sm">Email</label>
                 <input
                   type="email"
+                  name="email"
                   value={signUpForm.email}
                   onChange={(e) => setSignUpForm({ ...signUpForm, email: e.target.value })}
                   className="w-full border border-[#dcdcdc] rounded-xl px-4 py-2 text-black"
@@ -151,11 +111,11 @@ export default function AuthPage() {
                 />
                 {signUpErrors.email && <p className="text-red-500 text-sm">{signUpErrors.email}</p>}
               </div>
-
-              <button type="submit" disabled={isLoading} className="w-full bg-[#11aad4] border border-[#11aad4] text-white py-2 rounded-[40px] hover:text-[#11aad4] hover:bg-white hover:border hover:border-[#11aad4] font-outfit font-semibold transition duration-300">
-                {isLoading ? "Sending..." : "Sign Up"}
+              {signUpState?.success && <p className="text-green-600">Magic link sent! Check your email.</p>}
+              {signUpState?.error && <p className="text-red-600">{signUpState.error}</p>}
+              <button type="submit" className="w-full bg-[#11aad4] border border-[#11aad4] text-white py-2 rounded-[40px] hover:text-[#11aad4] hover:bg-white hover:border hover:border-[#11aad4] font-outfit font-semibold transition duration-300">
+                Sign Up
               </button>
-
               <Link href="/" className="block mt-2 w-full text-center text-base font-outfit text-[#11aad4] bg-white border border-[#11aad4] py-2 rounded-[40px] hover:bg-[#11aad4] hover:text-white transition duration-300">Back to Home</Link>
             </form>
           </>

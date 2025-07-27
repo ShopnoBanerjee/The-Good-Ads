@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ export default function BusinessDashboard() {
 
   useEffect(() => {
     const fetchProjects = async () => {
+      const supabase = getSupabaseClient(); // <-- get the client here
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setError("Not authenticated");

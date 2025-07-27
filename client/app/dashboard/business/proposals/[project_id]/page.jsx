@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/constants";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,7 @@ export default function ProjectProposalsPage() {
   const project_id = params?.project_id; // ✅ Safe fallback
 
   const router = useRouter();
+  const supabase = getSupabaseClient();
 
   const [proposals, setProposals] = useState([]);
   const [error, setError] = useState("");

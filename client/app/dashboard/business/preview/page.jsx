@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/constants";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +23,7 @@ export default function ProjectPreview() {
     if (!projectId) return;
 
     const fetchProject = async () => {
+      const supabase = getSupabaseClient();
       const {
         data: { session },
         error: sessionError,
@@ -60,6 +61,7 @@ export default function ProjectPreview() {
     setConfirming(true);
 
     try {
+      const supabase = getSupabaseClient(); // <-- get the client here
       const {
         data: { session },
       } = await supabase.auth.getSession();

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/constants";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +15,7 @@ export default function SendProposalPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("project_id");
-
+  const supabase = getSupabaseClient();
   const [pitch, setPitch] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);

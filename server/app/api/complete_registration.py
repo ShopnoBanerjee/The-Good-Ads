@@ -21,6 +21,11 @@ async def complete_registration(request: Request, authorization: str = Header(..
     token = authorization.split(" ")[1]
     user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
 
+    existing = supabase.table("profiles").select("*").eq("id", user_id).execute()
+
+    if existing.data:
+        raise HTTPException(status_code=400, detail="Profile already exists.")
+    
     # ✅ ✅ ✅ Always upsert parent first!
     profiles_resp = supabase.table("profiles").upsert({
         "id": user_id,

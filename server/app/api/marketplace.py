@@ -23,6 +23,7 @@ async def get_marketplace_projects(authorization: str = Header(...)):
     resp = supabase.table("projects").select(
         "id, compliant_name, compliant_description, services_required"
     ).eq("status", "published").execute()
+    print(resp)
 
     return resp.data
 
