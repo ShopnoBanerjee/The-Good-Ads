@@ -54,7 +54,7 @@ export default function MarketplacePage() {
               <p className="text-muted-foreground">{project.compliant_description}</p>
               <p><strong>Services:</strong> {project.services_required}</p>
               <Button
-                onClick={() => router.push(`/dashboard/society/proposal?project_id=${project.id}`)}
+                onClick={() => router.push(`/society/proposal?project_id=${project.id}`)}
               >
                 Send Proposal
               </Button>

@@ -23,9 +23,9 @@ export default async function CheckPage() {
 
   // Redirect based on user_type
 if (profile.user_type === 'business') {
-    redirect('/dashboard/business')
+    redirect('/business')
 } else if (profile.user_type === 'college_society') {
-    redirect('/dashboard/society')
+    redirect('/society/marketplace')
 } else {
     redirect('/error')
 }

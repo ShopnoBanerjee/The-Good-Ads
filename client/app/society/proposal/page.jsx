@@ -48,7 +48,7 @@ export default function SendProposalPage() {
         throw new Error(err.detail || "Proposal failed");
       }
 
-      router.push("/dashboard/society/marketplace"); // Or wherever you want to go
+      router.push("/dashboard/society/marketplace");
     } catch (err) {
       setError(err.message);
     } finally {
