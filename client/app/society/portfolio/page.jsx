@@ -9,9 +9,9 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { 
   Upload, 
   Camera, 
@@ -237,9 +237,9 @@ export default function SocietyPortfolioPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary font-primary">
       {/* Header Section */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b border-primary">
         <div className="max-w-6xl mx-auto px-4 py-8">
           {profile && (
             <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
@@ -252,14 +252,14 @@ export default function SocietyPortfolioPage() {
                   <img
                     src={profile.logo_url || "https://via.placeholder.com/150"}
                     alt="Society Logo"
-                    className="w-32 h-32 rounded-full object-cover shadow-lg ring-4 ring-white"
+                    className="w-32 h-32 rounded-full object-cover shadow-lg ring-4 ring-primary"
                   />
                   {logoUploading && (
                     <div className="absolute inset-0 rounded-full bg-black bg-opacity-50 flex items-center justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                     </div>
                   )}
-                  <div className="absolute inset-0 rounded-full bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-accent bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-center">
                       <Camera className="w-6 h-6 mx-auto mb-1" />
                       <p className="text-xs font-medium">Change Logo</p>
@@ -273,24 +273,24 @@ export default function SocietyPortfolioPage() {
                 {!isEditingProfile ? (
                   <>
                     <div className="flex items-center justify-center md:justify-start space-x-3 mb-2">
-                      <h1 className="text-4xl font-bold text-gray-900">{profile.society_name}</h1>
+                      <h1 className="text-4xl font-bold text-text font-primary">{profile.society_name}</h1>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setIsEditingProfile(true)}
-                        className="opacity-70 hover:opacity-100 transition-opacity"
+                        className="text-accent hover:bg-primary/10"
                       >
-                        <Edit3 className="w-4 h-4" />
+                        <Edit3 className="w-4 h-4 mt-2" />
                       </Button>
                     </div>
-                    <Badge variant="secondary" className="mb-3 text-sm px-3 py-1">
+                    <Badge variant="secondary" className="mb-3 text-sm px-3 py-1 bg-primary text-white">
                       {profile.domain}
                     </Badge>
-                    <p className="text-gray-600 text-lg leading-relaxed max-w-2xl mb-2">
+                    <p className="text-text text-lg leading-relaxed max-w-2xl mb-2">
                       {profile.services_offered}
                     </p>
                     {profile.description && (
-                      <p className="text-gray-500 text-sm leading-relaxed max-w-2xl">
+                      <p className="text-secondary text-sm leading-relaxed max-w-2xl">
                         {profile.description}
                       </p>
                     )}
@@ -346,7 +346,7 @@ export default function SocietyPortfolioPage() {
                 )}
                 
                 {!isEditingProfile && (
-                  <div className="flex justify-center md:justify-start items-center space-x-6 mt-6 text-sm text-gray-500">
+                  <div className="flex justify-center md:justify-start items-center space-x-6 mt-6 text-sm text-secondary">
                     <div className="flex items-center space-x-1">
                       <Camera className="w-4 h-4" />
                       <span>{items.length} posts</span>
@@ -370,13 +370,14 @@ export default function SocietyPortfolioPage() {
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Minimal Upload Section */}
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Portfolio</h2>
+          <h2 className="text-2xl font-bold text-text font-primary">Portfolio</h2>
           <div className="flex items-center space-x-4">
             {items.length > 0 && (
-              <Badge variant="secondary" className="text-sm">
+            <Badge variant="secondary" className="text-sm bg-primary text-white">
                 {items.length} items
               </Badge>
-            )}
+            )
+            }
             <div className="flex items-center space-x-2">
               <Input 
                 id="file-upload"
@@ -390,7 +391,7 @@ export default function SocietyPortfolioPage() {
                 onClick={() => document.getElementById('file-upload').click()}
                 variant="outline"
                 size="sm"
-                className="border-dashed border-2"
+                className="border-dashed border-2 text-primary hover:bg-primary hover:text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Files
@@ -400,7 +401,7 @@ export default function SocietyPortfolioPage() {
                   onClick={handleUpload} 
                   disabled={uploading}
                   size="sm"
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-accent hover:bg-accent-hover text-white"
                 >
                   {uploading ? (
                     <>
@@ -421,10 +422,10 @@ export default function SocietyPortfolioPage() {
 
         {/* Selected Files Preview (only when files are selected) */}
         {files.length > 0 && (
-          <Card className="border border-blue-200 bg-blue-50">
+          <Card className="border border-primary bg-primary/10">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-blue-800">
+                <p className="text-sm font-medium text-primary">
                   {files.length} file{files.length !== 1 ? 's' : ''} selected
                 </p>
                 <Button
@@ -434,7 +435,7 @@ export default function SocietyPortfolioPage() {
                     setFiles([]);
                     document.getElementById('file-upload').value = '';
                   }}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-accent hover:text-accent-hover"
                 >
                   Clear all
                 </Button>
@@ -462,16 +463,16 @@ export default function SocietyPortfolioPage() {
 
         {/* Portfolio Grid */}
         {items.length === 0 ? (
-          <Card className="border-2 border-dashed border-gray-300">
+          <Card className="border-2 border-dashed border-primary">
             <CardContent className="p-12 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Camera className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Camera className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No portfolio items yet</h3>
-              <p className="text-gray-500 mb-4">Start building your society's portfolio by uploading your first file.</p>
+              <h3 className="text-lg font-medium text-text mb-2">No portfolio items yet</h3>
+              <p className="text-secondary mb-4">Start building your society's portfolio by uploading your first file.</p>
               <Button
                 onClick={() => document.getElementById('file-upload').click()}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-accent hover:bg-accent-hover text-white"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload First Item
@@ -560,88 +561,78 @@ export default function SocietyPortfolioPage() {
           </div>
         )}
 
-        {/* Modal for viewing items */}
-        {isModalOpen && selectedItem && (
-          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden">
-              <div className="flex items-center justify-between p-4 border-b">
-                <h3 className="font-semibold text-gray-900">{selectedItem.caption}</h3>
-                <button
-                  onClick={closeModal}
-                  className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
-                >
-                  <X className="w-4 h-4 text-gray-600" />
-                </button>
-              </div>
-              
-              <div className="p-4">
-                {(() => {
-                  const url = supabase.storage
-                    .from("society-portfolio")
-                    .getPublicUrl(selectedItem.file_path).data.publicUrl;
-                  
-                  const ext = selectedItem.file_path.split(".").pop().toLowerCase();
-                  const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
-                  const isVideo = ["mp4", "mov", "avi", "webm"].includes(ext);
-                  
-                  if (isImage) {
+        {/* Dialog for viewing items */}
+        <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) closeModal(); }}>
+          <DialogContent className="max-w-4xl border-2 border-primary bg-primary">
+            {selectedItem && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="font-semibold text-text">{selectedItem.caption}</DialogTitle>
+                </DialogHeader>
+                <div className="py-4 bg-secondary/50">
+                  {(() => {
+                    const url = supabase.storage
+                      .from("society-portfolio")
+                      .getPublicUrl(selectedItem.file_path).data.publicUrl;
+                    const ext = selectedItem.file_path.split(".").pop().toLowerCase();
+                    const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
+                    const isVideo = ["mp4", "mov", "avi", "webm"].includes(ext);
+                    if (isImage) {
+                      return (
+                        <img 
+                          src={url} 
+                          alt={selectedItem.caption} 
+                          className="max-w-full max-h-[70vh] object-contain mx-auto"
+                        />
+                      );
+                    }
+                    if (isVideo) {
+                      return (
+                        <video 
+                          src={url} 
+                          controls 
+                          className="max-w-full max-h-[70vh] mx-auto"
+                        />
+                      );
+                    }
                     return (
-                      <img 
-                        src={url} 
-                        alt={selectedItem.caption} 
-                        className="max-w-full max-h-[70vh] object-contain mx-auto"
-                      />
-                    );
-                  }
-                  
-                  if (isVideo) {
-                    return (
-                      <video 
-                        src={url} 
-                        controls 
-                        className="max-w-full max-h-[70vh] mx-auto"
-                      />
-                    );
-                  }
-                  
-                  return (
-                    <div className="text-center py-8">
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                        <FileText className="w-8 h-8 text-gray-600" />
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                          <FileText className="w-8 h-8 text-primary" />
+                        </div>
+                        <p className="text-secondary mb-4">{ext.toUpperCase()} File</p>
+                        <Button asChild className="bg-accent hover:bg-accent-hover text-white">
+                          <a href={url} download className="inline-flex items-center space-x-2">
+                            <Download className="w-4 h-4" />
+                            <span>Download File</span>
+                          </a>
+                        </Button>
                       </div>
-                      <p className="text-gray-600 mb-4">{ext.toUpperCase()} File</p>
-                      <Button asChild>
-                        <a href={url} download className="inline-flex items-center space-x-2">
-                          <Download className="w-4 h-4" />
-                          <span>Download File</span>
-                        </a>
-                      </Button>
-                    </div>
-                  );
-                })()}
-              </div>
-              
-              <div className="flex items-center justify-between p-4 border-t bg-gray-50">
-                <div className="flex items-center space-x-4">
-                  <button className="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors">
-                    <Heart className="w-4 h-4" />
-                    <span className="text-sm">Like</span>
-                  </button>
-                  <button className="flex items-center space-x-1 text-gray-600 hover:text-blue-500 transition-colors">
-                    <Share2 className="w-4 h-4" />
-                    <span className="text-sm">Share</span>
-                  </button>
+                    );
+                  })()}
                 </div>
-                <Button asChild variant="outline" size="sm">
-                  <a href={supabase.storage.from("society-portfolio").getPublicUrl(selectedItem.file_path).data.publicUrl} download>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </a>
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+                <div className="flex items-center justify-between p-4 border-t bg-primary/5">
+                  <div className="flex items-center space-x-4">
+                    <button className="flex items-center space-x-1 text-secondary hover:text-red-500 transition-colors">
+                      <Heart className="w-4 h-4" />
+                      <span className="text-sm">Like</span>
+                    </button>
+                    <button className="flex items-center space-x-1 text-secondary hover:text-accent transition-colors">
+                      <Share2 className="w-4 h-4" />
+                      <span className="text-sm">Share</span>
+                    </button>
+                  </div>
+                  <Button asChild variant="outline" size="sm" className="border-primary text-primary">
+                    <a href={supabase.storage.from("society-portfolio").getPublicUrl(selectedItem.file_path).data.publicUrl} download>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </a>
+                  </Button>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
