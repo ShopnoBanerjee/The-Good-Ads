@@ -35,7 +35,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "components/society-header.jsx"  ],
   "exclude": [
     "node_modules"
   ]

@@ -23,8 +23,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${raleway.variable} ${outfit.variable}`}>
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${raleway.variable} ${outfit.variable}`}>
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <Toaster />
