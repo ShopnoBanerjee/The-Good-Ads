@@ -1,3 +1,31 @@
+"""
+Portfolio API routes for college societies.
+
+Routes:
+- POST /api/society/upload-portfolio
+    Upload a portfolio item (image, video, pdf, ppt) for a college society.
+    Requires JWT authentication and 'college_society' user type.
+    Accepts: title, description, file (multipart/form-data).
+    Stores file in Supabase Storage and metadata in 'society_portfolio_projects'.
+
+- POST /api/upload-portfolio-metadata
+    Upload metadata for a portfolio item.
+    Requires JWT authentication and 'college_society' user type.
+    Accepts: file_path, caption (JSON body).
+    Stores metadata in 'portfolio_items'.
+
+- GET /api/get-portfolio
+    Retrieve all portfolio items for the authenticated college society.
+    Requires JWT authentication and 'college_society' user type.
+    Returns: List of portfolio items from 'portfolio_items'.
+
+- POST /api/society/update-logo
+    Update the logo for the authenticated college society.
+    Requires JWT authentication and 'college_society' user type.
+    Accepts: file (multipart/form-data).
+    Stores logo in Supabase Storage and updates 'profiles' table with logo URL.
+"""
+
 from fastapi import APIRouter, UploadFile, Form, Header, HTTPException, Request
 from supabase import create_client
 from app.core.config import settings
@@ -146,11 +174,12 @@ async def update_logo(
 
     public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{unique_name}"
 
-    update = supabase.table("profiles").update({"logo_url": public_url}).eq("id", user_id).execute()
-    if not update.data:
-        raise HTTPException(status_code=500, detail="Failed to update profile with logo")
+    # Update logo_url in both profiles and college_society_profiles tables
+    update_profiles = supabase.table("profiles").update({"logo_url": public_url}).eq("id", user_id).execute()
+    update_society_profiles = supabase.table("college_society_profiles").update({"logo_url": public_url}).eq("id", user_id).execute()
+
+    if not update_profiles.data or not update_society_profiles.data:
+        raise HTTPException(status_code=500, detail="Failed to update logo in one or both tables")
 
     return {"message": "Logo updated", "logo_url": public_url}
-
-
 
