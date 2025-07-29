@@ -3,38 +3,219 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply font-primary bg-primary text-white leading-loose;
+  :root {
+    /* Brand Colors from Logo */
+    --color-brand-cyan: 0 191 255; /* Bright cyan from logo figures */
+    --color-brand-navy: 25 55 71; /* Dark navy from logo text */
+    --color-brand-teal: 56 142 142; /* Medium teal */
+
+    /* Light Theme Colors */
+    --color-primary: 248 250 252; /* Light gray background */
+    --color-secondary: 255 255 255; /* Pure white */
+    --color-accent: 0 191 255; /* Brand cyan */
+    --color-accent-hover: 0 171 235; /* Darker cyan for hover */
+    --color-text: 25 55 71; /* Brand navy for text */
+    --color-text-muted: 71 85 105; /* Muted text */
+    --color-border: 226 232 240; /* Light border */
+    --color-input-bg: 255 255 255; /* White input background */
+
+    /* Success/Error Colors */
+    --color-success: 34 197 94;
+    --color-error: 239 68 68;
+    --color-warning: 245 158 11;
   }
 
-  .h1 {
-    @apply text-[48px] xl:text-[80px] leading-[1.1] font-semibold;
-  }
-  .h2 {
-    @apply text-[36px] xl:text-[48px] leading-[1.1] font-semibold;
-  }
-  .h3 {
-    @apply text-[20px] xl:text-[24px] leading-[1.1] font-semibold;
-  }
-  :root {
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
   .dark {
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Dark Theme Colors */
+    --color-primary: 15 23 42; /* Dark slate background */
+    --color-secondary: 30 41 59; /* Lighter dark for cards */
+    --color-accent: 56 189 248; /* Lighter cyan for dark mode */
+    --color-accent-hover: 14 165 233; /* Hover state */
+    --color-text: 248 250 252; /* Light text */
+    --color-text-muted: 148 163 184; /* Muted light text */
+    --color-border: 51 65 85; /* Dark border */
+    --color-input-bg: 30 41 59; /* Dark input background */
+
+    /* Success/Error Colors for dark mode */
+    --color-success: 34 197 94;
+    --color-error: 248 113 113;
+    --color-warning: 251 191 36;
+  }
+
+  /* Apply colors using CSS custom properties */
+  body {
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    @apply bg-primary text-text leading-relaxed;
+    background-color: rgb(var(--color-primary));
+    color: rgb(var(--color-text));
+  }
+
+  /* Custom heading styles */
+  .h1 {
+    @apply text-4xl md:text-5xl xl:text-6xl leading-tight font-bold;
+    color: rgb(var(--color-text));
+  }
+
+  .h2 {
+    @apply text-3xl md:text-4xl xl:text-5xl leading-tight font-bold;
+    color: rgb(var(--color-text));
+  }
+
+  .h3 {
+    @apply text-xl md:text-2xl xl:text-3xl leading-tight font-semibold;
+    color: rgb(var(--color-text));
+  }
+
+  /* Sidebar variables for shadcn components */
+  :root {
+    --sidebar-background: var(--color-secondary);
+    --sidebar-foreground: var(--color-text);
+    --sidebar-primary: var(--color-accent);
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: var(--color-primary);
+    --sidebar-accent-foreground: var(--color-text);
+    --sidebar-border: var(--color-border);
+    --sidebar-ring: var(--color-accent);
+  }
+
+  .dark {
+    --sidebar-background: var(--color-secondary);
+    --sidebar-foreground: var(--color-text);
+    --sidebar-primary: var(--color-accent);
+    --sidebar-primary-foreground: var(--color-primary);
+    --sidebar-accent: var(--color-primary);
+    --sidebar-accent-foreground: var(--color-text);
+    --sidebar-border: var(--color-border);
+    --sidebar-ring: var(--color-accent);
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  .bg-primary {
+    background-color: rgb(var(--color-primary));
+  }
+
+  .bg-secondary {
+    background-color: rgb(var(--color-secondary));
+  }
+
+  .bg-accent {
+    background-color: rgb(var(--color-accent));
+  }
+
+  .bg-accent-hover {
+    background-color: rgb(var(--color-accent-hover));
+  }
+
+  .text-text {
+    color: rgb(var(--color-text));
+  }
+
+  .text-text-muted {
+    color: rgb(var(--color-text-muted));
+  }
+
+  .text-accent {
+    color: rgb(var(--color-accent));
+  }
+
+  .border-border {
+    border-color: rgb(var(--color-border));
+  }
+
+  .bg-input {
+    background-color: rgb(var(--color-input-bg));
+  }
+
+  /* Brand gradient using logo colors */
+  .bg-brand-gradient {
+    background: linear-gradient(135deg, rgb(var(--color-accent)), rgb(var(--color-brand-teal)));
+  }
+
+  .text-brand-gradient {
+    background: linear-gradient(135deg, rgb(var(--color-accent)), rgb(var(--color-brand-teal)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Success/Error states */
+  .text-success {
+    color: rgb(var(--color-success));
+  }
+
+  .text-error {
+    color: rgb(var(--color-error));
+  }
+
+  .text-warning {
+    color: rgb(var(--color-warning));
+  }
+
+  .bg-success {
+    background-color: rgb(var(--color-success));
+  }
+
+  .bg-error {
+    background-color: rgb(var(--color-error));
+  }
+
+  .bg-warning {
+    background-color: rgb(var(--color-warning));
+  }
+}
+
+/* Component-specific overrides */
+@layer components {
+  /* Card styles */
+  .card {
+    @apply bg-secondary border-border shadow-sm;
+    background-color: rgb(var(--color-secondary));
+    border-color: rgb(var(--color-border));
+  }
+
+  /* Input styles */
+  .input {
+    @apply bg-input border-border text-text placeholder:text-text-muted;
+    background-color: rgb(var(--color-input-bg));
+    border-color: rgb(var(--color-border));
+    color: rgb(var(--color-text));
+  }
+
+  .input:focus {
+    @apply border-accent ring-accent/20;
+    border-color: rgb(var(--color-accent));
+    box-shadow: 0 0 0 3px rgb(var(--color-accent) / 0.1);
+  }
+
+  /* Button styles */
+  .btn-primary {
+    @apply bg-accent hover:bg-accent-hover text-white font-medium;
+    background-color: rgb(var(--color-accent));
+  }
+
+  .btn-primary:hover {
+    background-color: rgb(var(--color-accent-hover));
+  }
+
+  .btn-secondary {
+    @apply bg-secondary border-border text-text hover:bg-primary;
+    background-color: rgb(var(--color-secondary));
+    border-color: rgb(var(--color-border));
+    color: rgb(var(--color-text));
+  }
+
+  .btn-secondary:hover {
+    background-color: rgb(var(--color-primary));
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply bg-accent/10 text-accent border-accent/20;
+    background-color: rgb(var(--color-accent) / 0.1);
+    color: rgb(var(--color-accent));
+    border-color: rgb(var(--color-accent) / 0.2);
   }
 }
 
@@ -46,9 +227,54 @@
 
   * {
     scrollbar-width: none;
-  }
-
-  * {
     -ms-overflow-style: none;
   }
+}
+
+/* Ensure proper text color for inputs and textareas */
+input,
+textarea,
+select {
+  color: rgb(var(--color-text)) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgb(var(--color-text-muted)) !important;
+}
+
+/* Dark mode transitions */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Override any conflicting styles */
+.dark body {
+  background-color: rgb(var(--color-primary)) !important;
+  color: rgb(var(--color-text)) !important;
+}
+
+/* Ensure proper contrast for links */
+a {
+  color: rgb(var(--color-accent));
+}
+
+a:hover {
+  color: rgb(var(--color-accent-hover));
+}
+
+/* Error states */
+.error-bg {
+  background-color: rgb(var(--color-error) / 0.1);
+  border-color: rgb(var(--color-error) / 0.2);
+}
+
+.success-bg {
+  background-color: rgb(var(--color-success) / 0.1);
+  border-color: rgb(var(--color-success) / 0.2);
+}
+
+.warning-bg {
+  background-color: rgb(var(--color-warning) / 0.1);
+  border-color: rgb(var(--color-warning) / 0.2);
 }

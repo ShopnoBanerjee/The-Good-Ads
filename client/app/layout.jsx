@@ -2,6 +2,7 @@ import { Raleway, Outfit } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { AuthProvider } from "@/app/providers";
+import { ThemeProvider } from "next-themes";
 
 const raleway = Raleway({
   subsets: ["latin"],
@@ -25,8 +26,10 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${raleway.variable} ${outfit.variable}`}>
       <body>
         <AuthProvider>
-          <Toaster />
-          {children}
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <Toaster />
+            {children}
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>
