@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { AuthProvider } from "@/app/providers";
 import { ThemeProvider } from "next-themes";
+import { UserProvider } from "@/context/UserContext";
 
 const raleway = Raleway({
   subsets: ["latin"],
@@ -27,8 +28,10 @@ export default function RootLayout({ children }) {
       <body className={`${raleway.variable} ${outfit.variable}`}>
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <Toaster />
-            {children}
+            <UserProvider>
+              <Toaster />
+              {children}
+            </UserProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

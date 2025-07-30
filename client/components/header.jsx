@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import { FaCaretDown } from "react-icons/fa";
-import { useState, useEffect } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useState } from "react";
+import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
 
 // Reusable Dropdown Component
@@ -53,36 +53,14 @@ const handleMouseLeave = () => {
 };
 
 const Header = () => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const getSession = async () => {
-      try {
-        const { data: session } = await authClient.getSession();
-        if (session) {
-          setUser(session.user);
-        }
-      } catch (error) {
-        console.error('Error checking authentication:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getSession();
-  }, []);
+  const { user, userType, isLoading, setUser } = useUser();
 
   const handleSignOut = async () => {
     try {
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            setUser(null);
-            window.location.href = '/';
-          },
-        },
-      });
+      const supabase = (await import("@/lib/supabaseClient")).getSupabaseClient();
+      await supabase.auth.signOut();
+      setUser(null);
+      window.location.href = '/';
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -108,7 +86,15 @@ const Header = () => {
         <Link href="/">Home</Link>
 
         {user && (
-          <Link href="/dashboard">Dashboard</Link>
+          (() => {
+            if (userType === 'business') {
+              return <Link href="/business">Business Dashboard</Link>;
+            } else if (userType === 'college_society' || userType === 'society') {
+              return <Link href="/society/marketplace">Dashboard</Link>;
+            } else {
+              return <Link href="/dashboard">Dashboard</Link>; // fallback
+            }
+          })()
         )}
 
         <Dropdown
@@ -142,7 +128,6 @@ const Header = () => {
           <div className="w-32 h-10 bg-gray-200 animate-pulse rounded-[4px]"></div>
         ) : user ? (
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-700">Hi, {user.name}</span>
             <Button 
               variant="outline" 
               onClick={handleSignOut}

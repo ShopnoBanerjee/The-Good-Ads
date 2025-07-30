@@ -1,71 +1,92 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { getSupabaseClient } from "@/lib/supabaseClient"
-import { API_URL } from "@/lib/constants"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
-import { Search, Filter, Building2, ArrowRight, Users, Briefcase } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabaseClient } from "@/lib/supabaseClient";
+import { API_URL } from "@/lib/constants";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import {
+  Search,
+  Filter,
+  Building2,
+  ArrowRight,
+  Users,
+  Briefcase,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export default function MarketplacePage() {
-  const router = useRouter()
-  const [projects, setProjects] = useState([])
-  const [filteredProjects, setFilteredProjects] = useState([])
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
+  const router = useRouter();
+  const [projects, setProjects] = useState([]);
+  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9); // Show 9 per page for grid
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const supabase = getSupabaseClient()
+      setLoading(true);
+      setError("");
+      const supabase = getSupabaseClient();
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await supabase.auth.getSession();
 
       if (!session) {
-        setError("Not authenticated")
-        setLoading(false)
-        return
+        setError("Not authenticated");
+        setLoading(false);
+        return;
       }
 
-      const token = session.access_token
+      const token = session.access_token;
 
       try {
-        const res = await fetch(`${API_URL}/api/marketplace-projects`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        const res = await fetch(
+          `${API_URL}/api/marketplace-projects?page=${page}&page_size=${pageSize}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (!res.ok) {
-          const err = await res.json()
-          setError(err.detail || "Failed to load projects")
+          const err = await res.json();
+          setError(err.detail || "Failed to load projects");
         } else {
-          const data = await res.json()
-          setProjects(data)
-          setFilteredProjects(data)
+          const data = await res.json();
+          setProjects(data.projects || []);
+          setTotal(data.total || 0);
         }
       } catch (err) {
-        setError("Something went wrong!")
+        setError("Something went wrong!");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchProjects()
-  }, [])
+    fetchProjects();
+  }, [page, pageSize]);
 
   useEffect(() => {
     const filtered = projects.filter(
       (project) =>
-        project.compliant_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.compliant_description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.services_required?.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
-    setFilteredProjects(filtered)
-  }, [searchTerm, projects])
+        project.compliant_name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        project.compliant_description
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        project.services_required
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase())
+    );
+    setFilteredProjects(filtered);
+  }, [searchTerm, projects]);
 
   const getInitials = (name) => {
     return (
@@ -75,8 +96,8 @@ export default function MarketplacePage() {
         .join("")
         .toUpperCase()
         .slice(0, 2) || "B"
-    )
-  }
+    );
+  };
 
   return (
     <main className="min-h-screen bg-primary">
@@ -90,11 +111,13 @@ export default function MarketplacePage() {
             </div>
             <h1 className="h1 text-white">
               Discover Amazing
-              <span className="block text-white/90">Business Opportunities</span>
+              <span className="block text-white/90">
+                Business Opportunities
+              </span>
             </h1>
             <p className="text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
-              Connect with forward-thinking businesses looking for innovative college societies to create impactful
-              collaborations
+              Connect with forward-thinking businesses looking for innovative
+              college societies to create impactful collaborations
             </p>
           </div>
         </div>
@@ -128,7 +151,9 @@ export default function MarketplacePage() {
                 <Building2 className="w-6 h-6 text-accent" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-text">{projects.length}</p>
+                <p className="text-2xl font-bold text-text">
+                  {total}
+                </p>
                 <p className="text-text-muted">Active Businesses</p>
               </div>
             </div>
@@ -167,7 +192,7 @@ export default function MarketplacePage() {
         {/* Loading State */}
         {loading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 pb-16">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: pageSize }).map((_, i) => (
               <Card key={i} className="card rounded-2xl overflow-hidden">
                 <CardContent className="p-0">
                   <Skeleton className="h-48 w-full bg-primary" />
@@ -189,66 +214,105 @@ export default function MarketplacePage() {
             <div className="w-24 h-24 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Building2 className="w-12 h-12 text-accent" />
             </div>
-            <h3 className="h3 text-text mb-2">{searchTerm ? "No businesses found" : "No businesses available yet"}</h3>
+            <h3 className="h3 text-text mb-2">
+              {searchTerm
+                ? "No businesses found"
+                : "No businesses available yet"}
+            </h3>
             <p className="text-text-muted max-w-md mx-auto">
               {searchTerm
                 ? "Try adjusting your search terms or filters to find what you're looking for."
                 : "Check back soon for new business opportunities and collaborations."}
             </p>
             {searchTerm && (
-              <Button onClick={() => setSearchTerm("")} className="btn-secondary mt-4">
+              <Button
+                onClick={() => setSearchTerm("")}
+                className="btn-secondary mt-4"
+              >
                 Clear Search
               </Button>
             )}
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 pb-16">
-            {filteredProjects.map((project, index) => (
-              <Card
-                key={project.id}
-                className="group card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              >
-                <CardContent className="p-0">
-                  {/* Card Header with Gradient */}
-                  <div className="h-32 bg-brand-gradient relative overflow-hidden">
-                    <div className="absolute inset-0 bg-black/10"></div>
-                    <div className="absolute bottom-4 left-6">
-                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white font-bold text-xl border border-white/30">
-                        {getInitials(project.compliant_name)}
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 pb-8">
+              {filteredProjects.map((project, index) => (
+                <Card
+                  key={project.id}
+                  className="group card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                >
+                  <CardContent className="p-0">
+                    {/* Card Header with Gradient */}
+                    <div className="h-32 bg-brand-gradient relative overflow-hidden">
+                      <div className="absolute inset-0 bg-black/10"></div>
+                      <div className="absolute bottom-4 left-6">
+                        <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white font-bold text-xl border border-white/30">
+                          {getInitials(project.compliant_name)}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Card Content */}
-                  <div className="p-6 space-y-4">
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold text-text group-hover:text-accent transition-colors">
-                        {project.compliant_name}
-                      </h3>
-                      <p className="text-text-muted line-clamp-3 leading-relaxed">{project.compliant_description}</p>
+                    {/* Card Content */}
+                    <div className="p-6 space-y-4">
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-bold text-text group-hover:text-accent transition-colors">
+                          {project.compliant_name}
+                        </h3>
+                        <p className="text-text-muted line-clamp-3 leading-relaxed">
+                          {project.compliant_description}
+                        </p>
+                      </div>
+
+                      {/* Services Badge */}
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-text">
+                          Services Required:
+                        </p>
+                        <Badge className="badge">
+                          {project.services_required}
+                        </Badge>
+                      </div>
+
+                      {/* Action Button */}
+                      <Button
+                        className="btn-primary w-full h-12 rounded-xl group/btn"
+                        onClick={() =>
+                          router.push(
+                            `/society/proposal?project_id=${project.id}`
+                          )
+                        }
+                      >
+                        <span>Send Proposal</span>
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                      </Button>
                     </div>
-
-                    {/* Services Badge */}
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-text">Services Required:</p>
-                      <Badge className="badge">{project.services_required}</Badge>
-                    </div>
-
-                    {/* Action Button */}
-                    <Button
-                      className="btn-primary w-full h-12 rounded-xl group/btn"
-                      onClick={() => router.push(`/society/proposal?project_id=${project.id}`)}
-                    >
-                      <span>Send Proposal</span>
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {/* Pagination Controls */}
+            <div className="flex justify-center items-center gap-4 pb-8">
+              <Button
+                className="btn-secondary"
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                Previous
+              </Button>
+              <span className="font-medium text-text">
+                Page {page} of {Math.max(1, Math.ceil(total / pageSize))}
+              </span>
+              <Button
+                className="btn-secondary"
+                disabled={page >= Math.ceil(total / pageSize)}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </>
         )}
       </div>
     </main>
-  )
+  );
 }
