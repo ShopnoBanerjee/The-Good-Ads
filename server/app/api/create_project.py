@@ -2,16 +2,48 @@ from fastapi import APIRouter, Request, Header, HTTPException, status
 from app.core.config import settings
 from app.core.security import verify_jwt
 from supabase import create_client
+from groq import AsyncGroq
 
 router = APIRouter()
 
 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
 
-# ✅ Dummy AI agent for now
-def run_ai_moderation(raw_name, raw_description):
-    # Simulate redacting sensitive info
-    safe_name = raw_name.replace("AcmeCorp", "[REDACTED]")
-    safe_description = raw_description.replace("AcmeCorp", "[REDACTED]")
+
+async def run_ai_moderation(raw_name, raw_description):
+    print("[run_ai_moderation] Called with:", raw_name, raw_description)
+    api_key = getattr(settings, "GROQ_API_KEY", None)
+    print("[run_ai_moderation] Using API key:", "SET" if api_key else "NOT SET")
+    if not api_key:
+        print("[run_ai_moderation] No API key found, returning raw values")
+        return raw_name, raw_description
+    client = AsyncGroq(api_key=api_key)
+    prompt = (
+        "Redact all sensitive information (company names, emails, phone numbers, personal names) from the following text. "
+        "Replace each with [REDACTED].\nName: " + raw_name + "\nDescription: " + raw_description
+    )
+    print("[run_ai_moderation] Prompt:", prompt)
+    response = await client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "You are a compliance assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2,
+        stream=False
+    )
+    print("[run_ai_moderation] AI response:", response)
+    ai_text = response.choices[0].message.content
+    print("[run_ai_moderation] AI text:", ai_text)
+    safe_name = raw_name
+    safe_description = raw_description
+    for line in ai_text.splitlines():
+        if line.lower().startswith("name:"):
+            safe_name = line.split(":",1)[1].strip()
+            print("[run_ai_moderation] Parsed safe_name:", safe_name)
+        elif line.lower().startswith("description:"):
+            safe_description = line.split(":",1)[1].strip()
+            print("[run_ai_moderation] Parsed safe_description:", safe_description)
+    print("[run_ai_moderation] Returning:", safe_name, safe_description)
     return safe_name, safe_description
 
 
@@ -39,7 +71,7 @@ async def create_project(request: Request, authorization: str = Header(...)):
         raise HTTPException(status_code=403, detail="Only business users can create projects")
 
     # ✅ Call AI agent
-    compliant_name, compliant_description = run_ai_moderation(raw_name, raw_description)
+    compliant_name, compliant_description = await run_ai_moderation(raw_name, raw_description)
 
     insert_resp = supabase.table("projects").insert({
         "business_id": user_id,
@@ -48,7 +80,7 @@ async def create_project(request: Request, authorization: str = Header(...)):
         "services_required": services_required,
         "compliant_name": compliant_name,
         "compliant_description": compliant_description,
-        "status": "approved"
+        "status": "published"
     }).execute()
 
     print("INSERT RESPONSE:", insert_resp)
@@ -118,3 +150,74 @@ async def get_project(project_id: str, authorization: str = Header(...)):
         raise HTTPException(status_code=403, detail="Not authorized")
 
     return resp.data
+
+@router.delete("/api/delete-project")
+async def delete_project(request: Request, authorization: str = Header(...)):
+    body = await request.json()
+    project_id = body.get("project_id")
+
+    if not project_id:
+        raise HTTPException(status_code=400, detail="Project ID is required")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    # Confirm user owns the project
+    resp = supabase.table("projects").select("business_id").eq("id", project_id).single().execute()
+    if not resp.data:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if resp.data["business_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    delete_resp = supabase.table("projects").delete().eq("id", project_id).execute()
+    if not delete_resp.data:
+        raise HTTPException(status_code=500, detail="Failed to delete project.")
+
+    return {"message": "Project deleted successfully"}
+
+@router.put("/api/edit-project")
+async def edit_project(request: Request, authorization: str = Header(...)):
+    body = await request.json()
+    project_id = body.get("project_id")
+    raw_name = body.get("name")
+    raw_description = body.get("description")
+    services_required = body.get("services_required")
+
+    if not project_id or not raw_name or not raw_description or not services_required:
+        raise HTTPException(status_code=400, detail="Missing fields")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    # Confirm user owns the project
+    resp = supabase.table("projects").select("business_id").eq("id", project_id).single().execute()
+    if not resp.data:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if resp.data["business_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Call AI agent for compliance
+    compliant_name, compliant_description = await run_ai_moderation(raw_name, raw_description)
+
+    update_resp = supabase.table("projects").update({
+        "raw_name": raw_name,
+        "raw_description": raw_description,
+        "services_required": services_required,
+        "compliant_name": compliant_name,
+        "compliant_description": compliant_description
+    }).eq("id", project_id).execute()
+
+    if not update_resp.data:
+        raise HTTPException(status_code=500, detail="Failed to update project.")
+
+    return {
+        "message": "Project updated successfully",
+        "compliant_name": compliant_name,
+        "compliant_description": compliant_description
+    }
