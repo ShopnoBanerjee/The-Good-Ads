@@ -1,0 +1,12 @@
+.venv
+__pycache__/
+*.pyc
+.env
+uv.lock
+*.sqlite3
+.mypy_cache/
+.pytest_cache/
+.coverage
+alembic/versions/
+*.log
+shopno_notes.md
