@@ -86,7 +86,7 @@ export default function AddProjectPage() {
 
       // ✅ Redirect to preview page with query params
       router.push(
-        `/dashboard/business/preview?project_id=${project_id}&compliant=${encodeURIComponent(compliant_description)}`,
+        `/business/preview?project_id=${project_id}&compliant=${encodeURIComponent(compliant_description)}`,
       )
     } catch (err) {
       setApiError(err.message)

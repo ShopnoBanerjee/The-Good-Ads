@@ -83,7 +83,7 @@ export default function ProjectPreview() {
         throw new Error(err.detail || "Could not confirm project");
       }
 
-      router.push("/dashboard/business");
+      router.push("/business");
     } catch (err) {
       setError(err.message);
     } finally {
