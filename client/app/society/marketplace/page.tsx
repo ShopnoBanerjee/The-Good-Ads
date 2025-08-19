@@ -18,19 +18,32 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
+// Type definitions
+interface Project {
+  id: number;
+  compliant_name: string;
+  compliant_description: string;
+  services_required: string;
+}
+
+interface ProjectsResponse {
+  projects: Project[];
+  total: number;
+}
+
 export default function MarketplacePage() {
   const router = useRouter();
-  const [projects, setProjects] = useState([]);
-  const [filteredProjects, setFilteredProjects] = useState([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(9); // Show 9 per page for grid
-  const [total, setTotal] = useState(0);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(9); // Show 9 per page for grid
+  const [total, setTotal] = useState<number>(0);
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchProjects = async (): Promise<void> => {
       setLoading(true);
       setError("");
       const supabase = getSupabaseClient();
@@ -58,7 +71,7 @@ export default function MarketplacePage() {
           const err = await res.json();
           setError(err.detail || "Failed to load projects");
         } else {
-          const data = await res.json();
+          const data: ProjectsResponse = await res.json();
           setProjects(data.projects || []);
           setTotal(data.total || 0);
         }
@@ -88,7 +101,7 @@ export default function MarketplacePage() {
     setFilteredProjects(filtered);
   }, [searchTerm, projects]);
 
-  const getInitials = (name) => {
+  const getInitials = (name?: string): string => {
     return (
       name
         ?.split(" ")

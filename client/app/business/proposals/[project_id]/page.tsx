@@ -28,22 +28,53 @@ import {
   MessageSquare,
 } from "lucide-react"
 
+// Type definitions
+interface Proposal {
+  id: number
+  society_id: number
+  societyName?: string
+  society_name?: string
+  contactPerson?: string
+  contact_person?: string
+  email?: string
+  phone?: string
+  instagramHandle?: string
+  pitch: string
+  teamSize?: string
+  timeline?: string
+  budget?: string
+  socialReach?: string
+  experience?: string
+  deliverables?: string
+  status?: "pending" | "accepted" | "rejected"
+}
+
+interface ProjectDetails {
+  id: number
+  compliant_name: string
+  compliant_description: string
+  services_required: string
+  status: string
+}
+
+type StatusType = "pending" | "accepted" | "rejected"
+
 export default function ProjectProposalsPage() {
   const params = useParams()
-  const project_id = params?.project_id
+  const project_id = params?.project_id as string
   const router = useRouter()
   const supabase = getSupabaseClient()
 
-  const [proposals, setProposals] = useState([])
-  const [projectDetails, setProjectDetails] = useState(null)
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [acceptingId, setAcceptingId] = useState(null)
+  const [proposals, setProposals] = useState<Proposal[]>([])
+  const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null)
+  const [error, setError] = useState<string>("")
+  const [loading, setLoading] = useState<boolean>(true)
+  const [acceptingId, setAcceptingId] = useState<number | null>(null)
 
   useEffect(() => {
     if (!project_id) return
 
-    const fetchData = async () => {
+    const fetchData = async (): Promise<void> => {
       setLoading(true)
       const {
         data: { session },
@@ -70,7 +101,7 @@ export default function ProjectProposalsPage() {
           throw new Error(err.detail || "Failed to load proposals")
         }
 
-        const proposalsData = await proposalsRes.json()
+        const proposalsData: Proposal[] = await proposalsRes.json()
         setProposals(proposalsData)
 
         // Fetch project details
@@ -81,12 +112,13 @@ export default function ProjectProposalsPage() {
         })
 
         if (projectRes.ok) {
-          const projectsData = await projectRes.json()
+          const projectsData: ProjectDetails[] = await projectRes.json()
           const project = projectsData.find((p) => p.id === Number.parseInt(project_id))
-          setProjectDetails(project)
+          setProjectDetails(project || null)
         }
       } catch (err) {
-        setError(err.message)
+        const errorMessage = err instanceof Error ? err.message : "An error occurred"
+        setError(errorMessage)
       } finally {
         setLoading(false)
       }
@@ -95,7 +127,7 @@ export default function ProjectProposalsPage() {
     fetchData()
   }, [project_id, supabase])
 
-  const handleAccept = async (proposalId) => {
+  const handleAccept = async (proposalId: number): Promise<void> => {
     setAcceptingId(proposalId)
     try {
       const {
@@ -127,16 +159,17 @@ export default function ProjectProposalsPage() {
         prev.map((proposal) => (proposal.id === proposalId ? { ...proposal, status: "accepted" } : proposal)),
       )
     } catch (err) {
-      setError(err.message)
+      const errorMessage = err instanceof Error ? err.message : "An error occurred"
+      setError(errorMessage)
       toast("Error", {
-        description: err.message,
+        description: errorMessage,
       })
     } finally {
       setAcceptingId(null)
     }
   }
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status?: StatusType) => {
     const variants = {
       pending: "bg-warning/10 text-warning border-warning/20",
       accepted: "bg-success/10 text-success border-success/20",
@@ -149,15 +182,17 @@ export default function ProjectProposalsPage() {
       rejected: <XCircle className="w-3 h-3 mr-1" />,
     }
 
+    const currentStatus = status || "pending"
+
     return (
-      <Badge className={`${variants[status] || variants.pending} capitalize font-medium flex items-center`}>
-        {icons[status] || icons.pending}
-        {status || "pending"}
+      <Badge className={`${variants[currentStatus]} capitalize font-medium flex items-center`}>
+        {icons[currentStatus]}
+        {currentStatus}
       </Badge>
     )
   }
 
-  const getInitials = (name) => {
+  const getInitials = (name?: string): string => {
     return (
       name
         ?.split(" ")
@@ -239,7 +274,7 @@ export default function ProjectProposalsPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-text mb-2">Status:</p>
-                    {getStatusBadge(projectDetails.status)}
+                    {getStatusBadge(projectDetails.status as StatusType)}
                   </div>
                 </CardContent>
               </Card>

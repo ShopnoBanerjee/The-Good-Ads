@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, ChangeEvent, FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
@@ -13,16 +13,30 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Building2, CheckCircle, Plus, FileText } from "lucide-react"
 
+// Form shape
+interface ProjectForm {
+  name: string
+  services: string
+  description: string
+}
+
+// Error shape
+interface ProjectFormErrors {
+  name?: string
+  services?: string
+  description?: string
+}
+
 export default function AddProjectPage() {
   const router = useRouter()
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ProjectForm>({
     name: "",
     services: "",
     description: "",
   })
-  const [errors, setErrors] = useState({})
-  const [loading, setLoading] = useState(false)
-  const [apiError, setApiError] = useState("")
+  const [errors, setErrors] = useState<ProjectFormErrors>({})
+  const [loading, setLoading] = useState<boolean>(false)
+  const [apiError, setApiError] = useState<string>("")
 
   // ✅ Zod schema for validation
   const schema = z.object({
@@ -31,11 +45,13 @@ export default function AddProjectPage() {
     description: z.string().min(10, "Description must be at least 10 characters"),
   })
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setErrors({})
     setApiError("")
@@ -43,10 +59,13 @@ export default function AddProjectPage() {
 
     const result = schema.safeParse(form)
     if (!result.success) {
-      const fieldErrors = {}
-      for (const [key, val] of Object.entries(result.error.format())) {
-        if (key !== "_errors") {
-          fieldErrors[key] = val._errors[0]
+      const fieldErrors: ProjectFormErrors = {}
+      // result.error.format() always returns an object: { field: { _errors: [...] }, ... }
+      const formatted = result.error.format()
+      for (const key of Object.keys(form)) {
+        const item = formatted[key as keyof ProjectForm]
+        if (item && item._errors.length > 0) {
+          fieldErrors[key as keyof ProjectForm] = item._errors[0]
         }
       }
       setErrors(fieldErrors)
@@ -82,20 +101,29 @@ export default function AddProjectPage() {
         throw new Error(err.detail || "Failed to create project")
       }
 
-      const { compliant_description, project_id } = await res.json()
+      // Expecting compliant_description & project_id from backend:
+      const { compliant_description, project_id } = (await res.json()) as {
+        compliant_description: string
+        project_id: string | number
+      }
 
       // ✅ Redirect to preview page with query params
       router.push(
-        `/business/preview?project_id=${project_id}&compliant=${encodeURIComponent(compliant_description)}`,
+        `/business/preview?project_id=${project_id}&compliant=${encodeURIComponent(
+          compliant_description
+        )}`,
       )
-    } catch (err) {
-      setApiError(err.message)
+    } catch (err: any) {
+      setApiError(err.message || "Unknown error")
     } finally {
       setLoading(false)
     }
   }
 
-  const isFormValid = form.name && form.services && form.description
+  const isFormValid =
+    !!form.name &&
+    !!form.services &&
+    !!form.description
 
   return (
     <main className="min-h-screen bg-primary">

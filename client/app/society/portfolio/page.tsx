@@ -31,6 +31,22 @@ import {
   File,
 } from "lucide-react"
 
+// Type definitions
+interface Profile {
+  id: string
+  society_name: string
+  domain: string
+  services_offered: string
+  description?: string
+  logo_url?: string
+}
+
+interface PortfolioItem {
+  id: number
+  file_path: string
+  caption: string
+}
+
 export default function SocietyPortfolioPage() {
   const { userType } = useAuth()
   const router = useRouter()
@@ -42,19 +58,19 @@ export default function SocietyPortfolioPage() {
     }
   }, [userType, router])
 
-  const [files, setFiles] = useState([])
-  const [uploading, setUploading] = useState(false)
-  const [logoUploading, setLogoUploading] = useState(false)
-  const [selectedItem, setSelectedItem] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isEditingProfile, setIsEditingProfile] = useState(false)
-  const [editedProfile, setEditedProfile] = useState({})
+  const [files, setFiles] = useState<File[]>([])
+  const [uploading, setUploading] = useState<boolean>(false)
+  const [logoUploading, setLogoUploading] = useState<boolean>(false)
+  const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+  const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false)
+  const [editedProfile, setEditedProfile] = useState<Partial<Profile>>({})
   const supabase = getSupabaseClient()
-  const [profile, setProfile] = useState(null)
-  const [items, setItems] = useState([])
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [items, setItems] = useState<PortfolioItem[]>([])
 
   useEffect(() => {
-    const loadProfileAndPortfolio = async () => {
+    const loadProfileAndPortfolio = async (): Promise<void> => {
       const {
         data: { session },
       } = await supabase.auth.getSession()
@@ -77,20 +93,20 @@ export default function SocietyPortfolioPage() {
         headers: { Authorization: `Bearer ${session.access_token}` },
       })
       if (res.ok) {
-        const data = await res.json()
+        const data: PortfolioItem[] = await res.json()
         setItems(data)
       }
     }
 
     loadProfileAndPortfolio()
-  }, [])
+  }, [supabase])
 
-  const handleFilesChange = (e) => {
-    const selected = Array.from(e.target.files)
+  const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const selected = Array.from(e.target.files || [])
     setFiles(selected)
   }
 
-  const handleLogoClick = () => {
+  const handleLogoClick = (): void => {
     const input = document.createElement("input")
     input.type = "file"
     input.accept = "image/*"
@@ -98,8 +114,9 @@ export default function SocietyPortfolioPage() {
     input.click()
   }
 
-  const handleLogoUpload = async (e) => {
-    const file = e.target.files[0]
+  const handleLogoUpload = async (e: Event): Promise<void> => {
+    const target = e.target as HTMLInputElement
+    const file = target.files?.[0]
     if (!file) return
 
     setLogoUploading(true)
@@ -126,17 +143,18 @@ export default function SocietyPortfolioPage() {
       }
 
       const data = await res.json()
-      setProfile({ ...profile, logo_url: data.logo_url })
+      setProfile({ ...profile!, logo_url: data.logo_url })
       alert("Logo updated!")
     } catch (err) {
       console.error(err)
-      alert(err.message)
+      const errorMessage = err instanceof Error ? err.message : "An error occurred"
+      alert(errorMessage)
     } finally {
       setLogoUploading(false)
     }
   }
 
-  const handleUpload = async () => {
+  const handleUpload = async (): Promise<void> => {
     if (!profile?.id) {
       alert("Society profile missing or not signed in.")
       return
@@ -174,25 +192,27 @@ export default function SocietyPortfolioPage() {
       }
 
       setFiles([])
-      document.getElementById("file-upload").value = ""
+      const fileInput = document.getElementById("file-upload") as HTMLInputElement
+      if (fileInput) fileInput.value = ""
 
       const res = await fetch(`${API_URL}/api/get-portfolio`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       })
       if (res.ok) {
-        const data = await res.json()
+        const data: PortfolioItem[] = await res.json()
         setItems(data)
       }
       alert("Upload complete!")
     } catch (err) {
       console.error(err)
-      alert("Upload failed: " + err.message)
+      const errorMessage = err instanceof Error ? err.message : "An error occurred"
+      alert("Upload failed: " + errorMessage)
     } finally {
       setUploading(false)
     }
   }
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = async (): Promise<void> => {
     try {
       const {
         data: { session },
@@ -203,28 +223,29 @@ export default function SocietyPortfolioPage() {
 
       if (error) throw error
 
-      setProfile(editedProfile)
+      setProfile(editedProfile as Profile)
       setIsEditingProfile(false)
       alert("Profile updated!")
     } catch (err) {
       console.error(err)
-      alert("Failed to update profile: " + err.message)
+      const errorMessage = err instanceof Error ? err.message : "An error occurred"
+      alert("Failed to update profile: " + errorMessage)
     }
   }
 
-  const getFileIcon = (ext) => {
+  const getFileIcon = (ext: string) => {
     if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return ImageIcon
     if (["mp4", "mov", "avi", "webm"].includes(ext)) return Video
     return File
   }
 
-  const getFileTypeLabel = (ext) => {
+  const getFileTypeLabel = (ext: string): string => {
     if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return "Image"
     if (["mp4", "mov", "avi", "webm"].includes(ext)) return "Video"
     return ext.toUpperCase()
   }
 
-  const getRandomGradient = (index) => {
+  const getRandomGradient = (index: number): string => {
     const gradients = [
       "from-primary to-accent",
       "from-accent to-secondary",
@@ -235,12 +256,12 @@ export default function SocietyPortfolioPage() {
     return gradients[index % gradients.length]
   }
 
-  const openModal = (item) => {
+  const openModal = (item: PortfolioItem): void => {
     setSelectedItem(item)
     setIsModalOpen(true)
   }
 
-  const closeModal = () => {
+  const closeModal = (): void => {
     setIsModalOpen(false)
     setSelectedItem(null)
   }
@@ -426,7 +447,7 @@ export default function SocietyPortfolioPage() {
                     className="hidden"
                   />
                   <Button
-                    onClick={() => document.getElementById("file-upload").click()}
+                    onClick={() => document.getElementById("file-upload")?.click()}
                     variant="outline"
                     className="border-dashed border-2 border-accent/30 text-accent hover:bg-accent/10 hover:border-accent"
                   >
@@ -476,7 +497,8 @@ export default function SocietyPortfolioPage() {
                   size="sm"
                   onClick={() => {
                     setFiles([])
-                    document.getElementById("file-upload").value = ""
+                    const fileInput = document.getElementById("file-upload") as HTMLInputElement
+                    if (fileInput) fileInput.value = ""
                   }}
                   className="text-accent hover:text-accent-hover hover:bg-accent/10"
                 >
@@ -485,7 +507,7 @@ export default function SocietyPortfolioPage() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
                 {files.map((file, idx) => {
-                  const ext = file.name.split(".").pop().toLowerCase()
+                  const ext = file.name.split(".").pop()?.toLowerCase() || ""
                   const FileIcon = getFileIcon(ext)
 
                   return (
@@ -523,7 +545,7 @@ export default function SocietyPortfolioPage() {
                 achievements.
               </p>
               <Button
-                onClick={() => document.getElementById("file-upload").click()}
+                onClick={() => document.getElementById("file-upload")?.click()}
                 className="bg-gradient-to-r from-accent to-secondary hover:from-accent-hover hover:to-secondary text-white px-8 py-3 rounded-xl"
               >
                 <Upload className="w-5 h-5 mr-2" />
@@ -535,7 +557,7 @@ export default function SocietyPortfolioPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {items.map((item, index) => {
               const url = supabase.storage.from("society-portfolio").getPublicUrl(item.file_path).data.publicUrl
-              const ext = item.file_path.split(".").pop().toLowerCase()
+              const ext = item.file_path.split(".").pop()?.toLowerCase() || ""
               const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext)
               const isVideo = ["mp4", "mov", "avi", "webm"].includes(ext)
               const FileIcon = getFileIcon(ext)
@@ -632,7 +654,7 @@ export default function SocietyPortfolioPage() {
                   {(() => {
                     const url = supabase.storage.from("society-portfolio").getPublicUrl(selectedItem.file_path)
                       .data.publicUrl
-                    const ext = selectedItem.file_path.split(".").pop().toLowerCase()
+                    const ext = selectedItem.file_path.split(".").pop()?.toLowerCase() || ""
                     const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext)
                     const isVideo = ["mp4", "mov", "avi", "webm"].includes(ext)
 
