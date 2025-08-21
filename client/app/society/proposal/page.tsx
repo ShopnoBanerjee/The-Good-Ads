@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, ChangeEvent, FormEvent, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
@@ -24,14 +24,39 @@ import {
   Building2,
 } from "lucide-react"
 
-export default function SendProposalPage() {
+// Types
+interface FormData {
+  societyName: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  pitch: string;
+  teamSize: string;
+  timeline: string;
+  budget: string;
+  experience: string;
+  deliverables: string;
+  socialReach: string;
+  instagramHandle: string;
+  previousWork: string;
+}
+
+interface ProjectDetails {
+  id: number;
+  compliant_name: string;
+  compliant_description: string;
+  services_required: string;
+}
+
+// Separate component that uses useSearchParams
+function SendProposalContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const projectId = searchParams.get("project_id")
   const supabase = getSupabaseClient()
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     societyName: "",
     contactPerson: "",
     email: "",
@@ -47,13 +72,13 @@ export default function SendProposalPage() {
     previousWork: "",
   })
 
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [projectDetails, setProjectDetails] = useState(null)
+  const [error, setError] = useState<string>("")
+  const [loading, setLoading] = useState<boolean>(false)
+  const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null)
 
   // Fetch project details
   useEffect(() => {
-    const fetchProjectDetails = async () => {
+    const fetchProjectDetails = async (): Promise<void> => {
       if (!projectId) return
 
       try {
@@ -68,9 +93,11 @@ export default function SendProposalPage() {
         })
 
         if (res.ok) {
-          const projects = await res.json()
-          const project = projects.find((p) => p.id === Number.parseInt(projectId))
-          setProjectDetails(project)
+          const projects: ProjectDetails[] = await res.json()
+          const project = projects.find((p: ProjectDetails) => p.id === Number.parseInt(projectId))
+          if (project) {
+            setProjectDetails(project)
+          }
         }
       } catch (err) {
         console.error("Failed to fetch project details:", err)
@@ -80,11 +107,11 @@ export default function SendProposalPage() {
     fetchProjectDetails()
   }, [projectId, supabase])
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof FormData, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError("")
     setLoading(true)
@@ -114,7 +141,7 @@ export default function SendProposalPage() {
       }
 
       router.push("/dashboard/society/marketplace")
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message)
     } finally {
       setLoading(false)
@@ -220,7 +247,7 @@ export default function SendProposalPage() {
                         <Input
                           id="societyName"
                           value={formData.societyName}
-                          onChange={(e) => handleInputChange("societyName", e.target.value)}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("societyName", e.target.value)}
                           placeholder="e.g., Marketing Society"
                           className="h-12 border-primary/20 focus:border-accent focus:ring-accent bg-primary text-white"
                           required
@@ -234,7 +261,7 @@ export default function SendProposalPage() {
                         <Input
                           id="contactPerson"
                           value={formData.contactPerson}
-                          onChange={(e) => handleInputChange("contactPerson", e.target.value)}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("contactPerson", e.target.value)}
                           placeholder="Your full name"
                           className="h-12 border-primary/20 focus:border-accent focus:ring-accent bg-primary text-white"
                           required
@@ -249,7 +276,7 @@ export default function SendProposalPage() {
                           id="email"
                           type="email"
                           value={formData.email}
-                          onChange={(e) => handleInputChange("email", e.target.value)}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("email", e.target.value)}
                           placeholder="your.email@university.edu"
                           className="h-12 border-primary/20 focus:border-accent focus:ring-accent bg-primary text-white"
                           required
@@ -263,7 +290,7 @@ export default function SendProposalPage() {
                         <Input
                           id="phone"
                           value={formData.phone}
-                          onChange={(e) => handleInputChange("phone", e.target.value)}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("phone", e.target.value)}
                           placeholder="+1 (555) 123-4567"
                           className="h-12 border-primary/20 focus:border-accent focus:ring-accent bg-primary text-white"
                         />
@@ -289,7 +316,7 @@ export default function SendProposalPage() {
                       <Textarea
                         id="pitch"
                         value={formData.pitch}
-                        onChange={(e) => handleInputChange("pitch", e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleInputChange("pitch", e.target.value)}
                         placeholder="Describe why your society is the perfect fit for this project. Include your unique approach, relevant experience, and what value you'll bring..."
                         className="min-h-32 border-primary/20 focus:border-accent focus:ring-accent resize-none bg-primary text-white"
                         required
@@ -303,7 +330,7 @@ export default function SendProposalPage() {
                       <Textarea
                         id="deliverables"
                         value={formData.deliverables}
-                        onChange={(e) => handleInputChange("deliverables", e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleInputChange("deliverables", e.target.value)}
                         placeholder="List the specific outcomes and deliverables you'll provide (e.g., social media content, event organization, marketing campaigns...)"
                         className="min-h-24 border-primary/20 focus:border-accent focus:ring-accent resize-none bg-primary text-white"
                       />
@@ -318,7 +345,7 @@ export default function SendProposalPage() {
                         <Input
                           id="teamSize"
                           value={formData.teamSize}
-                          onChange={(e) => handleInputChange("teamSize", e.target.value)}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("teamSize", e.target.value)}
                           placeholder="e.g., 5-8 members"
                           className="h-12 border-primary/20 focus:border-accent focus:ring-accent bg-primary text-white"
                         />
@@ -332,7 +359,7 @@ export default function SendProposalPage() {
                         <Input
                           id="timeline"
                           value={formData.timeline}
-                          onChange={(e) => handleInputChange("timeline", e.target.value)}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("timeline", e.target.value)}
                           placeholder="e.g., 2-3 weeks"
                           className="h-12 border-primary/20 focus:border-accent focus:ring-accent bg-primary text-white"
                         />
@@ -346,7 +373,7 @@ export default function SendProposalPage() {
                         <Input
                           id="budget"
                           value={formData.budget}
-                          onChange={(e) => handleInputChange("budget", e.target.value)}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("budget", e.target.value)}
                           placeholder="e.g., $500-1000"
                           className="h-12 border-primary/20 focus:border-accent focus:ring-accent bg-primary text-white"
                         />
@@ -372,7 +399,7 @@ export default function SendProposalPage() {
                       <Textarea
                         id="experience"
                         value={formData.experience}
-                        onChange={(e) => handleInputChange("experience", e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleInputChange("experience", e.target.value)}
                         placeholder="Describe your society's relevant experience, past projects, achievements, or similar collaborations..."
                         className="min-h-24 border-primary/20 focus:border-accent focus:ring-accent resize-none bg-primary text-white"
                       />
@@ -386,7 +413,7 @@ export default function SendProposalPage() {
                         <Input
                           id="socialReach"
                           value={formData.socialReach}
-                          onChange={(e) => handleInputChange("socialReach", e.target.value)}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("socialReach", e.target.value)}
                           placeholder="e.g., 5K Instagram, 2K LinkedIn"
                           className="h-12 border-primary/20 focus:border-accent focus:ring-accent bg-primary text-white"
                         />
@@ -400,7 +427,7 @@ export default function SendProposalPage() {
                         <Input
                           id="instagramHandle"
                           value={formData.instagramHandle}
-                          onChange={(e) => handleInputChange("instagramHandle", e.target.value)}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("instagramHandle", e.target.value)}
                           placeholder="@yoursociety"
                           className="h-12 border-primary/20 focus:border-accent focus:ring-accent bg-primary text-white"
                         />
@@ -414,7 +441,7 @@ export default function SendProposalPage() {
                       <Input
                         id="previousWork"
                         value={formData.previousWork}
-                        onChange={(e) => handleInputChange("previousWork", e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("previousWork", e.target.value)}
                         placeholder="Links to your portfolio, previous campaigns, or work samples"
                         className="h-12 border-primary/20 focus:border-accent focus:ring-accent bg-primary text-white"
                       />
@@ -454,5 +481,14 @@ export default function SendProposalPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+// Main component that wraps the content in Suspense
+export default function SendProposalPage() {
+  return (
+    <Suspense fallback={<div className="p-6 min-h-screen flex items-center justify-center">Loading Form...</div>}>
+      <SendProposalContent />
+    </Suspense>
   )
 }

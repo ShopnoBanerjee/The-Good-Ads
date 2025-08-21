@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { API_URL } from "../../lib/constants";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Building2, Users, Phone, Globe, Briefcase, CheckCircle, AlertCircle, Loader2, LucideIcon } from "lucide-react";
 import { z } from "zod";
-import { useAuth } from "@/app/providers"; // <-- import useAuth
+import { useAuth } from "@/app/providers";
 
 interface FormData {
   businessName: string;
@@ -33,7 +33,8 @@ interface FormFieldProps {
   required?: boolean;
 }
 
-export default function RegisterPage() {
+// Separate component that uses useSearchParams
+function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userType = searchParams.get("userType") || "business";
@@ -375,5 +376,21 @@ export default function RegisterPage() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+// Main component that wraps the content in Suspense
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+          <span className="text-blue-600 font-medium">Loading registration form...</span>
+        </div>
+      </main>
+    }>
+      <RegisterPageContent />
+    </Suspense>
   );
 }
