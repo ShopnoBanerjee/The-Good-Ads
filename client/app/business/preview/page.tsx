@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/constants";
@@ -15,7 +15,8 @@ interface Project {
   compliant_description: string;
 }
 
-export default function ProjectPreview() {
+// Separate component that uses useSearchParams
+function ProjectPreviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("project_id");
@@ -228,5 +229,21 @@ export default function ProjectPreview() {
         </Card>
       </div>
     </main>
+  );
+}
+
+// Main component that wraps the content in Suspense
+export default function ProjectPreview() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="w-6 h-6 border-2 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin" />
+          <span className="text-gray-600 dark:text-gray-300 font-medium">Loading project preview...</span>
+        </div>
+      </main>
+    }>
+      <ProjectPreviewContent />
+    </Suspense>
   );
 }
