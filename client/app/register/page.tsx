@@ -156,7 +156,7 @@ function RegisterPageContent() {
 
       setSuccess(true);
       setTimeout(() => {
-        router.push(userType === "business" ? "/dashboard/business" : "/dashboard/society");
+        router.push(userType === "business" ? "/business" : "/society");
       }, 1200);
     } catch (err: any) {
       setError(err.message);
