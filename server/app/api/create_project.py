@@ -80,7 +80,7 @@ async def create_project(request: Request, authorization: str = Header(...)):
         "services_required": services_required,
         "compliant_name": compliant_name,
         "compliant_description": compliant_description,
-        "status": "published"
+        "status": "pending_review"
     }).execute()
 
     print("INSERT RESPONSE:", insert_resp)
@@ -102,35 +102,54 @@ async def confirm_project(request: Request, authorization: str = Header(...)):
     body = await request.json()
     project_id = body.get("project_id")
 
+    print(f"[confirm-project] Received request with project_id: {project_id}")
+
     if not project_id:
+        print("[confirm-project] ERROR: Project ID is missing")
         raise HTTPException(status_code=400, detail="Project ID is required")
 
     if not authorization.startswith("Bearer "):
+        print("[confirm-project] ERROR: Missing Bearer token")
         raise HTTPException(status_code=401, detail="Missing Bearer token")
 
     token = authorization.split(" ")[1]
     user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+    print(f"[confirm-project] User ID from JWT: {user_id}")
 
     # ✅ Fetch the project
     resp = supabase.table("projects").select("*").eq("id", project_id).single().execute()
     if not resp.data:
+        print(f"[confirm-project] ERROR: Project not found with ID: {project_id}")
         raise HTTPException(status_code=404, detail="Project not found")
 
     project = resp.data
+    print(f"[confirm-project] Project found: {project}")
+    print(f"[confirm-project] Project status: {project.get('status')}")
+    print(f"[confirm-project] Project business_id: {project.get('business_id')}")
 
     if project["business_id"] != user_id:
+        print(f"[confirm-project] ERROR: User {user_id} not authorized for project owned by {project['business_id']}")
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    if project["status"] not in ["approved", "pending_review"]:
+    if project["status"] not in ["approved", "pending_review", "published"]:
+        print(f"[confirm-project] ERROR: Invalid project status '{project['status']}' for confirmation")
         raise HTTPException(status_code=400, detail="Project cannot be confirmed in current state")
 
+    # If already published, just return success
+    if project["status"] == "published":
+        print("[confirm-project] SUCCESS: Project is already published")
+        return {"message": "Project is already published"}
+
+    print("[confirm-project] Updating project status to published")
     update = supabase.table("projects").update({
         "status": "published"
     }).eq("id", project_id).execute()
 
     if not update.data:
+        print("[confirm-project] ERROR: Failed to update project status")
         raise HTTPException(status_code=500, detail="Failed to update project status.")
 
+    print("[confirm-project] SUCCESS: Project published successfully")
     return {"message": "Project published successfully"}
 
 @router.get("/api/get-project")

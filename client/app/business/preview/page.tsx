@@ -13,6 +13,7 @@ import { ArrowLeft, CheckCircle, Eye, FileText } from "lucide-react";
 interface Project {
   compliant_name: string;
   compliant_description: string;
+  services_required: string;
 }
 
 // Separate component that uses useSearchParams
@@ -188,6 +189,16 @@ function ProjectPreviewContent() {
                   <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                       <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3" />
+                      Services Required
+                    </h3>
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed pl-5">
+                      {project.services_required}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                      <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3" />
                       Project Description
                     </h3>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed pl-5 whitespace-pre-line">
@@ -200,7 +211,7 @@ function ProjectPreviewContent() {
                 <div className="flex flex-col sm:flex-row gap-4 pt-6">
                   <Button
                     variant="outline"
-                    onClick={() => router.back()}
+                    onClick={() => router.push(`/business/add-project?project_id=${projectId}`)}
                     className="flex-1 h-12 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 bg-white dark:bg-slate-800"
                   >
                     Go Back & Edit
