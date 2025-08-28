@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, ChangeEvent, FormEvent, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, ChangeEvent, FormEvent, useEffect, Suspense } from "react"
+import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
 import { z } from "zod"
@@ -35,10 +35,53 @@ interface Project {
   services_required: string
 }
 
-export default function AddProjectPage() {
+// Loading fallback component
+function AddProjectFallback() {
+  return (
+    <main className="min-h-screen bg-primary">
+      <div className="bg-brand-gradient text-white">
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="space-y-4">
+            <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
+              <Plus className="w-4 h-4" />
+              <span>Loading...</span>
+            </div>
+            <h1 className="h1 text-white">
+              Loading Project Form
+            </h1>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-4xl mx-auto px-6 -mt-8 relative z-10 pb-16">
+        <Card className="card rounded-2xl shadow-xl">
+          <CardContent className="p-8">
+            <div className="animate-pulse space-y-6">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
+              <div className="h-12 bg-gray-200 rounded"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
+  )
+}
+
+// Component that uses useSearchParams - wrapped in Suspense
+function AddProjectForm() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const projectId = searchParams.get("project_id")
+  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null)
+
+  // Initialize searchParams on client side
+  useEffect(() => {
+    // This will only run on the client
+    const url = new URL(window.location.href)
+    setSearchParams(url.searchParams)
+  }, [])
+
+  const projectId = searchParams?.get("project_id")
 
   const [form, setForm] = useState<ProjectForm>({
     name: "",
@@ -234,7 +277,7 @@ export default function AddProjectPage() {
               <span className="block text-white/90">Business Project</span>
             </h1>
             <p className="text-xl text-white/80 max-w-2xl leading-relaxed">
-              {isEditMode 
+              {isEditMode
                 ? 'Update your project details and review changes before publishing'
                 : 'Post your project to connect with talented college societies and receive innovative proposals'
               }
@@ -358,5 +401,14 @@ export default function AddProjectPage() {
         </Card>
       </div>
     </main>
+  )
+}
+
+// Main page component with Suspense boundary
+export default function AddProjectPage() {
+  return (
+    <Suspense fallback={<AddProjectFallback />}>
+      <AddProjectForm />
+    </Suspense>
   )
 }
