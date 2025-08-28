@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, ChangeEvent, FormEvent } from "react"
-import { useRouter } from "next/navigation"
+import { useState, ChangeEvent, FormEvent, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
 import { z } from "zod"
@@ -27,8 +27,19 @@ interface ProjectFormErrors {
   description?: string
 }
 
+// Project interface for edit mode
+interface Project {
+  id: string
+  raw_name: string
+  raw_description: string
+  services_required: string
+}
+
 export default function AddProjectPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const projectId = searchParams.get("project_id")
+
   const [form, setForm] = useState<ProjectForm>({
     name: "",
     services: "",
@@ -37,6 +48,8 @@ export default function AddProjectPage() {
   const [errors, setErrors] = useState<ProjectFormErrors>({})
   const [loading, setLoading] = useState<boolean>(false)
   const [apiError, setApiError] = useState<string>("")
+  const [isEditMode, setIsEditMode] = useState<boolean>(false)
+  const [currentProject, setCurrentProject] = useState<Project | null>(null)
 
   // ✅ Zod schema for validation
   const schema = z.object({
@@ -44,6 +57,52 @@ export default function AddProjectPage() {
     services: z.string().min(2, "Services required is required"),
     description: z.string().min(10, "Description must be at least 10 characters"),
   })
+
+  // ✅ Fetch project data if in edit mode
+  useEffect(() => {
+    if (projectId) {
+      setIsEditMode(true)
+      fetchProjectForEdit()
+    }
+  }, [projectId])
+
+  const fetchProjectForEdit = async () => {
+    if (!projectId) return
+
+    try {
+      const supabase = getSupabaseClient()
+      const {
+        data: { session },
+        error: supabaseError,
+      } = await supabase.auth.getSession()
+
+      if (supabaseError || !session) throw new Error("Not authenticated")
+
+      const token = session.access_token
+      const res = await fetch(`${API_URL}/api/get-project?project_id=${projectId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.detail || "Failed to load project")
+      }
+
+      const project: Project = await res.json()
+      setCurrentProject(project)
+
+      // Populate form with existing data
+      setForm({
+        name: project.raw_name,
+        services: project.services_required,
+        description: project.raw_description,
+      })
+    } catch (err: any) {
+      setApiError(err.message || "Failed to load project for editing")
+    }
+  }
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -83,36 +142,59 @@ export default function AddProjectPage() {
       if (supabaseError || !session) throw new Error("Not authenticated")
 
       const token = session.access_token
-      const res = await fetch(`${API_URL}/api/create-project`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: form.name,
-          services_required: form.services,
-          description: form.description,
-        }),
-      })
+
+      let res: Response
+      let requestBody: any
+
+      if (isEditMode && currentProject) {
+        // Edit mode - call edit API
+        res = await fetch(`${API_URL}/api/edit-project`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            project_id: currentProject.id,
+            name: form.name,
+            services_required: form.services,
+            description: form.description,
+          }),
+        })
+      } else {
+        // Create mode - call create API
+        res = await fetch(`${API_URL}/api/create-project`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: form.name,
+            services_required: form.services,
+            description: form.description,
+          }),
+        })
+      }
 
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.detail || "Failed to create project")
+        throw new Error(err.detail || `Failed to ${isEditMode ? 'update' : 'create'} project`)
       }
 
-      // Expecting compliant_description & project_id from backend:
-      const { compliant_description, project_id } = (await res.json()) as {
-        compliant_description: string
-        project_id: string | number
-      }
+      const responseData = await res.json()
 
-      // ✅ Redirect to preview page with query params
-      router.push(
-        `/business/preview?project_id=${project_id}&compliant=${encodeURIComponent(
-          compliant_description
-        )}`,
-      )
+      if (isEditMode) {
+        // For edit, redirect back to preview with updated data
+        router.push(
+          `/business/preview?project_id=${currentProject!.id}&compliant=${encodeURIComponent(responseData.compliant_description)}`,
+        )
+      } else {
+        // For create, redirect to preview with new project data
+        router.push(
+          `/business/preview?project_id=${responseData.project_id}&compliant=${encodeURIComponent(responseData.compliant_description)}`,
+        )
+      }
     } catch (err: any) {
       setApiError(err.message || "Unknown error")
     } finally {
@@ -145,14 +227,17 @@ export default function AddProjectPage() {
           <div className="space-y-4">
             <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
               <Plus className="w-4 h-4" />
-              <span>Create Project</span>
+              <span>{isEditMode ? 'Edit Project' : 'Create Project'}</span>
             </div>
             <h1 className="h1 text-white">
-              Create New
+              {isEditMode ? 'Edit' : 'Create New'}
               <span className="block text-white/90">Business Project</span>
             </h1>
             <p className="text-xl text-white/80 max-w-2xl leading-relaxed">
-              Post your project to connect with talented college societies and receive innovative proposals
+              {isEditMode 
+                ? 'Update your project details and review changes before publishing'
+                : 'Post your project to connect with talented college societies and receive innovative proposals'
+              }
             </p>
           </div>
         </div>
@@ -252,12 +337,12 @@ export default function AddProjectPage() {
                   {loading ? (
                     <div className="flex items-center space-x-2">
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Creating Project...</span>
+                      <span>{isEditMode ? 'Updating Project...' : 'Creating Project...'}</span>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                      <span>Create Project</span>
+                      <span>{isEditMode ? 'Update Project' : 'Create Project'}</span>
                     </div>
                   )}
                 </Button>
