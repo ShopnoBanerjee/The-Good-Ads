@@ -1,0 +1,1 @@
+export { supabase as authClient } from './supabaseClient';

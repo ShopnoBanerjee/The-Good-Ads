@@ -1,52 +1,38 @@
-```plaintext
-good_ads_backend/
-├── app/
-│   ├── api/                 # API route handlers (CRUD endpoints)
-│   │   ├── v1/
-│   │   │   ├── endpoints/
-│   │   │   │   └── societies.py
-│   │   │   └── __init__.py
-│   │   └── __init__.py
-│   ├── core/                # Configuration, environment variables
-│   │   └── config.py
-│   ├── models/              # SQLAlchemy ORM models
-│   │   └── society.py
-│   ├── schemas/             # Pydantic schemas (request and response models)
-│   │   └── society.py
-│   ├── crud/                # Database operations (CRUD functions)
-│   │   └── society.py
-│   ├── db/                  # Database session, connection, migrations
-│   │   ├── base.py
-│   │   ├── session.py
-│   │   └── init_db.py
-│   ├── main.py              # FastAPI app instance
-│   └── __init__.py
-├── alembic/                 # For database migrations
-├── tests/                   # Test cases
-│   └── test_societies.py
-├── .env                     # Environment variables (DB URL, SECRET_KEY, etc.)
-├── requirements.txt         # Python dependencies
-├── Dockerfile               # (for production dockerizing)
-├── docker-compose.yml       # ( using Docker Compose)
-└── README.md                # Project documentation
-```
+# The Good Ads Backend (Supabase Auth)
 
+## Setup
 
+1. Copy `.env.example` to `.env` and fill in:
+   - `SUPABASE_URL` (from Supabase Project Settings)
+   - `SUPABASE_SERVICE_ROLE_KEY` (from Supabase Project Settings → API)
+   - `SUPABASE_JWT_SECRET` (from Supabase Project Settings → API → JWT Secret)
 
-| Folder/File      | Purpose                                                         |
-| ---------------- | --------------------------------------------------------------- |
-| `app/api/`     | All your API routes (endpoints for societies, maybe later auth) |
-| `app/core/`    | Configuration: database settings, secret keys, etc.             |
-| `app/models/`  | Database ORM models using SQLAlchemy                            |
-| `app/schemas/` | Pydantic models for request and response bodies                 |
-| `app/crud/`    | Functions that directly interact with the DB                    |
-| `app/db/`      | Database session setup and base classes                         |
-| `alembic/`     | Auto-manage database migrations                                 |
-| `tests/`       | Test cases for APIs                                             |
-| `.env`         | Secrets (like DB URL, secret keys, etc.)                        |
-| `main.py`      | Launches the FastAPI app                                        |
+2. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
 
+3. Run the server:
+   ```
+   uvicorn app.main:app --reload
+   ```
 
+## Endpoint
 
-DB Session management
-client -> FastAPI -> Depends(get_db) -> creates session -> uses -> closes after
+- **POST `/api/post-login`**
+  - Expects JSON: `{ "userType": "business" | "college_society" }`
+  - Requires header: `Authorization: Bearer <SUPABASE_ACCESS_TOKEN>`
+  - Upserts the user's profile in Supabase.
+
+## Security
+
+- The backend verifies the Supabase JWT using your project's JWT secret.
+- Only valid, logged-in Supabase users can update their profile.
+
+## What to Delete
+
+- All old `better-auth` files, configs, and Pool/db setup are now unused and can be deleted.
+
+## How to get your Supabase JWT secret
+
+- Go to your Supabase project → Settings → API → JWT Secret.
