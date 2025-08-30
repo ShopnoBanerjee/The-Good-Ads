@@ -140,7 +140,7 @@ function SendProposalContent() {
         throw new Error(err.detail || "Proposal failed")
       }
 
-      router.push("/dashboard/society/marketplace")
+      router.push("/society/marketplace")
     } catch (err: any) {
       setError(err.message)
     } finally {
