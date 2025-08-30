@@ -18,7 +18,8 @@ import {
   User,
   FileText,
   Image,
-  Download
+  Download,
+  Loader2
 } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
@@ -31,6 +32,7 @@ interface Message {
   message_type: string
   created_at: string
   is_read: boolean
+  status?: 'sending' | 'sent' | 'delivered' | 'read'
   message_attachments?: Attachment[]
 }
 
@@ -61,15 +63,45 @@ export function ChatInterface({
   const [isTyping, setIsTyping] = useState(false)
   const [isOnline, setIsOnline] = useState(false)
   const [ws, setWs] = useState<WebSocket | null>(null)
+  const [isConnected, setIsConnected] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [offset, setOffset] = useState(0)
   const [hasMore, setHasMore] = useState(true)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [currentUserTyping, setCurrentUserTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const supabase = getSupabaseClient()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  const handleTyping = () => {
+    if (!currentUserTyping && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "typing_start" }))
+      setCurrentUserTyping(true)
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+
+    // Set new timeout to stop typing indicator
+    typingTimeoutRef.current = setTimeout(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "typing_stop" }))
+      }
+      setCurrentUserTyping(false)
+    }, 1000)
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value)
+    handleTyping()
   }
 
   useEffect(() => {
@@ -83,6 +115,9 @@ export function ChatInterface({
     return () => {
       if (ws) {
         ws.close()
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
       }
     }
   }, [conversationId])
@@ -134,6 +169,7 @@ export function ChatInterface({
       // Send authorization header as first message
       websocket.onopen = () => {
         console.log("WebSocket connected")
+        setIsConnected(true)
         websocket.send(JSON.stringify({
           type: "auth",
           token: session.access_token
@@ -146,19 +182,36 @@ export function ChatInterface({
 
         if (data.type === "new_message") {
           setMessages(prev => {
+            // Check if this is a response to our own message
+            const tempMessageIndex = prev.findIndex(m => m.id.startsWith('temp-') && m.content === data.message.content && m.sender_id === currentUserId)
+            if (tempMessageIndex !== -1) {
+              // Replace the temporary message with the real one
+              const newMessages = [...prev]
+              newMessages[tempMessageIndex] = { ...data.message, status: 'sent' as const }
+              return newMessages
+            }
+
+            // Check if message already exists
             const exists = prev.find(m => m.id === data.message.id)
             if (exists) return prev
+
             return [...prev, data.message]
           })
-        } else if (data.type === "typing") {
-          setIsTyping(data.is_typing)
+        } else if (data.type === "typing_start") {
+          setIsTyping(true)
+        } else if (data.type === "typing_stop") {
+          setIsTyping(false)
         } else if (data.type === "user_left") {
           setIsOnline(false)
+          setIsTyping(false)
+        } else if (data.type === "user_joined") {
+          setIsOnline(true)
         }
       }
 
       websocket.onclose = () => {
         console.log("WebSocket disconnected")
+        setIsConnected(false)
         setWs(null)
         // Attempt to reconnect after 5 seconds
         setTimeout(connectWebSocket, 5000)
@@ -175,6 +228,18 @@ export function ChatInterface({
   const sendMessage = async () => {
     if (!newMessage.trim() || isSending) return
 
+    const tempMessage: Message = {
+      id: `temp-${Date.now()}`,
+      conversation_id: conversationId,
+      sender_id: currentUserId,
+      content: newMessage,
+      message_type: "text",
+      created_at: new Date().toISOString(),
+      is_read: false,
+      status: 'sending'
+    }
+
+    setMessages(prev => [...prev, tempMessage])
     setIsSending(true)
 
     try {
@@ -188,6 +253,14 @@ export function ChatInterface({
           content: newMessage,
           message_type: "text"
         }))
+
+        // Clear input immediately
+        setNewMessage("")
+
+        // Update status to sent
+        setMessages(prev => prev.map(msg =>
+          msg.id === tempMessage.id ? { ...msg, status: 'sent' as const } : msg
+        ))
       } else {
         // Fallback to HTTP
         const response = await fetch(`${API_URL}/api/chat/messages`, {
@@ -205,12 +278,20 @@ export function ChatInterface({
 
         if (response.ok) {
           const message = await response.json()
-          setMessages(prev => [...prev, message])
+          // Replace temp message with real message
+          setMessages(prev => prev.map(msg =>
+            msg.id === tempMessage.id ? { ...message, status: 'sent' as const } : msg
+          ))
+        } else {
+          // Remove temp message on error
+          setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id))
         }
       }
 
       setNewMessage("")
     } catch (error) {
+      // Remove temp message on error
+      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id))
       toast.error("Failed to send message")
     } finally {
       setIsSending(false)
@@ -220,6 +301,9 @@ export function ChatInterface({
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
+
+    setIsUploading(true)
+    setUploadProgress(0)
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -242,6 +326,7 @@ export function ChatInterface({
         throw new Error("Upload failed")
       }
 
+      setUploadProgress(50)
       const uploadData = await uploadResponse.json()
 
       // Then send the file message
@@ -262,10 +347,19 @@ export function ChatInterface({
 
       if (messageResponse.ok) {
         const data = await messageResponse.json()
+        setUploadProgress(100)
         // Message will be added via WebSocket broadcast
+        toast.success("File uploaded successfully")
       }
     } catch (error) {
       toast.error("Failed to upload file")
+    } finally {
+      setIsUploading(false)
+      setUploadProgress(0)
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
     }
   }
 
@@ -282,6 +376,31 @@ export function ChatInterface({
     return <FileText className="h-4 w-4" />
   }
 
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+
+    if (diffInMinutes < 1) return 'now'
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`
+
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    if (diffInHours < 24) return `${diffInHours}h ago`
+
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) return `${diffInDays}d ago`
+
+    return date.toLocaleDateString()
+  }
+
+  const getMessageStatusIcon = (status?: string, isRead?: boolean) => {
+    if (status === 'sending') return <Loader2 className="h-3 w-3 animate-spin" />
+    if (isRead) return <span className="text-blue-500">✓✓</span>
+    if (status === 'delivered') return <span className="text-muted-foreground">✓✓</span>
+    if (status === 'sent') return <span className="text-muted-foreground">✓</span>
+    return null
+  }
+
   if (isLoading) {
     return (
       <Card className="h-[600px] flex items-center justify-center">
@@ -294,29 +413,38 @@ export function ChatInterface({
   }
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-primary-foreground font-medium">{otherUserName.charAt(0).toUpperCase()}</span>
+    <Card className="h-[600px] sm:h-[500px] md:h-[600px] flex flex-col max-w-full overflow-hidden">
+      <CardHeader className="flex flex-row items-center space-y-0 pb-2 px-3 sm:px-4 flex-shrink-0">
+        <div className="flex items-center space-x-2 min-w-0 flex-1">
+          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-primary-foreground font-medium text-sm">
+              {otherUserName.charAt(0).toUpperCase()}
+            </span>
           </div>
-          <div>
-            <CardTitle className="text-sm font-medium">{otherUserName}</CardTitle>
+          <div className="min-w-0 flex-1">
+            <CardTitle className="text-sm font-medium truncate">
+              {otherUserName}
+            </CardTitle>
             <div className="flex items-center space-x-1">
               <Badge variant={isOnline ? "default" : "secondary"} className="text-xs">
                 {isOnline ? "Online" : "Offline"}
               </Badge>
+              {!isConnected && (
+                <Badge variant="destructive" className="text-xs">
+                  Reconnecting...
+                </Badge>
+              )}
               {isTyping && (
                 <span className="text-xs text-muted-foreground">typing...</span>
               )}
             </div>
           </div>
         </div>
-        <div className="ml-auto flex items-center space-x-1">
-          <Button variant="ghost" size="sm">
+        <div className="ml-auto flex items-center space-x-1 flex-shrink-0">
+          <Button variant="ghost" size="sm" className="hidden sm:flex">
             <Phone className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="hidden sm:flex">
             <Video className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="sm">
@@ -327,8 +455,8 @@ export function ChatInterface({
 
       <Separator />
 
-      <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 p-4">
+      <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+        <ScrollArea className="flex-1 p-4 overflow-y-auto">
           {hasMore && (
             <Button
               onClick={() => loadMessages(true)}
@@ -339,7 +467,7 @@ export function ChatInterface({
               Load More Messages
             </Button>
           )}
-          <div className="space-y-4">
+          <div className="space-y-4 pb-4">
             {messages.map((message, index) => (
               <div
                 key={`${message.id}-${index}`}
@@ -348,7 +476,7 @@ export function ChatInterface({
                 }`}
               >
                 <div
-                  className={`max-w-[70%] rounded-lg p-3 ${
+                  className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 break-words overflow-hidden ${
                     message.sender_id === currentUserId
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted"
@@ -358,11 +486,24 @@ export function ChatInterface({
                     <div className="space-y-2">
                       {message.message_attachments[0].file_type.startsWith('image/') ? (
                         <div className="space-y-2">
-                          <img
-                            src={message.message_attachments[0].file_url}
-                            alt={message.message_attachments[0].file_name}
-                            className="max-w-full h-auto rounded-lg max-h-64 object-contain"
-                          />
+                          <div className="relative">
+                            <img
+                              src={message.message_attachments[0].file_url}
+                              alt={message.message_attachments[0].file_name}
+                              className="max-w-full h-auto rounded-lg max-h-64 object-contain"
+                              onLoad={() => console.log('Image loaded')}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none'
+                                const parent = e.currentTarget.parentElement
+                                if (parent) {
+                                  const errorDiv = document.createElement('div')
+                                  errorDiv.className = 'flex items-center justify-center h-32 bg-muted rounded-lg'
+                                  errorDiv.innerHTML = '<span class="text-sm text-muted-foreground">Failed to load image</span>'
+                                  parent.appendChild(errorDiv)
+                                }
+                              }}
+                            />
+                          </div>
                           <div className="flex items-center space-x-2">
                             <span className="text-sm font-medium">
                               {message.message_attachments[0].file_name}
@@ -395,10 +536,19 @@ export function ChatInterface({
                       )}
                     </div>
                   ) : (
-                    <p className="text-sm">{message.content}</p>
+                    <p className="text-sm break-words whitespace-pre-wrap overflow-wrap-anywhere word-break-break-word">
+                      {message.content}
+                    </p>
                   )}
-                  <div className="text-xs opacity-70 mt-1">
-                    {new Date(message.created_at).toLocaleTimeString()}
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="text-xs opacity-70">
+                      {formatTimestamp(message.created_at)}
+                    </div>
+                    {message.sender_id === currentUserId && (
+                      <div className="text-xs opacity-70 ml-2">
+                        {getMessageStatusIcon(message.status, message.is_read)}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -407,18 +557,38 @@ export function ChatInterface({
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t">
+        <div className="p-3 sm:p-4 border-t flex-shrink-0">
+          {isUploading && (
+            <div className="mb-2">
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                <span>Uploading...</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="flex-shrink-0"
             >
-              <Paperclip className="h-4 w-4" />
+              {isUploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Paperclip className="h-4 w-4" />
+              )}
             </Button>
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={handleInputChange}
               placeholder="Type a message..."
               onKeyPress={(e) => {
                 if (e.key === "Enter" && !isSending) {
@@ -426,10 +596,18 @@ export function ChatInterface({
                   sendMessage()
                 }
               }}
-              className="flex-1"
+              className="flex-1 min-w-0"
             />
-            <Button onClick={sendMessage} disabled={isSending || !newMessage.trim()}>
-              <Send className="h-4 w-4" />
+            <Button
+              onClick={sendMessage}
+              disabled={isSending || !newMessage.trim()}
+              className="flex-shrink-0"
+            >
+              {isSending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </div>
           <input
