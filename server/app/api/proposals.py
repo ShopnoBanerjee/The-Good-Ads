@@ -90,7 +90,25 @@ async def accept_proposal(request: Request, authorization: str = Header(...)):
 
     update = supabase.table("proposals").update({"status": "accepted"}).eq("id", proposal_id).execute()
 
-    return {"message": "Proposal accepted"}
+    # Create conversation for the accepted proposal
+    society_id = proposal.data["society_id"]
+    business_id = user_id
+
+    # Check if conversation already exists
+    existing_conversation = supabase.table("conversations").select("*").eq("project_id", project_id).execute()
+
+    if not existing_conversation.data:
+        conversation_data = {
+            "project_id": project_id,
+            "business_id": business_id,
+            "society_id": society_id
+        }
+        conversation_response = supabase.table("conversations").insert(conversation_data).execute()
+        conversation_id = conversation_response.data[0]["id"] if conversation_response.data else None
+    else:
+        conversation_id = existing_conversation.data[0]["id"]
+
+    return {"message": "Proposal accepted", "conversation_id": conversation_id}
 
 @router.get("/api/business-projects")
 async def get_business_projects(authorization: str = Header(...)):
