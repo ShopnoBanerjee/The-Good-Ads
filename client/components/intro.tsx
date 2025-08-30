@@ -1,11 +1,53 @@
 "use client";
 
 import Image from "next/image";
-import { FC } from "react";
+import { FC, useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 
 const Intro: FC = () => {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <section className="relative w-full py-8 sm:py-12 md:py-16 lg:py-20 bg-[#a8e0f0]">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/backgrounds/intro-bg.jpg"
+            alt="Background"
+            fill
+            className="object-cover object-[0_10%]"
+          />
+          <div className="absolute inset-0 bg-[rgba(99,195,221,0.61)]" />
+        </div>
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center">
+            <div className="space-y-4 sm:space-y-6 text-center lg:text-left">
+              <div className="w-80 h-20 bg-gray-300 animate-pulse rounded"></div>
+              <div className="w-full h-32 bg-gray-300 animate-pulse rounded"></div>
+              <div className="w-96 h-12 bg-gray-300 animate-pulse rounded"></div>
+            </div>
+            <div className="flex justify-center lg:justify-end mt-8 lg:mt-0">
+              <div className="w-96 h-96 bg-gray-300 animate-pulse rounded"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="relative w-full py-8 sm:py-12 md:py-16 lg:py-20 bg-[#a8e0f0]">
+    <section 
+      className="bg-[#a8e0f0] dark:bg-[#15325a] relative w-full py-8 sm:py-12 md:py-16 lg:py-20 transition-colors duration-200 ease-in-out"
+      style={{
+        transition: 'background-color 0.2s ease-in-out',
+      }}
+    >
       {/* Bg at z-0 */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -15,19 +57,34 @@ const Intro: FC = () => {
           className="object-cover object-[0_10%]"
         />
         {/* Overlay */}
-        <div className="absolute inset-0 bg-[rgba(99,195,221,0.61)]" />
+        <div 
+          className="absolute inset-0 bg-[rgba(99,195,221,0.61)] dark:bg-[rgba(21,50,90,0.8)] transition-colors duration-200 ease-in-out"
+          style={{
+            transition: 'background-color 0.2s ease-in-out',
+          }}
+        />
       </div>
 
       {/* Content At z-10 */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center">
           <div className="space-y-4 sm:space-y-6 text-center lg:text-left">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-[#1a5173] font-outfit drop-shadow-lg leading-tight">
+            <h1 
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-[#1a5173] dark:text-white font-outfit drop-shadow-lg leading-tight transition-colors duration-200 ease-in-out"
+              style={{
+                transition: 'color 0.2s ease-in-out',
+              }}
+            >
               Welcome to
               <br />
               The GoodAds
             </h1>
-            <p className="text-[#1a5173] text-base sm:text-lg lg:text-xl max-w-xl mx-auto lg:mx-0 font-semibold">
+            <p 
+              className="text-[#1a5173] dark:text-gray-200 text-base sm:text-lg lg:text-xl max-w-xl mx-auto lg:mx-0 font-semibold transition-colors duration-200 ease-in-out"
+              style={{
+                transition: 'color 0.2s ease-in-out',
+              }}
+            >
               We're building the future of brand collaborations! a vibrant marketplace where college societies meet
               forward-thinking businesses to create innovative, niche-driven content.
             </p>
@@ -45,7 +102,12 @@ const Intro: FC = () => {
                 </div>
               </div>
               <div className="relative sm:absolute">
-                <p className="text-[#1a5173] text-xl sm:text-2xl md:text-3xl font-medium sm:ml-6 font-outfit text-center lg:text-left">
+                <p 
+                  className="text-[#1a5173] dark:text-gray-100 text-xl sm:text-2xl md:text-3xl font-medium sm:ml-6 font-outfit text-center lg:text-left transition-colors duration-200 ease-in-out"
+                  style={{
+                    transition: 'color 0.2s ease-in-out',
+                  }}
+                >
                   For the <span className="text-white font-semibold drop-shadow-md">Creators</span>, By the{" "}
                   <span className="text-white font-semibold drop-shadow-md">Creators</span>
                 </p>
@@ -67,10 +129,20 @@ const Intro: FC = () => {
         </div>
 
         <div className="pt-6 sm:pt-8 lg:pt-12">
-          <p className="text-[#1a5173] text-xl sm:text-2xl font-bold font-outfit mb-3 sm:mb-4 text-center lg:text-left">
+          <p 
+            className="text-[#1a5173] dark:text-white text-xl sm:text-2xl font-bold font-outfit mb-3 sm:mb-4 text-center lg:text-left transition-colors duration-200 ease-in-out"
+            style={{
+              transition: 'color 0.2s ease-in-out',
+            }}
+          >
             Trusted By:
           </p>
-          <div className="bg-[#1A97BA80] p-3 sm:p-4 lg:p-6 rounded-lg">
+          <div 
+            className="bg-[#1A97BA80] dark:bg-[rgba(255,255,255,0.1)] p-3 sm:p-4 lg:p-6 rounded-lg transition-colors duration-200 ease-in-out"
+            style={{
+              transition: 'background-color 0.2s ease-in-out',
+            }}
+          >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 items-center justify-items-center">
               <Image
                 src="/logo/iitk-logo.png"
