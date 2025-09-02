@@ -244,7 +244,7 @@ const Header = () => {
             </Button>
             <Button
               onClick={handleSignOut}
-              className="rounded-2xl bg-red-600 border-2 border-transparent hover:bg-transparent hover:text-red-600 hover:border-2 hover:border-red-600 transition-all duration-200 ease-in-out"
+              className="rounded-2xl bg-red-600 border-2 border-transparent text-white hover:bg-transparent hover:text-red-600 hover:border-2 hover:border-red-600 transition-all duration-200 ease-in-out"
               style={{
                 transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
               }}
