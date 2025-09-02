@@ -253,13 +253,18 @@ const Header = () => {
             </Button>
           </>
         ) : (
-          <Link
-            href="/auth"
-            className="flex font-outfit items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg text-lg transition-colors hover:bg-blue-700 duration-200 ease-in-out"
+          <Button
+            asChild
+            className="rounded-2xl border-2 border-transparent text-white bg-accent hover:bg-transparent  hover:border-accent hover:text-white transition-all duration-200 ease-in-out"
+            style={{
+              transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
+            }}
           >
-            Login / Signup
-            <FiArrowRight size={16} />
-          </Link>
+            <Link href="/auth" className="flex font-outfit items-center gap-2 text-lg">
+              Login / Signup
+              <FiArrowRight size={16} />
+            </Link>
+          </Button>
         )}
       </div>
 
@@ -358,14 +363,22 @@ const Header = () => {
                 </Button>
               </>
             ) : (
-              <Link
-                href="/auth"
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-accent text-white rounded-2xl text-lg font-outfit transition-colors hover:bg-blue-700 w-full duration-200 ease-in-out"
-                onClick={() => setMenuOpen(false)}
+              <Button
+                asChild
+                className="rounded-2xl border-2 border-transparent text-white bg-accent hover:bg-transparent  hover:border-accent hover:text-white transition-all duration-200 ease-in-out w-full"
+                style={{
+                  transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
+                }}
               >
-                Login / Signup
-                <FiArrowRight size={16} />
-              </Link>
+                <Link
+                  href="/auth"
+                  className="flex items-center justify-center gap-2 text-lg font-outfit w-full"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Login / Signup
+                  <FiArrowRight size={16} />
+                </Link>
+              </Button>
             )}
           </div>
         </div>
