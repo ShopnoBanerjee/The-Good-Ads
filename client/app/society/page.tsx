@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Building2,
   Users,
@@ -52,13 +54,16 @@ export default function SocietyDashboard() {
         const { data: userProfile, error } = await supabase
           .from("college_society_profiles")
           .select("*")
-          .eq("id", session.user.id)
-          .single();
+          .eq("id", session.user.id);
 
         if (error) {
-          console.error(error);
+          console.error('Failed to load society profile:', error.message || error);
+        } else if (userProfile && userProfile.length === 1) {
+          setProfile(userProfile[0]);
+        } else if (userProfile && userProfile.length > 1) {
+          console.error('Multiple society profiles found for user:', session.user.id);
         } else {
-          setProfile(userProfile);
+          console.log('No society profile found for user:', session.user.id);
         }
       } catch (err) {
         console.error("Failed to load profile:", err);
@@ -199,6 +204,38 @@ export default function SocietyDashboard() {
               </Card>
             );
           })}
+        </div>
+
+        {/* Active Projects Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-[#15325a] dark:text-white transition-colors duration-200 ease-in-out">
+              Active Projects
+            </h2>
+            <Button asChild variant="outline" className="border-accent text-accent hover:bg-accent hover:text-white">
+              <Link href="/society/marketplace">
+                Browse More Projects
+              </Link>
+            </Button>
+          </div>
+
+          {/* Placeholder for active projects - you can implement fetching active projects here */}
+          <Card className="bg-white dark:bg-[#15325a]/90 border border-gray-200 dark:border-white/10 rounded-2xl">
+            <CardContent className="p-8 text-center">
+              <Building2 className="w-12 h-12 mx-auto mb-4 text-accent opacity-50" />
+              <h3 className="text-lg font-semibold text-[#15325a] dark:text-white mb-2">
+                No Active Projects
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                You don't have any active projects yet. Check the marketplace for new opportunities.
+              </p>
+              <Button asChild className="bg-accent hover:bg-accent/90 text-white">
+                <Link href="/society/marketplace">
+                  Explore Marketplace
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Stats Grid */}
