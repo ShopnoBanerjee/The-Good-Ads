@@ -77,16 +77,15 @@ const Intro: FC = () => {
             >
               Welcome to
               <br />
-              The GoodAds
+              inHalt
             </h1>
             <p 
               className="text-[#1a5173] dark:text-gray-200 text-base sm:text-lg lg:text-xl max-w-xl mx-auto lg:mx-0 font-semibold transition-colors duration-200 ease-in-out"
               style={{
-                transition: 'color 0.2s ease-in-out',
+              transition: 'color 0.2s ease-in-out',
               }}
             >
-              We're building the future of brand collaborations! a vibrant marketplace where college societies meet
-              forward-thinking businesses to create innovative, niche-driven content.
+              We're building the future of brand collaborations! A marketplace that connects businesses with college societies for contractual projects.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-2 sm:space-y-0 sm:space-x-2 mt-6 sm:mt-8">
@@ -108,8 +107,9 @@ const Intro: FC = () => {
                     transition: 'color 0.2s ease-in-out',
                   }}
                 >
-                  For the <span className="text-white font-semibold drop-shadow-md">Creators</span>, By the{" "}
-                  <span className="text-white font-semibold drop-shadow-md">Creators</span>
+                  <span className="text-white font-semibold drop-shadow-md">Teams.</span>
+                  <span className="text-white font-semibold drop-shadow-md">Tailor-made.</span>{" "}
+                  <span className="text-white font-semibold drop-shadow-md">To you.</span>
                 </p>
               </div>
             </div>
@@ -129,51 +129,7 @@ const Intro: FC = () => {
         </div>
 
         <div className="pt-6 sm:pt-8 lg:pt-12">
-          <p 
-            className="text-[#1a5173] dark:text-white text-xl sm:text-2xl font-bold font-outfit mb-3 sm:mb-4 text-center lg:text-left transition-colors duration-200 ease-in-out"
-            style={{
-              transition: 'color 0.2s ease-in-out',
-            }}
-          >
-            Trusted By:
-          </p>
-          <div 
-            className="bg-[#1A97BA80] dark:bg-[rgba(255,255,255,0.1)] p-3 sm:p-4 lg:p-6 rounded-lg transition-colors duration-200 ease-in-out"
-            style={{
-              transition: 'background-color 0.2s ease-in-out',
-            }}
-          >
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 items-center justify-items-center">
-              <Image
-                src="/logo/iitk-logo.png"
-                alt="IIT KANPUR"
-                width={120}
-                height={50}
-                className="object-contain w-full max-w-[80px] sm:max-w-[100px] lg:max-w-[120px] h-auto"
-              />
-              <Image
-                src="/logo/fc-logo.png"
-                alt="FAST COMPANY"
-                width={120}
-                height={50}
-                className="object-contain w-full max-w-[80px] sm:max-w-[100px] lg:max-w-[120px] h-auto"
-              />
-              <Image
-                src="/logo/mit-logo.png"
-                alt="MIT"
-                width={80}
-                height={50}
-                className="object-contain w-full max-w-[60px] sm:max-w-[70px] lg:max-w-[80px] h-auto"
-              />
-              <Image
-                src="/logo/forbes-logo.png"
-                alt="Forbes"
-                width={120}
-                height={50}
-                className="object-contain w-full max-w-[80px] sm:max-w-[100px] lg:max-w-[120px] h-auto"
-              />
-            </div>
-          </div>
+          {/* Trusted By section removed as requested */}
         </div>
       </div>
     </section>

@@ -62,7 +62,7 @@ const Wwd: React.FC = () => {
               transition: 'color 0.2s ease-in-out',
             }}
           >
-            Whether you're a brand looking to tap into fresh, creative energy or a student group eager to showcase your talent to real-world clients, The GoodAds is your launchpad.
+            inHalt connects businesses with college societies and student-run organizations for innovative consulting and project needs, showcasing each society’s portfolio and achievements for transparent, informed partnerships
           </p>
         </div>
 
@@ -83,7 +83,7 @@ const Wwd: React.FC = () => {
                   transition: 'color 0.2s ease-in-out',
                 }}
               >
-                We<span className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl font-semibold drop-shadow-md"> Connect </span>businesses<br />with student creators
+                We<span className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl font-semibold drop-shadow-md"> Connect </span>businesses<br />with students
               </p>
               <p 
                 className="pt-4 sm:pt-6 lg:pt-8 pl-2 sm:pl-4 lg:pl-6 font-normal text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-2xl leading-relaxed transition-colors duration-200 ease-in-out"
@@ -92,7 +92,7 @@ const Wwd: React.FC = () => {
                   transition: 'color 0.2s ease-in-out',
                 }}
               >
-                We bridge the gap between innovative companies and the brightest college talent. We match you with the right student teams to drive real, actionable results tailored to your industry needs.
+                We bridge the gap between innovative companies and the brightest college talent. Students gain real-world experience and sustainable revenue.
               </p>
             </div>
           </div>
@@ -140,7 +140,7 @@ const Wwd: React.FC = () => {
                   transition: 'color 0.2s ease-in-out',
                 }}
               >
-                From finance and consulting to marketing, tech, and multimedia production, we provide companies with agile, cost-effective solutions through the creativity of student societies.
+                From finance and consulting to marketing, tech, and multimedia production, companies can efficiently outsource to credible, niche-focused teams by reviewing past projects and testimonials.
               </p>
             </div>
           </div>
