@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Forward the request to the FastAPI backend
-    const backendResponse = await fetch(`http://localhost:8000/api/milestones?project_id=${projectId}`, {
+    const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/milestones?project_id=${projectId}`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward the request to the FastAPI backend
-    const backendResponse = await fetch('http://localhost:8000/api/milestones', {
+    const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/milestones`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

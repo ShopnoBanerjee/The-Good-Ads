@@ -15,7 +15,7 @@ export async function PUT(
     }
 
     // Forward the request to the FastAPI backend
-    const backendResponse = await fetch(`http://localhost:8000/api/tasks/${task_id}/toggle`, {
+    const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${task_id}/toggle`, {
       method: 'PUT',
       headers: {
         'Authorization': authHeader,
