@@ -2,24 +2,14 @@
     "version": 2,
     "builds": [
         {
-            "src": "api/index.py",
-            "use": "@vercel/python",
-            "config": {
-                "maxLambdaSize": "15mb",
-                "runtime": "python3.11"
-            }
+            "src": "app/main.py",
+            "use": "@vercel/python"
         }
     ],
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "api/index.py"
+            "dest": "app/main.py"
         }
-    ],
-    "functions": {
-        "api/index.py": {
-            "maxDuration": 30
-        }
-    },
-    "buildCommand": "uv sync --frozen"
+    ]
 }
