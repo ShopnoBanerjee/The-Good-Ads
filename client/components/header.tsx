@@ -200,13 +200,15 @@ const Header = () => {
           ]}
         />
 
-        <Dropdown
-          title="Our Services"
-          menuItems={[
-            { label: "College Societies", href: "/society" },
-            { label: "Companies / Startups", href: "/business" },
-          ]}
-        />
+        <Link 
+          href="/our-services" 
+          className="text-[#15325a] dark:text-white hover:text-blue-600 dark:hover:text-primary transition-colors duration-200 ease-in-out"
+          style={{
+            transition: 'color 0.2s ease-in-out',
+          }}
+        >
+          Our Services
+        </Link>
       </nav>
 
       {/* Auth buttons and theme toggle (desktop) */}
@@ -325,14 +327,16 @@ const Header = () => {
             mobile
           />
 
-          <Dropdown
-            title="Our Services"
-            menuItems={[
-              { label: "College Societies", href: "/society" },
-              { label: "Companies / Startups", href: "/business" },
-            ]}
-            mobile
-          />
+          <Link 
+            href="/our-services" 
+            className="text-[#15325a] dark:text-white font-outfit text-lg font-medium hover:text-blue-600 dark:hover:text-primary transition-colors duration-200 ease-in-out" 
+            onClick={() => setMenuOpen(false)}
+            style={{
+              transition: 'color 0.2s ease-in-out',
+            }}
+          >
+            Our Services
+          </Link>
 
           {/* Auth buttons (mobile) - Removed theme toggle from here */}
           <div className="mt-4 flex flex-col gap-3">

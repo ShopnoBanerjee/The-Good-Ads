@@ -162,10 +162,10 @@ const Wwd: React.FC = () => {
               
               {/* Left Half - College Societies */}
               <Link
-                href="/college-societies"
-                className="w-full sm:w-1/2 bg-[#92d4e6] dark:bg-[#2b4c66] text-[#1a5173] dark:text-white flex items-center justify-center hover:bg-[#7dc4d9] dark:hover:bg-[#1e3c52] transition-colors duration-200 rounded-t-3xl sm:rounded-tl-3xl sm:rounded-tr-none rounded-bl-none sm:rounded-bl-[120px] md:rounded-bl-[180px] lg:rounded-bl-[233px] shadow-none sm:shadow-[10px_0px_5px_rgba(0,0,0,0.25)] z-10 min-h-[120px] sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px]"
+                href="/our-services"
+                className="w-full sm:w-1/2 bg-[#92d4e6] dark:bg-[#2b4c66] text-[#1a5173] dark:text-white flex items-center justify-center hover:bg-[#7dc4d9] dark:hover:bg-[#1e3c52] hover:scale-105 hover:shadow-lg transition-all duration-300 rounded-t-3xl sm:rounded-tl-3xl sm:rounded-tr-none rounded-bl-none sm:rounded-bl-[120px] md:rounded-bl-[180px] lg:rounded-bl-[233px] shadow-none sm:shadow-[10px_0px_5px_rgba(0,0,0,0.25)] z-10 min-h-[120px] sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px]"
                 style={{
-                  transition: 'background-color 0.2s ease-in-out, color 0.2s ease-in-out',
+                  transition: 'background-color 0.3s ease-in-out, color 0.3s ease-in-out, transform 0.3s ease-in-out',
                 }}
               >
                 <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold font-outfit drop-shadow-2xl text-center leading-tight">
@@ -175,10 +175,10 @@ const Wwd: React.FC = () => {
 
               {/* Right Half - Companies/Startups */}
               <Link
-                href="/companies-startups"
-                className="w-full sm:w-1/2 bg-[#A3DAEF] dark:bg-[#34546b] text-[#1a5173] dark:text-white flex items-center justify-center hover:bg-[#8ed1eb] dark:hover:bg-[#274157] transition-colors duration-200 rounded-b-3xl sm:rounded-tr-3xl sm:rounded-bl-none rounded-br-3xl sm:rounded-br-[120px] md:rounded-br-[180px] lg:rounded-br-[233px] min-h-[120px] sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px]"
+                href="/our-services"
+                className="w-full sm:w-1/2 bg-[#A3DAEF] dark:bg-[#34546b] text-[#1a5173] dark:text-white flex items-center justify-center hover:bg-[#8ed1eb] dark:hover:bg-[#274157] hover:scale-105 hover:shadow-lg transition-all duration-300 rounded-b-3xl sm:rounded-tr-3xl sm:rounded-bl-none rounded-br-3xl sm:rounded-br-[120px] md:rounded-br-[180px] lg:rounded-br-[233px] min-h-[120px] sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px]"
                 style={{
-                  transition: 'background-color 0.2s ease-in-out, color 0.2s ease-in-out',
+                  transition: 'background-color 0.3s ease-in-out, color 0.3s ease-in-out, transform 0.3s ease-in-out',
                 }}
               >
                 <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold font-outfit drop-shadow-2xl text-center leading-tight">
