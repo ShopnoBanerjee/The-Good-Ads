@@ -394,6 +394,12 @@ export default function BusinessDashboard() {
                         </div>
 
                         <div className="flex items-center space-x-3">
+                          <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200">
+                            <Link href={`/business/project/${project.id}`}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Manage Project
+                            </Link>
+                          </Button>
                           <Button asChild className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200">
                             <Link href={`/business/proposals/${project.id}`}>
                               <Eye className="w-4 h-4 mr-2" />
