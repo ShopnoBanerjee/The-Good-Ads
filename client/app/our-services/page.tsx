@@ -110,15 +110,12 @@ const OurServices: React.FC = () => {
                   <div className="absolute inset-0 bg-[#11aad4]/20 dark:bg-[#11aad4]/10 rounded-2xl blur-3xl"></div>
                   <div className="relative bg-white dark:bg-[#1a2f4a] rounded-2xl p-8 shadow-xl">
                     <Image
-                      src="/logo/our-logo.png"
+                      src="/illustrations/student_collaboration.png"
                       alt="Student collaboration illustration - showing diverse group of students working together on projects"
                       width={400}
                       height={300}
                       className="w-full h-auto object-contain rounded-lg"
                     />
-                    <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4 font-outfit">
-                      Student collaboration illustration
-                    </p>
                   </div>
                 </div>
               </div>
@@ -187,15 +184,12 @@ const OurServices: React.FC = () => {
                   <div className="absolute inset-0 bg-blue-600/20 dark:bg-blue-600/10 rounded-2xl blur-3xl"></div>
                   <div className="relative bg-white dark:bg-[#1a2f4a] rounded-2xl p-8 shadow-xl">
                     <Image
-                      src="/logo/our-logo.png"
+                      src="/illustrations/business-growth.png"
                       alt="Business growth illustration - showing company growth chart and professional collaboration"
                       width={400}
                       height={300}
                       className="w-full h-auto object-contain rounded-lg"
                     />
-                    <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4 font-outfit">
-                      Business growth illustration
-                    </p>
                   </div>
                 </div>
               </div>
