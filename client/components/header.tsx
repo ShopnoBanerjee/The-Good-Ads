@@ -191,14 +191,7 @@ const Header = () => {
         >
           Home
         </Link>
-
-        <Dropdown
-          title="About Us"
-          menuItems={[
-            { label: "Our Story", href: "/about#story" },
-            { label: "Team", href: "/about#team" },
-          ]}
-        />
+        
 
         <Link 
           href="/our-services" 
