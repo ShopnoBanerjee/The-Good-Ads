@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { task_id: string } }
+  { params }: { params: Promise<{ task_id: string }> }
 ) {
   try {
+    // Await the params
+    const { task_id } = await params;
+
     // Get the authorization header
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
@@ -12,7 +15,7 @@ export async function PUT(
     }
 
     // Forward the request to the FastAPI backend
-    const backendResponse = await fetch(`http://localhost:8000/api/tasks/${params.task_id}/toggle`, {
+    const backendResponse = await fetch(`http://localhost:8000/api/tasks/${task_id}/toggle`, {
       method: 'PUT',
       headers: {
         'Authorization': authHeader,

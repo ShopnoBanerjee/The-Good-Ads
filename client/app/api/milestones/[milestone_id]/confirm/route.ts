@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { milestone_id: string } }
+  { params }: { params: Promise<{ milestone_id: string }> }
 ) {
   try {
+    // Await the params
+    const { milestone_id } = await params;
     // Get the authorization header
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
@@ -12,7 +14,7 @@ export async function PUT(
     }
 
     // Forward the request to the FastAPI backend
-    const backendResponse = await fetch(`http://localhost:8000/api/milestones/${params.milestone_id}/confirm`, {
+    const backendResponse = await fetch(`http://localhost:8000/api/milestones/${milestone_id}/confirm`, {
       method: 'PUT',
       headers: {
         'Authorization': authHeader,
