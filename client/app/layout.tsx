@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/app/providers";
 import { ThemeProvider } from "next-themes";
 import { UserProvider } from "@/context/UserContext";
+import NotificationProvider from "@/components/NotificationProvider";
 import { Metadata } from "next";
 
 const raleway = Raleway({
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <UserProvider>
+              <NotificationProvider />
               <Toaster />
               {children}
             </UserProvider>
