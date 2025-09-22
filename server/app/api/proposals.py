@@ -90,8 +90,10 @@ async def accept_proposal(request: Request, authorization: str = Header(...)):
 
     update = supabase.table("proposals").update({"status": "accepted"}).eq("id", proposal_id).execute()
 
-    # Create conversation for the accepted proposal
+    # Update project with society_id
     society_id = proposal.data["society_id"]
+    supabase.table("projects").update({"society_id": society_id}).eq("id", project_id).execute()
+
     business_id = user_id
 
     # Check if conversation already exists
