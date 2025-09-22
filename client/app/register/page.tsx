@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent, FormEvent, Suspense } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { API_URL } from "../../lib/constants";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Building2, Users, Phone, Globe, Briefcase, CheckCircle, AlertCircle, Loader2, LucideIcon } from "lucide-react";
 import { z } from "zod";
 import { useAuth } from "@/app/providers";
+import Image from "next/image";
+import CompanyLogo from "@/public/logo/our-logo.png"; 
 
 interface FormData {
   businessName: string;
@@ -31,7 +33,43 @@ interface FormFieldProps {
   icon?: LucideIcon;
   placeholder: string;
   required?: boolean;
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
 }
+
+// Move FormField outside and memoize it to prevent recreation
+const FormField = ({ label, name, type = "text", icon: Icon, placeholder, required = true, value, onChange, error }: FormFieldProps) => (
+  <div className="space-y-2">
+    <Label htmlFor={name} className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+      {Icon && <Icon className="w-4 h-4 text-gray-400" />}
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </Label>
+    <div className="relative">
+      <Input
+        id={name}
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#11aad4] focus:ring-offset-0 placeholder:text-gray-400 transition-all duration-300 ${
+          error ? "border-red-500 focus:ring-red-500 focus:ring-offset-0" : ""
+        }`}
+      />
+      {Icon && (
+        <Icon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+      )}
+    </div>
+    {error && (
+      <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+        <AlertCircle className="w-3 h-3" />
+        {error}
+      </div>
+    )}
+  </div>
+);
 
 // Separate component that uses useSearchParams
 function RegisterPageContent() {
@@ -43,11 +81,8 @@ function RegisterPageContent() {
   useEffect(() => {
     console.log("[RegisterPage] session from useAuth:", session);
     if (typeof window !== "undefined") {
-      // Log cookies for debugging
       console.log("[RegisterPage] document.cookie:", document.cookie);
-      // Log localStorage for debugging
       console.log("[RegisterPage] localStorage keys:", Object.keys(localStorage));
-      // Log the supabase session in localStorage
       const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.split("https://")[1]?.split(".");
       if (projectRef) {
         const key = `sb-${projectRef}-auth-token`;
@@ -86,13 +121,21 @@ function RegisterPageContent() {
     servicesOffered: z.string().min(2, "Services offered is required"),
   });
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  // Use useCallback to prevent function recreation on every render
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
+    const { name, value } = e.target;
+    setForm(prevForm => ({ ...prevForm, [name]: value }));
+    
     // Clear field error when user starts typing
-    if (fieldErrors[e.target.name]) {
-      setFieldErrors({ ...fieldErrors, [e.target.name]: "" });
-    }
-  };
+    setFieldErrors(prevErrors => {
+      if (prevErrors[name]) {
+        const newErrors = { ...prevErrors };
+        delete newErrors[name];
+        return newErrors;
+      }
+      return prevErrors;
+    });
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -165,46 +208,14 @@ function RegisterPageContent() {
     }
   };
 
-  const FormField = ({ label, name, type = "text", icon: Icon, placeholder, required = true }: FormFieldProps) => (
-    <div className="space-y-2">
-      <Label htmlFor={name} className="text-sm font-medium text-gray-700 flex items-center gap-2">
-        {Icon && <Icon className="w-4 h-4 text-gray-500" />}
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </Label>
-      <div className="relative">
-        <Input
-          id={name}
-          type={type}
-          name={name}
-          value={form[name]}
-          onChange={handleChange}
-          placeholder={placeholder}
-          className={`h-11 transition-all duration-200 ${
-            fieldErrors[name] 
-              ? "border-red-300 focus:border-red-500 focus:ring-red-100" 
-              : "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
-          } hover:border-gray-400 focus:ring-2`}
-        />
-        {Icon && (
-          <Icon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-        )}
-      </div>
-      {fieldErrors[name] && (
-        <div className="flex items-center gap-1 text-xs text-red-600 animate-in slide-in-from-top-1 duration-200">
-          <AlertCircle className="w-3 h-3" />
-          {fieldErrors[name]}
-        </div>
-      )}
-    </div>
-  );
-
   // Show spinner while session is undefined (hydrating)
   if (typeof session === "undefined") {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin" />
-        <span className="ml-2">Loading authentication...</span>
+      <main className="min-h-screen flex items-center justify-center bg-blue-900 font-outfit">
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-white" />
+          <span className="ml-2 text-white">Loading authentication...</span>
+        </div>
       </main>
     );
   }
@@ -212,13 +223,13 @@ function RegisterPageContent() {
   // Show error and reload option if session is null
   if (session === null) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen flex items-center justify-center bg-blue-900 font-outfit">
         <div className="flex flex-col items-center gap-4">
           <AlertCircle className="w-8 h-8 text-red-500" />
-          <span className="text-lg font-medium text-red-700">
+          <span className="text-lg font-medium text-red-300">
             Not authenticated. Please refresh the page or try clicking your magic link again.
           </span>
-          <Button onClick={() => window.location.reload()} className="mt-2">
+          <Button onClick={() => window.location.reload()} className="mt-2 bg-[#11aad4] hover:bg-[#0d8bb3] font-outfit">
             Refresh Page
           </Button>
         </div>
@@ -227,29 +238,24 @@ function RegisterPageContent() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-200/30 to-indigo-200/30 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-200/30 to-purple-200/30 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-white/20 to-blue-100/20 rounded-full blur-3xl"></div>
-      </div>
-
-      <Card className="w-full max-w-lg shadow-2xl border-0 backdrop-blur-sm bg-white/90 relative z-10">
+    <main className="min-h-screen bg-blue-900 flex items-center justify-center p-4 font-outfit">
+      <Card className="w-full max-w-lg shadow-2xl border-0 bg-[#15325a] relative z-10">
         <CardContent className="p-8">
-          {/* Header */}
+          {/* Header with Company Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-              {userType === "business" ? (
-                <Building2 className="w-8 h-8 text-white" />
-              ) : (
-                <Users className="w-8 h-8 text-white" />
-              )}
+            <div className="relative mx-auto mb-4 w-40 h-40 rounded-full overflow-hidden">
+              <Image 
+                src={CompanyLogo}
+                alt="Company Logo" 
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-white mb-2 font-outfit">
               Complete Registration
             </h1>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-400 text-sm font-outfit">
               {userType === "business" 
                 ? "Set up your business profile to get started" 
                 : "Set up your college society profile to get started"
@@ -259,26 +265,26 @@ function RegisterPageContent() {
 
           {/* Success Message */}
           {success && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl animate-in slide-in-from-top-2 duration-300">
-              <div className="flex items-center gap-3 text-green-700">
+            <div className="mb-6 p-4 bg-green-900/50 border border-green-700 rounded-xl animate-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-3 text-green-400">
                 <CheckCircle className="w-5 h-5" />
-                <span className="text-sm font-medium">Registration complete! Redirecting...</span>
+                <span className="text-sm font-medium font-outfit">Registration complete! Redirecting...</span>
               </div>
             </div>
           )}
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl animate-in slide-in-from-top-2 duration-300">
-              <div className="flex items-center gap-3 text-red-700">
+            <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-xl animate-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-3 text-red-400">
                 <AlertCircle className="w-5 h-5" />
-                <span className="text-sm">{error}</span>
+                <span className="text-sm font-outfit">{error}</span>
               </div>
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6 text-black">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {userType === "business" ? (
               <>
                 <FormField
@@ -286,12 +292,18 @@ function RegisterPageContent() {
                   name="businessName"
                   icon={Building2}
                   placeholder="Enter your business name..."
+                  value={form.businessName}
+                  onChange={handleChange}
+                  error={fieldErrors.businessName}
                 />
                 <FormField
                   label="Point of Contact Name"
                   name="pocName"
                   icon={Users}
                   placeholder="Enter contact person name..."
+                  value={form.pocName}
+                  onChange={handleChange}
+                  error={fieldErrors.pocName}
                 />
                 <FormField
                   label="Phone Number"
@@ -299,12 +311,18 @@ function RegisterPageContent() {
                   type="tel"
                   icon={Phone}
                   placeholder="+91 98765 43210"
+                  value={form.phoneNumber}
+                  onChange={handleChange}
+                  error={fieldErrors.phoneNumber}
                 />
                 <FormField
                   label="Domain"
                   name="domain"
                   icon={Globe}
                   placeholder="e.g., Technology, Healthcare, Finance..."
+                  value={form.domain}
+                  onChange={handleChange}
+                  error={fieldErrors.domain}
                 />
               </>
             ) : (
@@ -314,12 +332,18 @@ function RegisterPageContent() {
                   name="societyName"
                   icon={Users}
                   placeholder="Enter society name..."
+                  value={form.societyName}
+                  onChange={handleChange}
+                  error={fieldErrors.societyName}
                 />
                 <FormField
                   label="Point of Contact Name"
                   name="pocName"
                   icon={Users}
                   placeholder="Enter contact person name..."
+                  value={form.pocName}
+                  onChange={handleChange}
+                  error={fieldErrors.pocName}
                 />
                 <FormField
                   label="Phone Number"
@@ -327,18 +351,27 @@ function RegisterPageContent() {
                   type="tel"
                   icon={Phone}
                   placeholder="+91 98765 43210"
+                  value={form.phoneNumber}
+                  onChange={handleChange}
+                  error={fieldErrors.phoneNumber}
                 />
                 <FormField
                   label="Domain"
                   name="domain"
                   icon={Globe}
                   placeholder="e.g., Technical, Cultural, Sports..."
+                  value={form.domain}
+                  onChange={handleChange}
+                  error={fieldErrors.domain}
                 />
                 <FormField
                   label="Services Offered"
                   name="servicesOffered"
                   icon={Briefcase}
                   placeholder="Describe the services you offer..."
+                  value={form.servicesOffered}
+                  onChange={handleChange}
+                  error={fieldErrors.servicesOffered}
                 />
               </>
             )}
@@ -346,18 +379,18 @@ function RegisterPageContent() {
             <Button 
               type="submit" 
               disabled={loading || success} 
-              className="w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed mt-8"
+              className="w-full h-12 bg-[#11aad4] hover:bg-[#0d8bb3] border-2 border-[#11aad4] hover:border-[#0d8bb3] text-white font-medium font-outfit rounded-[40px] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 mt-8 flex items-center justify-center gap-2"
             >
               {loading ? (
-                <div className="flex items-center gap-2">
+                <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Submitting...</span>
-                </div>
+                </>
               ) : success ? (
-                <div className="flex items-center gap-2">
+                <>
                   <CheckCircle className="w-4 h-4" />
                   <span>Completed!</span>
-                </div>
+                </>
               ) : (
                 "Complete Registration"
               )}
@@ -366,11 +399,11 @@ function RegisterPageContent() {
 
           {/* Footer */}
           <div className="mt-8 text-center">
-            <p className="text-xs text-gray-500 leading-relaxed">
+            <p className="text-xs text-gray-500 leading-relaxed font-outfit">
               By completing registration, you agree to our{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-700 underline">Terms of Service</a>
+              <a href="#" className="text-[#11aad4] hover:text-[#0d8bb3] underline">Terms of Service</a>
               {" "}and{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-700 underline">Privacy Policy</a>
+              <a href="#" className="text-[#11aad4] hover:text-[#0d8bb3] underline">Privacy Policy</a>
             </p>
           </div>
         </CardContent>
@@ -383,10 +416,10 @@ function RegisterPageContent() {
 export default function RegisterPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <main className="min-h-screen flex items-center justify-center bg-blue-900">
         <div className="flex items-center gap-3">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-          <span className="text-blue-600 font-medium">Loading registration form...</span>
+          <Loader2 className="w-6 h-6 animate-spin text-white" />
+          <span className="text-white font-medium font-outfit">Loading registration form...</span>
         </div>
       </main>
     }>

@@ -91,24 +91,42 @@ function AuthPageContent() {
             </p>
 
             <form className="w-full max-w-md space-y-4" action={signInAction}>
-              <div className="flex flex-col space-y-1">
-                <label className="text-black font-outfit text-sm">Email</label>
+              <div className="flex flex-col space-y-2">
+                <label className="text-black font-outfit text-sm font-medium">Email Address</label>
                 <input
                   type="email"
                   name="email"
                   value={signInForm.email}
                   onChange={handleSignInEmailChange}
-                  className="w-full border border-[#dcdcdc] rounded-xl px-4 py-2 text-black"
+                  placeholder="Enter your email"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-black bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#11aad4]/20 focus:border-[#11aad4] transition-all duration-200"
                   required
                 />
-                {signInErrors.email && <p className="text-red-500 text-sm">{signInErrors.email}</p>}
+                {signInErrors.email && <p className="text-red-500 text-sm font-outfit">{signInErrors.email}</p>}
               </div>
-              {signInState?.success && <p className="text-green-600">Magic link sent! Check your email.</p>}
-              {signInState?.error && <p className="text-red-600">{signInState.error}</p>}
-              <button type="submit" className="w-full bg-[#11aad4] border border-[#11aad4] text-white py-2 rounded-[40px] hover:text-[#11aad4] hover:bg-white hover:border hover:border-[#11aad4] font-outfit font-semibold transition duration-300">
-                Sign In
+              {signInState?.success && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-xl">
+                  <p className="text-green-700 text-sm font-outfit">Magic link sent! Check your email.</p>
+                </div>
+              )}
+              {signInState?.error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-red-600 text-sm font-outfit">{signInState.error}</p>
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-[#11aad4] border-2 border-[#11aad4] text-white py-3 rounded-xl hover:bg-white hover:text-[#11aad4] font-outfit font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              >
+                {isLoading ? 'Sending...' : 'Sign In'}
               </button>
-              <Link href="/" className="block mt-2 w-full text-center text-base font-outfit text-[#11aad4] bg-white border border-[#11aad4] py-2 rounded-[40px] hover:bg-[#11aad4] hover:text-white transition duration-300">Back to Home</Link>
+              <Link
+                href="/"
+                className="block mt-4 w-full text-center text-base font-outfit text-[#11aad4] bg-white border-2 border-[#11aad4] py-3 rounded-xl hover:bg-[#11aad4] hover:text-white transition-all duration-200 font-medium"
+              >
+                Back to Home
+              </Link>
             </form>
           </>
         ) : (
@@ -120,41 +138,67 @@ function AuthPageContent() {
             </p>
 
             <form className="w-full max-w-md space-y-4" action={signUpAction} noValidate>
-              <div className="flex space-x-2 mb-4">
+              <div className="flex space-x-3 mb-6 p-1 bg-gray-100 rounded-xl">
                 <button
                   type="button"
                   onClick={() => handleUserTypeChange("business")}
-                  className={`px-4 py-2 rounded ${signUpForm.userType === "business" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+                  className={`flex-1 px-4 py-3 rounded-lg font-outfit font-medium text-sm transition-all duration-200 ${
+                    signUpForm.userType === "business"
+                      ? "bg-white text-[#11aad4] shadow-sm border border-[#11aad4]/20"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
                 >
                   Business
                 </button>
                 <button
                   type="button"
                   onClick={() => handleUserTypeChange("college_society")}
-                  className={`px-4 py-2 rounded ${signUpForm.userType === "college_society" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+                  className={`flex-1 px-4 py-3 rounded-lg font-outfit font-medium text-sm transition-all duration-200 ${
+                    signUpForm.userType === "college_society"
+                      ? "bg-white text-[#11aad4] shadow-sm border border-[#11aad4]/20"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
                 >
                   College Society
                 </button>
               </div>
               <input type="hidden" name="userType" value={signUpForm.userType} />
-              <div className="flex flex-col space-y-1">
-                <label className="text-black font-outfit text-sm">Email</label>
+              <div className="flex flex-col space-y-2">
+                <label className="text-black font-outfit text-sm font-medium">Email Address</label>
                 <input
                   type="email"
                   name="email"
                   value={signUpForm.email}
                   onChange={handleSignUpEmailChange}
-                  className="w-full border border-[#dcdcdc] rounded-xl px-4 py-2 text-black"
+                  placeholder="Enter your email"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-black bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#11aad4]/20 focus:border-[#11aad4] transition-all duration-200"
                   required
                 />
-                {signUpErrors.email && <p className="text-red-500 text-sm">{signUpErrors.email}</p>}
+                {signUpErrors.email && <p className="text-red-500 text-sm font-outfit">{signUpErrors.email}</p>}
               </div>
-              {signUpState?.success && <p className="text-green-600">Magic link sent! Check your email.</p>}
-              {signUpState?.error && <p className="text-red-600">{signUpState.error}</p>}
-              <button type="submit" className="w-full bg-[#11aad4] border border-[#11aad4] text-white py-2 rounded-[40px] hover:text-[#11aad4] hover:bg-white hover:border hover:border-[#11aad4] font-outfit font-semibold transition duration-300">
-                Sign Up
+              {signUpState?.success && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-xl">
+                  <p className="text-green-700 text-sm font-outfit">Magic link sent! Check your email.</p>
+                </div>
+              )}
+              {signUpState?.error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-red-600 text-sm font-outfit">{signUpState.error}</p>
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-[#11aad4] border-2 border-[#11aad4] text-white py-3 rounded-xl hover:bg-white hover:text-[#11aad4] font-outfit font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              >
+                {isLoading ? 'Sending...' : 'Sign Up'}
               </button>
-              <Link href="/" className="block mt-2 w-full text-center text-base font-outfit text-[#11aad4] bg-white border border-[#11aad4] py-2 rounded-[40px] hover:bg-[#11aad4] hover:text-white transition duration-300">Back to Home</Link>
+              <Link
+                href="/"
+                className="block mt-4 w-full text-center text-base font-outfit text-[#11aad4] bg-white border-2 border-[#11aad4] py-3 rounded-xl hover:bg-[#11aad4] hover:text-white transition-all duration-200 font-medium"
+              >
+                Back to Home
+              </Link>
             </form>
           </>
         )}
@@ -181,4 +225,4 @@ export default function AuthPage() {
       <AuthPageContent />
     </Suspense>
   )
-}
+} 

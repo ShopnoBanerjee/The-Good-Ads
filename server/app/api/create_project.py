@@ -240,3 +240,48 @@ async def edit_project(request: Request, authorization: str = Header(...)):
         "compliant_name": compliant_name,
         "compliant_description": compliant_description
     }
+
+@router.get("/api/business-projects")
+async def get_business_projects(authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing token")
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    # Verify user is a business
+    profile = supabase.table("profiles").select("user_type").eq("id", user_id).single().execute()
+    if not profile.data or profile.data["user_type"] != "business":
+        raise HTTPException(status_code=403, detail="Only business users can access this endpoint")
+
+    # Get projects owned by this business user
+    resp = supabase.table("projects").select("*").eq("business_id", user_id).execute()
+
+    return resp.data or []
+
+@router.get("/api/society-projects")
+async def get_society_projects(authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing token")
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    # Verify user is a society
+    profile = supabase.table("profiles").select("user_type").eq("id", user_id).single().execute()
+    if not profile.data or profile.data["user_type"] != "college_society":
+        raise HTTPException(status_code=403, detail="Only society users can access this endpoint")
+
+    # Get projects assigned to this society user (through proposals that were accepted)
+    # First get accepted proposals for this society
+    proposals_resp = supabase.table("proposals").select("project_id").eq("society_id", user_id).eq("status", "accepted").execute()
+
+    if not proposals_resp.data:
+        return []
+
+    project_ids = [p["project_id"] for p in proposals_resp.data]
+
+    # Get the actual project details
+    projects_resp = supabase.table("projects").select("*").in_("id", project_ids).execute()
+
+    return projects_resp.data or []
