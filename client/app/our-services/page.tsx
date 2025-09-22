@@ -3,6 +3,7 @@
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { CheckCircle, Users, Building2, TrendingUp, Target, Award } from 'lucide-react';
@@ -34,17 +35,21 @@ const OurServices: React.FC = () => {
   return (
     <>
       <Header />
-      <main className="bg-white dark:bg-[#15325a] transition-colors duration-200 ease-in-out">
+      <main className="bg-[#f0f9ff] dark:bg-[#15325a] transition-colors duration-200 ease-in-out">
         {/* Hero Section */}
-        <section className="relative py-16 sm:py-20 md:py-24 lg:py-32">
+        <section className="relative py-8 sm:py-12 md:py-16 lg:py-20">
+          <div
+            className="absolute inset-0 bg-[url('/backgrounds/wwd-bg.jpg')] bg-cover bg-center opacity-30 dark:opacity-15 pointer-events-none"
+            aria-hidden="true"
+          />
           <div className="absolute inset-0 bg-gradient-to-br from-[#11aad4]/10 to-blue-600/5 dark:from-[#11aad4]/5 dark:to-blue-600/5"></div>
           <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-4xl mx-auto">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#15325a] dark:text-white font-outfit mb-6 leading-tight">
-                Our Services
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#15325a] dark:text-white font-outfit mb-4 leading-tight">
+            Our Services
               </h1>
               <p className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 font-outfit max-w-3xl mx-auto leading-relaxed">
-                Bridging the gap between innovative businesses and talented college societies for mutually beneficial partnerships
+            Bridging the gap between innovative businesses and talented college societies for mutually beneficial partnerships
               </p>
             </div>
           </div>
@@ -124,8 +129,12 @@ const OurServices: React.FC = () => {
         </section>
 
         {/* How inHalt Helps Society Section */}
-        <section className="py-16 sm:py-20 md:py-24 lg:py-32">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-16 sm:py-20 md:py-24 lg:py-32 relative">
+          <div
+            className="absolute inset-0 bg-[url('/backgrounds/wwd-bg.jpg')] bg-cover bg-center opacity-20 dark:opacity-10 pointer-events-none"
+            aria-hidden="true"
+          />
+          <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-4xl mx-auto mb-16">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#15325a] dark:text-white font-outfit mb-6">
                 How inHalt Addresses These Challenges
@@ -253,8 +262,12 @@ const OurServices: React.FC = () => {
         </section>
 
         {/* Key Benefits for Businesses */}
-        <section className="py-16 sm:py-20 md:py-24 lg:py-32">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-16 sm:py-20 md:py-24 lg:py-32 relative">
+          <div
+            className="absolute inset-0 bg-[url('/backgrounds/wwd-bg.jpg')] bg-cover bg-center opacity-15 dark:opacity-5 pointer-events-none"
+            aria-hidden="true"
+          />
+          <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-4xl mx-auto mb-16">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#15325a] dark:text-white font-outfit mb-6">
                 Key Benefits for Businesses
@@ -338,12 +351,12 @@ const OurServices: React.FC = () => {
               Join inHalt today and connect with talented college societies or find the perfect business partner for your projects.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-[#11aad4] px-8 py-4 rounded-xl font-outfit font-semibold hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl">
+              <Link href="/auth" className="bg-white text-[#11aad4] px-8 py-4 rounded-xl font-outfit font-semibold hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl text-center">
                 Join as a Business
-              </button>
-              <button className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-outfit font-semibold hover:bg-white hover:text-[#11aad4] transition-all duration-200">
+              </Link>
+              <Link href="/auth" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-outfit font-semibold hover:bg-white hover:text-[#11aad4] transition-all duration-200 text-center">
                 Join as a Society
-              </button>
+              </Link>
             </div>
           </div>
         </section>
