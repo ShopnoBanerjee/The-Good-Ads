@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { CheckCircle, Users, Building2, TrendingUp, Target, Award } from 'lucide-react';
+import { CheckCircle, Users, Building2, TrendingUp, Target, Award, XCircle } from 'lucide-react';
 
 const OurServices: React.FC = () => {
   const { theme } = useTheme();
@@ -67,12 +67,12 @@ const OurServices: React.FC = () => {
                   </div>
 
                   <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#15325a] dark:text-white font-outfit leading-tight">
-                    Empowering Student Talent
+                    Where students seek support
                   </h2>
 
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">
-                      <CheckCircle className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
+                      <XCircle className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
                       <div>
                         <h3 className="text-lg font-semibold text-[#15325a] dark:text-white font-outfit mb-2">
                           Inconsistent Access to Real-World Projects
@@ -84,7 +84,7 @@ const OurServices: React.FC = () => {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <CheckCircle className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
+                      <XCircle className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
                       <div>
                         <h3 className="text-lg font-semibold text-[#15325a] dark:text-white font-outfit mb-2">
                           Limited Professional Development Opportunities
@@ -96,7 +96,7 @@ const OurServices: React.FC = () => {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <CheckCircle className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
+                      <XCircle className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
                       <div>
                         <h3 className="text-lg font-semibold text-[#15325a] dark:text-white font-outfit mb-2">
                           Funding and Self-Sufficiency Challenges
@@ -140,7 +140,7 @@ const OurServices: React.FC = () => {
                 How inHalt Addresses These Challenges
               </h2>
               <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-outfit">
-                Our platform creates meaningful connections and opportunities
+                Our platform empowers student talent by creating meaningful connections
               </p>
             </div>
 
