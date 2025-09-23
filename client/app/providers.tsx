@@ -36,10 +36,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           .from("profiles")
           .select("user_type")
           .eq("id", session.user.id)
-          .single();
+          .maybeSingle();
 
         if (profile && profile.user_type) {
-          setUserType(profile.user_type); // "business" or "society"
+          setUserType(profile.user_type); // "business" or "college_society"
         } else {
           setUserType(undefined);
           if (profileError) console.error("Profile fetch error:", profileError);
