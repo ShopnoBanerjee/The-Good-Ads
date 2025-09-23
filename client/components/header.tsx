@@ -227,7 +227,7 @@ const Header = () => {
           <>
             <Button
               variant="outline"
-              className="rounded-2xl text-[#15325a] dark:text-white border-2 border-[#15325a] dark:border-white hover:bg-[#15325a] hover:text-white dark:hover:bg-white dark:hover:text-[#15325a] transition-all duration-200 ease-in-out"
+              className="rounded-2xl text-[#15325a] dark:text-white border-2 border-[#15325a] dark:border-white hover:bg-[#15325a] hover:text-white dark:hover:bg-white dark:hover:text-[#15325a] transition-all duration-200 ease-in-out font-medium"
               asChild
               style={{
                 transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
@@ -239,7 +239,7 @@ const Header = () => {
             </Button>
             <Button
               onClick={handleSignOut}
-              className="rounded-2xl bg-red-600 border-2 border-transparent text-white hover:bg-transparent hover:text-red-600 hover:border-2 hover:border-red-600 transition-all duration-200 ease-in-out"
+              className="rounded-2xl bg-gray-600 hover:bg-gray-700 text-white border-2 border-gray-600 hover:border-gray-700 transition-all duration-200 ease-in-out font-medium"
               style={{
                 transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
               }}
@@ -250,7 +250,7 @@ const Header = () => {
         ) : (
           <Button
             asChild
-            className="rounded-2xl border-2 border-transparent text-white bg-accent hover:bg-transparent  hover:border-accent hover:text-white transition-all duration-200 ease-in-out"
+            className="rounded-2xl bg-[#11aad4] hover:bg-[#0d8bb8] text-white border-2 border-[#11aad4] hover:border-[#0d8bb8] transition-all duration-200 ease-in-out font-medium"
             style={{
               transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
             }}
@@ -332,7 +332,7 @@ const Header = () => {
               <>
                 <Button
                   variant="outline"
-                  className="rounded-2xl text-[#15325a] dark:text-white border-2 border-[#15325a] dark:border-white hover:bg-[#15325a] hover:text-white dark:hover:bg-white dark:hover:text-[#15325a] transition-all duration-200 ease-in-out"
+                  className="rounded-2xl text-[#15325a] dark:text-white border-2 border-[#15325a] dark:border-white hover:bg-[#15325a] hover:text-white dark:hover:bg-white dark:hover:text-[#15325a] transition-all duration-200 ease-in-out font-medium"
                   asChild
                   style={{
                     transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
@@ -344,7 +344,7 @@ const Header = () => {
                 </Button>
                 <Button
                   onClick={handleSignOut}
-                  className="rounded-2xl bg-red-600 border-2 border-transparent hover:bg-transparent hover:text-red-600 hover:border-2 hover:border-red-600 transition-all duration-200 ease-in-out"
+                  className="rounded-2xl bg-gray-600 hover:bg-gray-700 text-white border-2 border-gray-600 hover:border-gray-700 transition-all duration-200 ease-in-out font-medium"
                   style={{
                     transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
                   }}
@@ -355,7 +355,7 @@ const Header = () => {
             ) : (
               <Button
                 asChild
-                className="rounded-2xl border-2 border-transparent text-white bg-accent hover:bg-transparent  hover:border-accent hover:text-white transition-all duration-200 ease-in-out w-full"
+                className="rounded-2xl bg-[#11aad4] hover:bg-[#0d8bb8] text-white border-2 border-[#11aad4] hover:border-[#0d8bb8] transition-all duration-200 ease-in-out w-full font-medium"
                 style={{
                   transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
                 }}
