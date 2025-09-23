@@ -69,7 +69,7 @@ export default function Footer() {
                 transition: 'color 0.2s ease-in-out, border-color 0.2s ease-in-out',
               }}
             >
-              © 2025 The GoodAds. All Rights Reserved.
+              © 2025 inHalt. All Rights Reserved.
             </p>
           </div>
 
