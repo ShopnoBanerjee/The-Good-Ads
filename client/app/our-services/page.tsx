@@ -354,7 +354,7 @@ const OurServices: React.FC = () => {
               <Link href="/auth" className="bg-white text-[#11aad4] px-8 py-4 rounded-xl font-outfit font-semibold hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl text-center">
                 Join as a Business
               </Link>
-              <Link href="/auth" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-outfit font-semibold hover:bg-white hover:text-[#11aad4] transition-all duration-200 text-center">
+              <Link href="/auth" className="bg-white text-[#11aad4] px-8 py-4 rounded-xl font-outfit font-semibold hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl text-center">
                 Join as a Society
               </Link>
             </div>
