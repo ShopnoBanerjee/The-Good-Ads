@@ -55,6 +55,7 @@ async def create_project(request: Request, authorization: str = Header(...)):
     raw_name = body.get("name")
     services_required = body.get("services_required")
     raw_description = body.get("description")
+    hide_details = body.get("hide_details", False)
 
     if not raw_name or not services_required or not raw_description:
         raise HTTPException(status_code=400, detail="Missing fields")
@@ -70,8 +71,11 @@ async def create_project(request: Request, authorization: str = Header(...)):
     if profile.data is None or profile.data["user_type"] != "business":
         raise HTTPException(status_code=403, detail="Only business users can create projects")
 
-    # ✅ Call AI agent
-    compliant_name, compliant_description = await run_ai_moderation(raw_name, raw_description)
+    # ✅ Call AI agent for compliance if hide_details is True
+    if hide_details:
+        compliant_name, compliant_description = await run_ai_moderation(raw_name, raw_description)
+    else:
+        compliant_name, compliant_description = raw_name, raw_description
 
     insert_resp = supabase.table("projects").insert({
         "business_id": user_id,
@@ -204,6 +208,7 @@ async def edit_project(request: Request, authorization: str = Header(...)):
     raw_name = body.get("name")
     raw_description = body.get("description")
     services_required = body.get("services_required")
+    hide_details = body.get("hide_details", False)
 
     if not project_id or not raw_name or not raw_description or not services_required:
         raise HTTPException(status_code=400, detail="Missing fields")
@@ -221,8 +226,11 @@ async def edit_project(request: Request, authorization: str = Header(...)):
     if resp.data["business_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    # Call AI agent for compliance
-    compliant_name, compliant_description = await run_ai_moderation(raw_name, raw_description)
+    # Call AI agent for compliance if hide_details is True
+    if hide_details:
+        compliant_name, compliant_description = await run_ai_moderation(raw_name, raw_description)
+    else:
+        compliant_name, compliant_description = raw_name, raw_description
 
     update_resp = supabase.table("projects").update({
         "raw_name": raw_name,
