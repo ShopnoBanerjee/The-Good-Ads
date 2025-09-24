@@ -209,6 +209,7 @@ async def edit_project(request: Request, authorization: str = Header(...)):
     raw_description = body.get("description")
     services_required = body.get("services_required")
     hide_details = body.get("hide_details", False)
+    status = body.get("status")
 
     if not project_id or not raw_name or not raw_description or not services_required:
         raise HTTPException(status_code=400, detail="Missing fields")
@@ -237,7 +238,8 @@ async def edit_project(request: Request, authorization: str = Header(...)):
         "raw_description": raw_description,
         "services_required": services_required,
         "compliant_name": compliant_name,
-        "compliant_description": compliant_description
+        "compliant_description": compliant_description,
+        **({"status": status} if status else {})
     }).eq("id", project_id).execute()
 
     if not update_resp.data:
