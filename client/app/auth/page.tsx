@@ -122,7 +122,9 @@ function AuthPageContent() {
 
       <div className="col-span-12 md:col-span-8 lg:col-span-6 flex flex-col items-center justify-center px-6 py-10 bg-white dark:bg-[#15325a]">
         <div className="overflow-hidden mb-6">
-          <Image src="/logo/our-logo.png" alt="Logo" width={140} height={85} className="object-contain" />
+          <Link href="/">
+            <Image src="/logo/our-logo.png" alt="Logo" width={140} height={85} className="object-contain" />
+          </Link>
         </div>
 
         {activeTab === 'signin' ? (
