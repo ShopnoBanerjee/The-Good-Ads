@@ -258,7 +258,7 @@ export default function ProjectProposalsPage() {
                     </div>
                     <div>
                       <h3 className="font-bold text-text">Project Details</h3>
-                      <p className="text-sm text-text-muted">What you're looking for</p>
+                      <p className="text-sm text-text-muted">What you&apos;re looking for</p>
                     </div>
                   </div>
                 </CardHeader>

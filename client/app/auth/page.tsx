@@ -1,12 +1,23 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import Image from "next/image"
 import Link from "next/link"
 import { z } from 'zod'
 import { useActionState } from 'react'
 import { signInWithOtpAction, signUpWithOtpAction } from './actions'
+
+// Zod schemas
+const signInSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+})
+
+const signUpSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  userType: z.enum(['business', 'college_society'], {
+    errorMap: () => ({ message: 'Please select a user type' }),
+  }),
+})
 
 // Types
 interface SignUpForm {
@@ -20,6 +31,7 @@ interface SignInForm {
 
 interface FormErrors {
   email?: string;
+  userType?: string;
 }
 
 interface ActionState {
@@ -27,16 +39,10 @@ interface ActionState {
   error?: string;
 }
 
-const emailSchema = z.object({
-  email: z.string().email("Invalid email address"),
-})
-
 // Separate component that uses useSearchParams
 function AuthPageContent() {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'signup' | 'signin'>('signup');
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [signUpForm, setSignUpForm] = useState<SignUpForm>({ email: '', userType: 'business' });
   const [signInForm, setSignInForm] = useState<SignInForm>({ email: '' });
@@ -55,12 +61,49 @@ function AuthPageContent() {
     null
   )
 
+  const validateSignIn = () => {
+    const result = signInSchema.safeParse(signInForm);
+    if (!result.success) {
+      const errors: FormErrors = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0] === 'email') errors.email = err.message;
+      });
+      setSignInErrors(errors);
+      return false;
+    }
+    setSignInErrors({});
+    return true;
+  };
+
+  const validateSignUp = () => {
+    const result = signUpSchema.safeParse(signUpForm);
+    if (!result.success) {
+      const errors: FormErrors = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0] === 'email') errors.email = err.message;
+        if (err.path[0] === 'userType') errors.userType = err.message;
+      });
+      setSignUpErrors(errors);
+      return false;
+    }
+    setSignUpErrors({});
+    return true;
+  };
+
   const handleSignUpEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSignUpForm({ ...signUpForm, email: e.target.value });
+    // Clear error when user starts typing
+    if (signUpErrors.email) {
+      setSignUpErrors({ ...signUpErrors, email: undefined });
+    }
   };
 
   const handleSignInEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSignInForm({ ...signInForm, email: e.target.value });
+    // Clear error when user starts typing
+    if (signInErrors.email) {
+      setSignInErrors({ ...signInErrors, email: undefined });
+    }
   };
 
   const handleUserTypeChange = (userType: 'business' | 'college_society'): void => {
@@ -86,11 +129,11 @@ function AuthPageContent() {
           <>
             <h1 className="text-2xl font-semibold font-outfit text-black dark:text-white mb-2">Log In</h1>
             <p className="mb-6 text-base font-outfit text-[#00000066] dark:text-gray-300">
-              Don't have an account yet?{' '}
+              Don&apos;t have an account yet?{' '}
               <button onClick={() => handleTabSwitch('signup')} className="text-[#009dc9] font-outfit hover:underline">Sign up</button>
             </p>
 
-            <form className="w-full max-w-md space-y-4" action={signInAction}>
+            <form className="w-full max-w-md space-y-4" action={signInAction} onSubmit={(e) => { if (!validateSignIn()) e.preventDefault(); }}>
               <div className="flex flex-col space-y-2">
                 <label className="text-black dark:text-white font-outfit text-sm font-medium">Email Address</label>
                 <input
@@ -117,7 +160,7 @@ function AuthPageContent() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#11aad4] border-2 border-[#11aad4] text-white py-3 rounded-xl hover:bg-white hover:text-[#11aad4] dark:hover:bg-[#15325a] dark:hover:text-white font-outfit font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                className="block mt-4 w-full text-center text-base font-outfit text-[#11aad4] bg-white dark:bg-[#1a2f4a] border-2 border-[#11aad4] py-3 rounded-xl hover:bg-[#11aad4] hover:text-white dark:hover:bg-[#11aad4] dark:hover:text-white transition-all duration-200 font-medium"
               >
                 {isLoading ? 'Sending...' : 'Sign In'}
               </button>
@@ -137,7 +180,7 @@ function AuthPageContent() {
               <button onClick={() => handleTabSwitch('signin')} className="text-[#009dc9] font-outfit hover:underline">Sign in</button>
             </p>
 
-            <form className="w-full max-w-md space-y-4" action={signUpAction} noValidate>
+            <form className="w-full max-w-md space-y-4" action={signUpAction} noValidate onSubmit={(e) => { if (!validateSignUp()) e.preventDefault(); }}>
               <div className="flex space-x-3 mb-6 p-1 bg-gray-100 dark:bg-[#1a2f4a] rounded-xl">
                 <button
                   type="button"
@@ -189,7 +232,7 @@ function AuthPageContent() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#11aad4] border-2 border-[#11aad4] text-white py-3 rounded-xl hover:bg-white hover:text-[#11aad4] dark:hover:bg-[#15325a] dark:hover:text-white font-outfit font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                className="block mt-4 w-full text-center text-base font-outfit text-[#11aad4] bg-white dark:bg-[#1a2f4a] border-2 border-[#11aad4] py-3 rounded-xl hover:bg-[#11aad4] hover:text-white dark:hover:bg-[#11aad4] dark:hover:text-white transition-all duration-200 font-medium"
               >
                 {isLoading ? 'Sending...' : 'Sign Up'}
               </button>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, ChangeEvent, FormEvent, useEffect, Suspense } from "react"
+import { useState, ChangeEvent, FormEvent, useEffect, Suspense, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
@@ -105,14 +105,7 @@ function AddProjectForm() {
   })
 
   // ✅ Fetch project data if in edit mode
-  useEffect(() => {
-    if (projectId) {
-      setIsEditMode(true)
-      fetchProjectForEdit()
-    }
-  }, [projectId])
-
-  const fetchProjectForEdit = async () => {
+  const fetchProjectForEdit = useCallback(async () => {
     if (!projectId) return
 
     try {
@@ -146,10 +139,17 @@ function AddProjectForm() {
         description: project.raw_description,
         hideDetails: false, // Default to false for existing projects
       })
-    } catch (err: any) {
-      setApiError(err.message || "Failed to load project for editing")
+    } catch (err: unknown) {
+      setApiError(err instanceof Error ? err.message : "Failed to load project for editing")
     }
-  }
+  }, [projectId])
+
+  useEffect(() => {
+    if (projectId) {
+      setIsEditMode(true)
+      fetchProjectForEdit()
+    }
+  }, [projectId, fetchProjectForEdit])
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -191,7 +191,6 @@ function AddProjectForm() {
       const token = session.access_token
 
       let res: Response
-      let requestBody: any
 
       if (isEditMode && currentProject) {
         // Edit mode - call edit API
@@ -244,8 +243,8 @@ function AddProjectForm() {
           `/business/preview?project_id=${responseData.project_id}&compliant=${encodeURIComponent(responseData.compliant_description)}`,
         )
       }
-    } catch (err: any) {
-      setApiError(err.message || "Unknown error")
+    } catch (err: unknown) {
+      setApiError(err instanceof Error ? err.message : "Unknown error")
     } finally {
       setLoading(false)
     }

@@ -72,7 +72,7 @@ const SidebarProvider = React.forwardRef<HTMLDivElement, SidebarProviderProps>(
     const open   = openProp ?? _open
     const setOpen = React.useCallback(
       (value: React.SetStateAction<boolean>) => {
-        const next = typeof value === "function" ? (value as any)(open) : value
+        const next = typeof value === "function" ? (value as (prev: boolean) => boolean)(open) : value
         if (setOpenProp) setOpenProp(next)
         else _setOpen(next)
 
@@ -149,12 +149,30 @@ interface SidebarToggleProps extends React.ComponentPropsWithoutRef<"button"> {
 const SidebarToggle = React.forwardRef<HTMLButtonElement, SidebarToggleProps>(
   ({ asChild, ...props }, ref) => {
     const { toggleSidebar } = useSidebar()
-    const Comp: any = asChild ? Slot : Button
+    if (asChild) {
+      return (
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Slot
+                ref={ref}
+                onClick={toggleSidebar}
+                {...props}
+              >
+                <PanelLeft className="h-5 w-5" />
+                <span className="sr-only">Toggle sidebar</span>
+              </Slot>
+            </TooltipTrigger>
+            <TooltipContent side="right">Toggle sidebar (⌘/Ctrl+B)</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )
+    }
     return (
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Comp
+            <Button
               ref={ref}
               variant="ghost"
               size="icon"
@@ -163,7 +181,7 @@ const SidebarToggle = React.forwardRef<HTMLButtonElement, SidebarToggleProps>(
             >
               <PanelLeft className="h-5 w-5" />
               <span className="sr-only">Toggle sidebar</span>
-            </Comp>
+            </Button>
           </TooltipTrigger>
           <TooltipContent side="right">Toggle sidebar (⌘/Ctrl+B)</TooltipContent>
         </Tooltip>

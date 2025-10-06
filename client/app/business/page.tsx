@@ -37,6 +37,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { ChatWidget } from "@/components/ChatWidget"
+import { FloatingChatButton } from "@/components/FloatingChatButton"
 
 // Define the type for each project
 interface Project {
@@ -67,12 +69,42 @@ export default function BusinessDashboard() {
     totalProposals: 0,
     completedProjects: 0,
   })
+  // Chat state
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string>("")
+  const [currentUserType, setCurrentUserType] = useState<'business' | 'college_society'>('business')
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const router = useRouter()
   const { theme } = useTheme()
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const supabase = getSupabaseClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('user_type')
+            .eq('id', session.user.id)
+            .single()
+
+          if (profile) {
+            setCurrentUserId(session.user.id)
+            setCurrentUserType(profile.user_type)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load user profile:', error)
+      }
+    }
+
+    loadUserProfile()
   }, [])
 
   useEffect(() => {
@@ -117,7 +149,7 @@ export default function BusinessDashboard() {
             completedProjects,
           })
         }
-      } catch (err) {
+      } catch {
         setError("Something went wrong!")
       } finally {
         setLoading(false)
@@ -126,6 +158,26 @@ export default function BusinessDashboard() {
 
     fetchProjects()
   }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Open/close chat with Ctrl/Cmd + K
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault()
+        setIsChatOpen(!isChatOpen)
+        if (!isChatOpen) {
+          setUnreadCount(0)
+        }
+      }
+      // Close chat with Escape
+      if (event.key === 'Escape' && isChatOpen) {
+        setIsChatOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isChatOpen])
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -471,6 +523,26 @@ export default function BusinessDashboard() {
           </div>
         </div>
       </main>
+
+      {/* Chat Integration */}
+      <ChatWidget
+        currentUserId={currentUserId}
+        currentUserType={currentUserType}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        onUnreadCountChange={(updater) => setUnreadCount(updater)}
+      />
+
+      <FloatingChatButton
+        onClick={() => {
+          setIsChatOpen(!isChatOpen)
+          if (!isChatOpen) {
+            setUnreadCount(0) // Reset unread count when opening chat
+          }
+        }}
+        isOpen={isChatOpen}
+        unreadCount={unreadCount}
+      />
     </>
   )
 }

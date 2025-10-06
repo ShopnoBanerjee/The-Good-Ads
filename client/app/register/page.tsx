@@ -153,7 +153,7 @@ function RegisterPageContent() {
         const errors: FieldErrors = {};
         for (const [key, val] of Object.entries(result.error.format())) {
           if (key !== "_errors") {
-            errors[key] = (val as any)._errors[0];
+            errors[key] = (val as { _errors: string[] })._errors[0];
           }
         }
         setFieldErrors(errors);
@@ -201,8 +201,8 @@ function RegisterPageContent() {
       setTimeout(() => {
         router.push(userType === "business" ? "/business" : "/society");
       }, 1200);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }

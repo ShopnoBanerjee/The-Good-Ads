@@ -62,7 +62,7 @@ export default function MilestoneTimeline({ milestones }: MilestoneTimelineProps
         <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
 
         <div className="space-y-6">
-          {milestones.map((milestone, index) => {
+          {milestones.map((milestone) => {
             const completedTasks = milestone.tasks.filter(t => t.is_completed).length;
             const totalTasks = milestone.tasks.length;
             const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;

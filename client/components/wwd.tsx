@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 
 const Wwd: React.FC = () => {
   const { theme } = useTheme();
@@ -97,22 +98,24 @@ const Wwd: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-center overflow-hidden order-1 lg:order-2">
-            <img
+          <div className="flex justify-center overflow-hidden order-1 lg:order-2 relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl h-64 sm:h-80 md:h-96 lg:h-[400px] xl:h-[500px]">
+            <Image
+              fill
               src="/illustrations/illus2whatwedo.png"
               alt="Illustration 1"
-              className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl h-auto object-contain rounded-lg"
+              className="object-contain rounded-lg"
             />
           </div>
         </div>
 
         {/* WWD- Row 3 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-6 sm:gap-8 lg:gap-12 mt-8 sm:mt-12 lg:mt-4">
-          <div className="flex justify-center overflow-hidden">
-            <img
+          <div className="flex justify-center overflow-hidden relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl h-64 sm:h-80 md:h-96 lg:h-[400px] xl:h-[450px]">
+            <Image
+              fill
               src="/illustrations/illus whatwedo.png"
               alt="Illustration 2"
-              className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl h-auto object-contain rounded-lg"
+              className="object-contain rounded-lg"
             />
           </div>
 
@@ -191,11 +194,14 @@ const Wwd: React.FC = () => {
       </div>
 
       {/* Decorative overlay image - overlaps buttons on larger screens */}
-      <img
-        src="/illustrations/comb standing.png"
-        alt="Decorative Overlay"
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl h-auto pointer-events-none lg:-translate-y-0 xl:-translate-y-0"
-      />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl h-64 sm:h-80 md:h-96 lg:h-[400px] xl:h-[500px] pointer-events-none lg:-translate-y-0 xl:-translate-y-0">
+        <Image
+          fill
+          src="/illustrations/comb standing.png"
+          alt="Decorative Overlay"
+          className="object-contain"
+        />
+      </div>
     </section>
   );
 };

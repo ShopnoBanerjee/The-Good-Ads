@@ -65,7 +65,7 @@ export default function MilestoneForm({ projectId, onSuccess }: MilestoneFormPro
 
       reset();
       onSuccess?.();
-    } catch (error) {
+    } catch {
       // Error is handled in the hook
     } finally {
       setIsSubmitting(false);

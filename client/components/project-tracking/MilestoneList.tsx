@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronRight, CheckCircle, Clock, AlertCircle, Calendar } from 'lucide-react';
-import { MilestoneWithTasks } from '@/types/project-tracking';
 import { useMilestones } from '@/hooks/useMilestones';
 import { useProjectStore } from '@/stores/useProjectStore';
+import { Task } from '@/types/project-tracking';
 
 interface MilestoneListProps {
   projectId: string;
@@ -55,7 +55,7 @@ export default function MilestoneList({ projectId }: MilestoneListProps) {
     }
   };
 
-  const calculateProgress = (tasks: any[]) => {
+  const calculateProgress = (tasks: Task[]) => {
     if (!tasks || tasks.length === 0) return 0;
     const completedTasks = tasks.filter(task => task.is_completed).length;
     return Math.round((completedTasks / tasks.length) * 100);

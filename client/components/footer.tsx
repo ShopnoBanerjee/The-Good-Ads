@@ -3,11 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { MdEmail, MdPhone } from 'react-icons/md';
-import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 export default function Footer() {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

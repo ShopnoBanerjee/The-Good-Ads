@@ -37,6 +37,11 @@ async def send_proposal(request: Request, authorization: str = Header(...)):
     if not resp.data:
         raise HTTPException(status_code=500, detail="Proposal insert failed")
 
+    # ✅ Increment proposal count on project
+    current = supabase.table("projects").select("proposal_count").eq("id", project_id).single().execute()
+    count = current.data["proposal_count"] if current.data else 0
+    supabase.table("projects").update({"proposal_count": count + 1}).eq("id", project_id).execute()
+
     return {"message": "Proposal sent successfully"}
 
 @router.get("/api/business-proposals")
@@ -146,6 +151,22 @@ async def get_project_proposals(project_id: str, authorization: str = Header(...
 
     proposals = supabase.table("proposals").select("*").eq("project_id", project_id).execute()
     return proposals.data
+
+@router.get("/api/society-projects")
+async def get_society_projects(authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401)
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    profile = supabase.table("profiles").select("user_type").eq("id", user_id).single().execute()
+    if not profile.data or profile.data["user_type"] != "college_society":
+        raise HTTPException(status_code=403, detail="Only societies can view")
+
+    projects = supabase.table("projects").select("*").eq("society_id", user_id).execute()
+
+    return projects.data
 
 
 

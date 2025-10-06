@@ -67,7 +67,7 @@ export default function RatingModal({ projectId, rateeId, rateeName, trigger }: 
 
       reset();
       setOpen(false);
-    } catch (error) {
+    } catch {
       // Error is handled in the hook
     }
   };

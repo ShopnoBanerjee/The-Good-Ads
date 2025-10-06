@@ -2,10 +2,8 @@
 
 import Image from "next/image";
 import { FC, useState, useEffect } from "react";
-import { useTheme } from "next-themes";
 
 const Intro: FC = () => {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -85,7 +83,7 @@ const Intro: FC = () => {
               transition: 'color 0.2s ease-in-out',
               }}
             >
-              We're building the future of brand collaborations! A marketplace that connects businesses with college societies for contractual projects.
+              We&apos;re building the future of brand collaborations! A marketplace that connects businesses with college societies for contractual projects.
             </p>
 
             <div className="flex items-center justify-center lg:justify-start gap-4 mt-8 sm:mt-10 lg:mt-12">

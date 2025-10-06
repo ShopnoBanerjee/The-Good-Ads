@@ -39,7 +39,7 @@ export default function MarketplacePage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(9);
+  const [pageSize] = useState<number>(9);
   const [total, setTotal] = useState<number>(0);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function MarketplacePage() {
           setProjects(data.projects || []);
           setTotal(data.total || 0);
         }
-      } catch (err) {
+      } catch {
         setError("Something went wrong!");
       } finally {
         setLoading(false);

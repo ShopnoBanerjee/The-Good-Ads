@@ -32,7 +32,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (session) {
         // Fetch user_type from the profiles table
-        let { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("user_type")
           .eq("id", session.user.id)
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     console.log("[AuthProvider] session state changed:", session);

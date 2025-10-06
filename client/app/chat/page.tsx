@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { ConversationList } from "@/components/ConversationList"
 import { ChatInterface } from "@/components/ChatInterface"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, MessageSquare } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabaseClient"
@@ -27,15 +28,15 @@ export default function ChatPage() {
   const [currentUserType, setCurrentUserType] = useState<'business' | 'college_society'>('business')
   const [isLoading, setIsLoading] = useState(true)
   const supabase = getSupabaseClient()
+  const router = useRouter()
 
-  useEffect(() => {
-    loadUserProfile()
-  }, [])
-
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
+      if (!session) {
+        router.push('/auth')
+        return
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -46,13 +47,23 @@ export default function ChatPage() {
       if (profile) {
         setCurrentUserId(session.user.id)
         setCurrentUserType(profile.user_type)
+
+        // Redirect business users to dashboard where chat is now integrated
+        if (profile.user_type === 'business') {
+          router.push('/business')
+          return
+        }
       }
     } catch (error) {
       console.error('Failed to load user profile:', error)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [supabase, router])
+
+  useEffect(() => {
+    loadUserProfile()
+  }, [loadUserProfile])
 
   const getOtherUserName = (conversation: Conversation) => {
     if (currentUserType === 'business') {

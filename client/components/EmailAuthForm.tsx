@@ -5,11 +5,10 @@ import { getSupabaseClient } from '@/lib/supabaseClient';
 
 interface EmailAuthFormProps {
   mode: 'signup' | 'signin';
-  userType: string;
   method: 'magic_link' | 'password';
 }
 
-export default function EmailAuthForm({ mode, userType, method }: EmailAuthFormProps) {
+export default function EmailAuthForm({ mode, method }: EmailAuthFormProps) {
   const [email, setEmail] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<string>('');
@@ -49,8 +48,8 @@ export default function EmailAuthForm({ mode, userType, method }: EmailAuthFormP
           setSuccess('Check your email for the link!');
         }
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }

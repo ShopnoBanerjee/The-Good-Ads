@@ -5,6 +5,8 @@ import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
 import { useAuth } from "@/app/providers"
 import { useRouter } from "next/navigation"
+import { useTheme } from "next-themes"
+import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -50,6 +52,7 @@ interface PortfolioItem {
 export default function SocietyPortfolioPage() {
   const { userType } = useAuth()
   const router = useRouter()
+  const { theme } = useTheme()
 
   useEffect(() => {
     if (userType && userType !== "college_society") {
@@ -68,6 +71,11 @@ export default function SocietyPortfolioPage() {
   const supabase = getSupabaseClient()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [items, setItems] = useState<PortfolioItem[]>([])
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const loadProfileAndPortfolio = async (): Promise<void> => {
@@ -247,11 +255,11 @@ export default function SocietyPortfolioPage() {
 
   const getRandomGradient = (index: number): string => {
     const gradients = [
-      "from-accent via-accent/90 to-blue-600",
-      "from-blue-600 via-accent/90 to-accent",
-      "from-accent via-blue-500 to-blue-700",
-      "from-blue-700 via-accent to-blue-600",
-      "from-accent to-blue-600",
+      "from-blue-600 via-blue-500 to-blue-700",
+      "from-blue-700 via-blue-600 to-blue-500",
+      "from-blue-500 via-blue-600 to-blue-800",
+      "from-blue-800 via-blue-700 to-blue-600",
+      "from-blue-600 to-blue-700",
     ]
     return gradients[index % gradients.length]
   }
@@ -266,6 +274,10 @@ export default function SocietyPortfolioPage() {
     setSelectedItem(null)
   }
 
+  if (!mounted) {
+    return <div className="min-h-screen bg-white dark:bg-[#15325a]"></div>
+  }
+
   return (
     <main 
       className="min-h-screen bg-white dark:bg-[#15325a] transition-colors duration-200 ease-in-out font-outfit"
@@ -274,7 +286,14 @@ export default function SocietyPortfolioPage() {
       }}
     >
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-accent via-accent/90 to-blue-600 dark:from-accent dark:via-accent/80 dark:to-blue-700 text-white">
+      <div 
+        className="text-white"
+        style={{
+          background: theme === "dark" 
+            ? "linear-gradient(135deg, #1a4b6b 0%, #15325a 50%, #0d2847 100%)"
+            : "linear-gradient(135deg, #1679A8 0%, #1A97BA 50%, #63C3DD 100%)"
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
           {profile && (
             <div className="space-y-6 sm:space-y-8">
@@ -283,11 +302,12 @@ export default function SocietyPortfolioPage() {
                 {/* Logo Section */}
                 <div className="relative group flex-shrink-0">
                   <div className="relative cursor-pointer" onClick={handleLogoClick}>
-                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-white/30 backdrop-blur-sm">
-                      <img
+                    <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-white/30 backdrop-blur-sm">
+                      <Image
+                        fill
                         src={profile.logo_url || "/placeholder.svg?height=128&width=128&query=society+logo"}
                         alt="Society Logo"
-                        className="w-full h-full object-cover"
+                        className="object-cover"
                       />
                     </div>
                     {logoUploading && (
@@ -442,7 +462,7 @@ export default function SocietyPortfolioPage() {
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between space-y-4 lg:space-y-0">
               <div className="flex items-center space-x-3 sm:space-x-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-accent to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div>
@@ -450,14 +470,14 @@ export default function SocietyPortfolioPage() {
                     Portfolio Management
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base font-outfit transition-colors duration-200 ease-in-out">
-                    Showcase your society's best work and achievements
+                    Showcase your society&apos;s best work and achievements
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
                 {items.length > 0 && (
-                  <Badge className="bg-accent/10 dark:bg-accent/20 text-accent px-3 py-1 text-sm font-outfit rounded-xl">
+                  <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 text-sm font-outfit rounded-xl">
                     {items.length} items
                   </Badge>
                 )}
@@ -473,7 +493,7 @@ export default function SocietyPortfolioPage() {
                   <Button
                     onClick={() => document.getElementById("file-upload")?.click()}
                     variant="outline"
-                    className="border-dashed border-2 border-accent/30 text-accent hover:bg-accent/10 hover:border-accent rounded-2xl font-outfit transition-all duration-200 ease-in-out"
+                    className="border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-600 rounded-2xl font-outfit transition-all duration-200 ease-in-out"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Files
@@ -482,7 +502,7 @@ export default function SocietyPortfolioPage() {
                     <Button
                       onClick={handleUpload}
                       disabled={uploading}
-                      className="bg-gradient-to-r from-accent to-blue-600 hover:from-accent/90 hover:to-blue-600/90 text-white rounded-2xl font-outfit transition-all duration-200 ease-in-out"
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-outfit transition-all duration-200 ease-in-out"
                     >
                       {uploading ? (
                         <>
@@ -506,7 +526,7 @@ export default function SocietyPortfolioPage() {
         {/* Selected Files Preview */}
         {files.length > 0 && (
           <Card 
-            className="rounded-2xl border border-accent/20 bg-accent/5 dark:bg-accent/10 mb-6 sm:mb-8 transition-all duration-200 ease-in-out"
+            className="rounded-2xl border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 mb-6 sm:mb-8 transition-all duration-200 ease-in-out"
             style={{
               transition: 'background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
             }}
@@ -514,7 +534,7 @@ export default function SocietyPortfolioPage() {
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-2 sm:space-y-0">
                 <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                     <Upload className="w-4 h-4 text-white" />
                   </div>
                   <p className="font-medium text-[#15325a] dark:text-white font-outfit transition-colors duration-200 ease-in-out">
@@ -529,7 +549,7 @@ export default function SocietyPortfolioPage() {
                     const fileInput = document.getElementById("file-upload") as HTMLInputElement
                     if (fileInput) fileInput.value = ""
                   }}
-                  className="text-accent hover:text-accent/80 hover:bg-accent/10 rounded-2xl font-outfit transition-all duration-200 ease-in-out"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl font-outfit transition-all duration-200 ease-in-out"
                 >
                   Clear all
                 </Button>
@@ -542,21 +562,21 @@ export default function SocietyPortfolioPage() {
                   return (
                     <div
                       key={idx}
-                      className="bg-white dark:bg-[#15325a]/50 rounded-xl p-3 sm:p-4 shadow-sm border border-accent/10 dark:border-accent/20 transition-all duration-200 ease-in-out"
+                      className="bg-white dark:bg-[#15325a]/50 rounded-xl p-3 sm:p-4 shadow-sm border border-blue-200 dark:border-blue-700 transition-all duration-200 ease-in-out"
                       style={{
                         transition: 'background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
                       }}
                     >
                       <div className="flex flex-col items-center space-y-2">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent/10 dark:bg-accent/20 rounded-lg flex items-center justify-center">
-                          <FileIcon className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                          <FileIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <p className="text-xs text-[#15325a] dark:text-white truncate w-full text-center font-medium font-outfit transition-colors duration-200 ease-in-out">
                           {file.name}
                         </p>
                         <Badge 
                           variant="secondary" 
-                          className="text-xs bg-accent/10 dark:bg-accent/20 text-accent rounded-xl font-outfit"
+                          className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl font-outfit"
                         >
                           {getFileTypeLabel(ext)}
                         </Badge>
@@ -572,25 +592,25 @@ export default function SocietyPortfolioPage() {
         {/* Portfolio Grid */}
         {items.length === 0 ? (
           <Card 
-            className="rounded-2xl border-2 border-dashed border-accent/20 bg-accent/5 dark:bg-accent/10 transition-all duration-200 ease-in-out"
+            className="rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 transition-all duration-200 ease-in-out"
             style={{
               transition: 'background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
             }}
           >
             <CardContent className="p-8 sm:p-12 lg:p-16 text-center">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-accent to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
                 <Camera className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
               </div>
               <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#15325a] dark:text-white mb-2 font-outfit transition-colors duration-200 ease-in-out">
                 No portfolio items yet
               </h3>
               <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto text-sm sm:text-base leading-relaxed font-outfit transition-colors duration-200 ease-in-out">
-                Start building your society's portfolio by uploading your first file. Showcase your best work and
+                Start building your society&apos;s portfolio by uploading your first file. Showcase your best work and
                 achievements.
               </p>
               <Button
                 onClick={() => document.getElementById("file-upload")?.click()}
-                className="bg-gradient-to-r from-accent to-blue-600 hover:from-accent/90 hover:to-blue-600/90 text-white px-6 sm:px-8 py-3 rounded-2xl font-outfit transition-all duration-200 ease-in-out"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-3 rounded-2xl font-outfit transition-all duration-200 ease-in-out"
               >
                 <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Upload First Item
@@ -617,10 +637,11 @@ export default function SocietyPortfolioPage() {
                 >
                   <div className="aspect-square relative overflow-hidden">
                     {isImage && (
-                      <img
+                      <Image
+                        fill
                         src={url || "/placeholder.svg"}
                         alt={item.caption}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     )}
                     {isVideo && (
@@ -674,7 +695,7 @@ export default function SocietyPortfolioPage() {
                       <div className="flex items-center justify-between">
                         <Badge 
                           variant="outline" 
-                          className="text-xs border-accent/20 text-accent rounded-xl font-outfit"
+                          className="text-xs border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 rounded-xl font-outfit"
                         >
                           {getFileTypeLabel(ext)}
                         </Badge>
@@ -711,7 +732,7 @@ export default function SocietyPortfolioPage() {
                     {selectedItem.caption}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="bg-gray-50 dark:bg-[#15325a]/50 rounded-xl overflow-hidden transition-colors duration-200 ease-in-out">
+                <div className="relative bg-gray-50 dark:bg-[#15325a]/50 rounded-xl overflow-hidden transition-colors duration-200 ease-in-out">
                   {(() => {
                     const url = supabase.storage.from("society-portfolio").getPublicUrl(selectedItem.file_path)
                       .data.publicUrl
@@ -721,10 +742,11 @@ export default function SocietyPortfolioPage() {
 
                     if (isImage) {
                       return (
-                        <img
+                        <Image
+                          fill
                           src={url || "/placeholder.svg"}
                           alt={selectedItem.caption}
-                          className="max-w-full max-h-[50vh] sm:max-h-[70vh] object-contain mx-auto"
+                          className="object-contain"
                         />
                       )
                     }
@@ -733,7 +755,7 @@ export default function SocietyPortfolioPage() {
                     }
                     return (
                       <div className="text-center py-8 sm:py-12">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-accent to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
                           <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                         </div>
                         <h3 className="text-base sm:text-lg font-semibold text-[#15325a] dark:text-white mb-2 font-outfit transition-colors duration-200 ease-in-out">
@@ -744,7 +766,7 @@ export default function SocietyPortfolioPage() {
                         </p>
                         <Button
                           asChild
-                          className="bg-gradient-to-r from-accent to-blue-600 hover:from-accent/90 hover:to-blue-600/90 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-2xl font-outfit transition-all duration-200 ease-in-out"
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-2xl font-outfit transition-all duration-200 ease-in-out"
                         >
                           <a href={url} download className="inline-flex items-center space-x-2">
                             <Download className="w-4 h-4" />
@@ -761,7 +783,7 @@ export default function SocietyPortfolioPage() {
                       <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span className="font-medium text-sm sm:text-base">Like</span>
                     </button>
-                    <button className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-accent transition-colors font-outfit">
+                    <button className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-outfit">
                       <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span className="font-medium text-sm sm:text-base">Share</span>
                     </button>
@@ -769,7 +791,7 @@ export default function SocietyPortfolioPage() {
                   <Button
                     asChild
                     variant="outline"
-                    className="border-accent/20 text-accent hover:bg-accent/10 rounded-2xl bg-transparent font-outfit transition-all duration-200 ease-in-out"
+                    className="border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 bg-transparent font-outfit transition-all duration-200 ease-in-out"
                   >
                     <a
                       href={

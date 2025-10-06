@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Save, Pencil, FileText, CheckCircle, Shield } from "lucide-react";
+import { ArrowLeft, Pencil, FileText, CheckCircle, Shield } from "lucide-react";
 import { toast } from "sonner";
 
 // ✅ Define Project type
@@ -79,7 +79,7 @@ function EditProjectContent() {
         setProjectName(data.compliant_name);
         setServicesRequired(data.services_required);
         setProjectDescription(data.compliant_description);
-      } catch (err) {
+      } catch {
         setError("Unexpected error while fetching project");
       } finally {
         setLoading(false);

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { API_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Plus, Users, Calendar, CheckCircle } from 'lucide-react';
@@ -89,7 +89,7 @@ export default function ProjectDetailPage() {
             setSocietyName(society.society_name);
           }
         }
-      } catch (error) {
+      } catch {
         toast.error('Failed to load project');
         router.push('/business');
       } finally {

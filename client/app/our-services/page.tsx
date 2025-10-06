@@ -4,12 +4,10 @@ import Header from '@/components/header';
 import Footer from '@/components/footer';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { CheckCircle, Users, Building2, TrendingUp, Target, Award, XCircle } from 'lucide-react';
 
 const OurServices: React.FC = () => {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -165,7 +163,7 @@ const OurServices: React.FC = () => {
                   Cost-Effective Solutions
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 font-outfit">
-                  Businesses can tap into the fresh perspectives and digital fluency of India's youth at a fraction of traditional consultant costs.
+                  Businesses can tap into the fresh perspectives and digital fluency of India&apos;s youth at a fraction of traditional consultant costs.
                 </p>
               </div>
 
@@ -238,7 +236,7 @@ const OurServices: React.FC = () => {
                           Fresh Perspectives & Digital Fluency
                         </h3>
                         <p className="text-gray-600 dark:text-gray-300 font-outfit">
-                          Tap into India's youth, particularly Millennials and Gen-Z, for contemporary insights and agile solutions.
+                          Tap into India&apos;s youth, particularly Millennials and Gen-Z, for contemporary insights and agile solutions.
                         </p>
                       </div>
                     </div>

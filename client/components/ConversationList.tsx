@@ -5,10 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
-import { MessageSquare, User, Clock } from "lucide-react"
+import { MessageSquare, User } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
 
@@ -44,7 +43,7 @@ export function ConversationList({
 
   useEffect(() => {
     loadConversations()
-  }, [currentUserId])
+  }, [currentUserId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadConversations = async () => {
     try {
@@ -63,7 +62,7 @@ export function ConversationList({
       } else {
         toast.error("Failed to load conversations")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load conversations")
     } finally {
       setIsLoading(false)
