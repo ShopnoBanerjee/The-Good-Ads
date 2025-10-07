@@ -378,11 +378,11 @@ export default function ProjectProposalsPage() {
                         <div className="flex items-start justify-between">
                           <div className="flex items-center space-x-4">
                             <div className="w-16 h-16 bg-brand-gradient rounded-2xl flex items-center justify-center text-white font-bold text-xl">
-                              {getInitials(proposal.societyName || proposal.society_name)}
+                              {getInitials(proposal.society_name || proposal.societyName)}
                             </div>
                             <div>
                               <h3 className="text-xl font-bold text-text">
-                                {proposal.societyName || proposal.society_name || `Society ${proposal.society_id}`}
+                                {proposal.society_name || proposal.societyName || `Society ${proposal.society_id}`}
                               </h3>
                               <p className="text-text-muted">
                                 Contact: {proposal.contactPerson || proposal.contact_person || "Not provided"}

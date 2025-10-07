@@ -149,8 +149,19 @@ async def get_project_proposals(project_id: str, authorization: str = Header(...
     if not project.data or project.data["business_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized to view proposals for this project")
 
+    # Get proposals first
     proposals = supabase.table("proposals").select("*").eq("project_id", project_id).execute()
-    return proposals.data
+    
+    # For each proposal, get the society name from college_society_profiles
+    enhanced_proposals = []
+    for proposal in proposals.data:
+        society_profile = supabase.table("college_society_profiles").select("society_name").eq("id", proposal["society_id"]).single().execute()
+        society_name = society_profile.data["society_name"] if society_profile.data else f"Society {proposal['society_id']}"
+        
+        enhanced_proposal = {**proposal, "society_name": society_name}
+        enhanced_proposals.append(enhanced_proposal)
+    
+    return enhanced_proposals
 
 @router.get("/api/society-projects")
 async def get_society_projects(authorization: str = Header(...)):
