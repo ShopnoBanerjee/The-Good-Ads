@@ -32,6 +32,7 @@ import {
   Video,
   File,
 } from "lucide-react"
+import { toast } from "sonner"
 
 // Type definitions
 interface Profile {
@@ -152,11 +153,15 @@ export default function SocietyPortfolioPage() {
 
       const data = await res.json()
       setProfile({ ...profile!, logo_url: data.logo_url })
-      alert("Logo updated!")
+      toast("Logo updated", {
+        description: "Your society logo has been successfully updated.",
+      })
     } catch (err) {
       console.error(err)
       const errorMessage = err instanceof Error ? err.message : "An error occurred"
-      alert(errorMessage)
+      toast.error("Logo upload failed", {
+        description: errorMessage,
+      })
     } finally {
       setLogoUploading(false)
     }
@@ -164,7 +169,9 @@ export default function SocietyPortfolioPage() {
 
   const handleUpload = async (): Promise<void> => {
     if (!profile?.id) {
-      alert("Society profile missing or not signed in.")
+      toast.error("Profile missing", {
+        description: "Society profile missing or not signed in.",
+      })
       return
     }
     setUploading(true)
@@ -210,11 +217,15 @@ export default function SocietyPortfolioPage() {
         const data: PortfolioItem[] = await res.json()
         setItems(data)
       }
-      alert("Upload complete!")
+      toast("Upload complete", {
+        description: "Your portfolio items have been uploaded successfully.",
+      })
     } catch (err) {
       console.error(err)
       const errorMessage = err instanceof Error ? err.message : "An error occurred"
-      alert("Upload failed: " + errorMessage)
+      toast.error("Upload failed", {
+        description: errorMessage,
+      })
     } finally {
       setUploading(false)
     }
@@ -233,11 +244,15 @@ export default function SocietyPortfolioPage() {
 
       setProfile(editedProfile as Profile)
       setIsEditingProfile(false)
-      alert("Profile updated!")
+      toast("Portfolio updated", {
+        description: "Your portfolio has been successfully updated.",
+      })
     } catch (err) {
       console.error(err)
       const errorMessage = err instanceof Error ? err.message : "An error occurred"
-      alert("Failed to update profile: " + errorMessage)
+      toast.error("Failed to update portfolio", {
+        description: errorMessage,
+      })
     }
   }
 
