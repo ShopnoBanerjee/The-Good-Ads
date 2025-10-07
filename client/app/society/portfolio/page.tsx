@@ -59,7 +59,6 @@ export default function SocietyPortfolioPage() {
 
   useEffect(() => {
     if (userType && userType !== "college_society") {
-      console.log("userType:", userType)
       router.replace("/")
     }
   }, [userType, router])
@@ -725,7 +724,7 @@ export default function SocietyPortfolioPage() {
                     {selectedItem.caption}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="relative bg-gray-50 dark:bg-[#15325a]/50 rounded-xl overflow-hidden transition-colors duration-200 ease-in-out">
+                <div className="bg-gray-50 dark:bg-[#15325a]/50 rounded-xl overflow-hidden transition-colors duration-200 ease-in-out">
                   {(() => {
                     const url = supabase.storage.from("society-portfolio").getPublicUrl(selectedItem.file_path)
                       .data.publicUrl
@@ -735,11 +734,10 @@ export default function SocietyPortfolioPage() {
 
                     if (isImage) {
                       return (
-                        <Image
-                          fill
+                        <img
                           src={url || "/placeholder.svg"}
                           alt={selectedItem.caption}
-                          className="object-contain"
+                          className="max-w-full max-h-[50vh] sm:max-h-[70vh] object-contain mx-auto"
                         />
                       )
                     }
@@ -748,7 +746,7 @@ export default function SocietyPortfolioPage() {
                     }
                     return (
                       <div className="text-center py-8 sm:py-12">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-accent to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
                           <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                         </div>
                         <h3 className="text-base sm:text-lg font-semibold text-[#15325a] dark:text-white mb-2 font-outfit transition-colors duration-200 ease-in-out">
@@ -759,7 +757,7 @@ export default function SocietyPortfolioPage() {
                         </p>
                         <Button
                           asChild
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-2xl font-outfit transition-all duration-200 ease-in-out"
+                          className="bg-gradient-to-r from-accent to-blue-600 hover:from-accent/90 hover:to-blue-600/90 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-2xl font-outfit transition-all duration-200 ease-in-out"
                         >
                           <a href={url} download className="inline-flex items-center space-x-2">
                             <Download className="w-4 h-4" />
@@ -776,7 +774,7 @@ export default function SocietyPortfolioPage() {
                       <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span className="font-medium text-sm sm:text-base">Like</span>
                     </button>
-                    <button className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-outfit">
+                    <button className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-accent transition-colors font-outfit">
                       <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span className="font-medium text-sm sm:text-base">Share</span>
                     </button>
@@ -784,7 +782,7 @@ export default function SocietyPortfolioPage() {
                   <Button
                     asChild
                     variant="outline"
-                    className="border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 bg-transparent font-outfit transition-all duration-200 ease-in-out"
+                    className="border-accent/20 text-accent hover:bg-accent/10 rounded-2xl bg-transparent font-outfit transition-all duration-200 ease-in-out"
                   >
                     <a
                       href={
