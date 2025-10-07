@@ -31,6 +31,7 @@ import {
   ImageIcon,
   Video,
   File,
+  Star,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -42,6 +43,7 @@ interface Profile {
   services_offered: string
   description?: string
   logo_url?: string
+  average_rating?: number
 }
 
 interface PortfolioItem {
@@ -430,7 +432,7 @@ export default function SocietyPortfolioPage() {
 
               {/* Stats Section */}
               {!isEditingProfile && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+                <div className="grid grid-cols-2 gap-3 sm:gap-6">
                   <div className="bg-white/10 dark:bg-white/20 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center transition-colors duration-200 ease-in-out">
                     <div className="flex items-center justify-center mb-2">
                       <Camera className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -440,24 +442,10 @@ export default function SocietyPortfolioPage() {
                   </div>
                   <div className="bg-white/10 dark:bg-white/20 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center transition-colors duration-200 ease-in-out">
                     <div className="flex items-center justify-center mb-2">
-                      <Eye className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      <span className="text-xl sm:text-2xl font-bold font-outfit">1.2k</span>
+                      <Star className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                      <span className="text-xl sm:text-2xl font-bold font-outfit">{profile.average_rating ? profile.average_rating.toFixed(1) : "0.0"}</span>
                     </div>
-                    <p className="text-white/70 text-xs sm:text-sm font-outfit">Profile Views</p>
-                  </div>
-                  <div className="bg-white/10 dark:bg-white/20 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center transition-colors duration-200 ease-in-out">
-                    <div className="flex items-center justify-center mb-2">
-                      <Heart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      <span className="text-xl sm:text-2xl font-bold font-outfit">89</span>
-                    </div>
-                    <p className="text-white/70 text-xs sm:text-sm font-outfit">Total Likes</p>
-                  </div>
-                  <div className="bg-white/10 dark:bg-white/20 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center transition-colors duration-200 ease-in-out">
-                    <div className="flex items-center justify-center mb-2">
-                      <Award className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      <span className="text-xl sm:text-2xl font-bold font-outfit">12</span>
-                    </div>
-                    <p className="text-white/70 text-xs sm:text-sm font-outfit">Projects Done</p>
+                    <p className="text-white/70 text-xs sm:text-sm font-outfit">Average Rating</p>
                   </div>
                 </div>
               )}
@@ -690,12 +678,6 @@ export default function SocietyPortfolioPage() {
                             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                               <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                             </div>
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                              <Share2 className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                            </div>
-                          </div>
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                            <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                           </div>
                         </div>
                       </div>
@@ -714,10 +696,6 @@ export default function SocietyPortfolioPage() {
                         >
                           {getFileTypeLabel(ext)}
                         </Badge>
-                        <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-                          <Heart className="w-3 h-3" />
-                          <span className="text-xs font-outfit">{Math.floor(Math.random() * 50) + 1}</span>
-                        </div>
                       </div>
                     </div>
                   </CardContent>
