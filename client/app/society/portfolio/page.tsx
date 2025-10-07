@@ -26,7 +26,6 @@ import {
   Share2,
   X,
   Check,
-  Award,
   Building2,
   ImageIcon,
   Video,
@@ -734,11 +733,14 @@ export default function SocietyPortfolioPage() {
 
                     if (isImage) {
                       return (
-                        <img
-                          src={url || "/placeholder.svg"}
-                          alt={selectedItem.caption}
-                          className="max-w-full max-h-[50vh] sm:max-h-[70vh] object-contain mx-auto"
-                        />
+                        <div className="relative w-full h-[50vh] sm:h-[70vh]">
+                          <Image
+                            fill
+                            src={url || "/placeholder.svg"}
+                            alt={selectedItem.caption}
+                            className="object-contain"
+                          />
+                        </div>
                       )
                     }
                     if (isVideo) {

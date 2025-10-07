@@ -80,7 +80,7 @@ function EditProjectContent() {
         setServicesRequired(data.services_required);
         setProjectDescription(data.compliant_description);
       } catch {
-        setError("Unexpected error while fetching project");
+        setError("Unexpected error while fetching project");  
       } finally {
         setLoading(false);
       }
