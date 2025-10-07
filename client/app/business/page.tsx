@@ -181,10 +181,14 @@ export default function BusinessDashboard() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
+      case "published":
+        return <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
       case "active":
         return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
       case "completed":
         return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+      case "pending_review":
+        return <Eye className="w-4 h-4 text-orange-600 dark:text-orange-400" />
       case "paused":
         return <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
       case "cancelled":
@@ -196,8 +200,10 @@ export default function BusinessDashboard() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
+      published: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700",
       active: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700",
       completed: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700",
+      pending_review: "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-700",
       paused: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700",
       cancelled: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-200 dark:border-red-700",
       draft: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700",
