@@ -31,6 +31,7 @@ import {
   Video,
   X,
   ExternalLink,
+  Lock,
 } from "lucide-react"
 
 // Type definitions
@@ -60,6 +61,7 @@ interface ProjectDetails {
   compliant_description: string
   services_required: string
   status: string
+  has_accepted_proposal?: boolean
 }
 
 interface PortfolioItem {
@@ -284,6 +286,8 @@ export default function ProjectProposalsPage() {
     return ext.toUpperCase()
   }
 
+  const hasAcceptedProposal = proposals.some(proposal => proposal.status === "accepted")
+
   return (
     <main className="min-h-screen bg-primary">
       {/* Header */}
@@ -357,6 +361,17 @@ export default function ProjectProposalsPage() {
                     <p className="text-sm font-medium text-text mb-2">Status:</p>
                     {getStatusBadge(projectDetails.status as StatusType)}
                   </div>
+                  {projectDetails.has_accepted_proposal && (
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        <span className="text-sm font-medium text-green-800 dark:text-green-300">Proposal Accepted</span>
+                      </div>
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                        You have accepted a proposal for this project. No further proposals can be accepted.
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -404,6 +419,21 @@ export default function ProjectProposalsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Accepted Proposal Notification */}
+            {hasAcceptedProposal && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 mb-6">
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-green-800 dark:text-green-300">Proposal Accepted</h4>
+                    <p className="text-sm text-green-700 dark:text-green-400">
+                      You have accepted a proposal for this project. The collaboration can now begin!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Error State */}
             {error && (
@@ -579,7 +609,7 @@ export default function ProjectProposalsPage() {
                                 <span>View Portfolio</span>
                               </div>
                             </Button>
-                            {proposal.status !== "accepted" && (
+                            {proposal.status !== "accepted" && !hasAcceptedProposal && (
                               <Button
                                 onClick={() => handleAccept(proposal.id)}
                                 disabled={acceptingId === proposal.id}
@@ -597,6 +627,14 @@ export default function ProjectProposalsPage() {
                                   </div>
                                 )}
                               </Button>
+                            )}
+                            {hasAcceptedProposal && proposal.status !== "accepted" && (
+                              <div className="flex-1 px-4 py-3 h-auto bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center">
+                                <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+                                  <Lock className="w-4 h-4" />
+                                  <span className="text-sm font-medium">Another proposal accepted</span>
+                                </div>
+                              </div>
                             )}
                           </div>
                         </div>

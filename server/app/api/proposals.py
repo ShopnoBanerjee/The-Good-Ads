@@ -98,6 +98,11 @@ async def accept_proposal(request: Request, authorization: str = Header(...)):
     if not project.data or project.data["business_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
+    # Check if project already has an accepted proposal
+    existing_accepted = supabase.table("proposals").select("id").eq("project_id", project_id).eq("status", "accepted").execute()
+    if existing_accepted.data and len(existing_accepted.data) > 0:
+        raise HTTPException(status_code=400, detail="A proposal has already been accepted for this project")
+
     update = supabase.table("proposals").update({"status": "accepted"}).eq("id", proposal_id).execute()
 
     # Update project with society_id
@@ -136,7 +141,17 @@ async def get_business_projects(authorization: str = Header(...)):
 
     projects = supabase.table("projects").select("*").eq("business_id", user_id).execute()
 
-    return projects.data
+    # Enhance projects with proposal acceptance status
+    enhanced_projects = []
+    for project in projects.data:
+        # Check if project has an accepted proposal
+        accepted_proposal = supabase.table("proposals").select("id, society_id").eq("project_id", project["id"]).eq("status", "accepted").execute()
+        has_accepted_proposal = len(accepted_proposal.data) > 0 if accepted_proposal.data else False
+        
+        enhanced_project = {**project, "has_accepted_proposal": has_accepted_proposal}
+        enhanced_projects.append(enhanced_project)
+
+    return enhanced_projects
 
 @router.get("/api/project-proposals")
 async def get_project_proposals(project_id: str, authorization: str = Header(...)):

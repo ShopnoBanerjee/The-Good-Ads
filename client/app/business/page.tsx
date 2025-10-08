@@ -49,6 +49,7 @@ interface Project {
   proposal_count?: number
   services_required?: string
   created_at: string
+  has_accepted_proposal?: boolean
 }
 
 interface Stats {
@@ -437,7 +438,15 @@ export default function BusinessDashboard() {
                             {project.compliant_description}
                           </p>
                         </div>
-                        {getStatusBadge(project.status)}
+                        <div className="flex flex-col items-end space-y-2">
+                          {getStatusBadge(project.status)}
+                          {project.has_accepted_proposal && (
+                            <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700 flex items-center">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Proposal Accepted
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
 
