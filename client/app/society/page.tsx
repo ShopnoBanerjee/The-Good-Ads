@@ -17,10 +17,6 @@ import {
   Camera,
   ArrowRight,
   Eye,
-  Heart,
-  Award,
-  TrendingUp,
-  MessageCircle,
 } from "lucide-react";
 import { ChatWidget } from "@/components/ChatWidget";
 import { FloatingChatButton } from "@/components/FloatingChatButton";
@@ -54,14 +50,6 @@ export default function SocietyDashboard() {
   const [mounted, setMounted] = useState(false);
   const [activeProjects, setActiveProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState<boolean>(true);
-  const [stats] = useState({
-    portfolioItems: 0,
-    profileViews: 1200,
-    totalLikes: 89,
-    projectsDone: 12,
-    activeProposals: 3,
-    completionRate: 95,
-  });
 
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -199,7 +187,7 @@ export default function SocietyDashboard() {
       icon: Camera,
       link: "/society/portfolio",
       color: "from-blue-600 to-accent",
-      badge: `${stats.portfolioItems} Items`,
+      badge: "Showcase Work",
     },
   ];
 
@@ -437,123 +425,6 @@ export default function SocietyDashboard() {
               </CardContent>
             </Card>
           )}
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-          <Card 
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-1"
-            aria-label={`Portfolio Items: ${stats.portfolioItems}`}
-          >
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
-                  <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200 ease-in-out">
-                  {stats.portfolioItems}
-                </span>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm transition-colors duration-200 ease-in-out">
-                Portfolio Items
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-1"
-            aria-label={`Profile Views: ${stats.profileViews}`}
-          >
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
-                  <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200 ease-in-out">
-                  {stats.profileViews}
-                </span>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm transition-colors duration-200 ease-in-out">
-                Profile Views
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-1"
-            aria-label={`Total Likes: ${stats.totalLikes}`}
-          >
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg mr-3">
-                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" />
-                </div>
-                <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200 ease-in-out">
-                  {stats.totalLikes}
-                </span>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm transition-colors duration-200 ease-in-out">
-                Total Likes
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-1"
-            aria-label={`Projects Done: ${stats.projectsDone}`}
-          >
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg mr-3">
-                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400" />
-                </div>
-                <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200 ease-in-out">
-                  {stats.projectsDone}
-                </span>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm transition-colors duration-200 ease-in-out">
-                Projects Done
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-1"
-            aria-label={`Active Proposals: ${stats.activeProposals}`}
-          >
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg mr-3">
-                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
-                </div>
-                <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200 ease-in-out">
-                  {stats.activeProposals}
-                </span>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm transition-colors duration-200 ease-in-out">
-                Active Proposals
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-1"
-            aria-label={`Success Rate: ${stats.completionRate}%`}
-          >
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg mr-3">
-                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
-                </div>
-                <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200 ease-in-out">
-                  {stats.completionRate}%
-                </span>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm transition-colors duration-200 ease-in-out">
-                Success Rate
-              </p>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </main>

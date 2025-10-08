@@ -1,3 +1,4 @@
+import Footer from "@/components/footer";
 import Header from "@/components/header";
 
 export default function SocietyLayout({ children }: { children: React.ReactNode }) {
@@ -8,6 +9,7 @@ export default function SocietyLayout({ children }: { children: React.ReactNode 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         {children}
       </div>
+      <Footer />
     </>
   );
 }
