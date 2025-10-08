@@ -8,14 +8,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Search,
   Filter,
   Building2,
   ArrowRight,
-  Users,
-  Briefcase,
   ArrowLeft,
+  CheckCircle,
+  X,
+  Clock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -27,6 +29,14 @@ interface Project {
   services_required: string;
 }
 
+interface ProjectWithProposal extends Project {
+  proposalStatus?: {
+    has_proposal: boolean;
+    status?: string;
+    created_at?: string;
+  };
+}
+
 interface ProjectsResponse {
   projects: Project[];
   total: number;
@@ -34,8 +44,8 @@ interface ProjectsResponse {
 
 export default function MarketplacePage() {
   const router = useRouter();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectWithProposal[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<ProjectWithProposal[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -73,7 +83,32 @@ export default function MarketplacePage() {
           setError(err.detail || "Failed to load projects");
         } else {
           const data: ProjectsResponse = await res.json();
-          setProjects(data.projects || []);
+          const projectsData = data.projects || [];
+
+          // Check proposal status for each project
+          const projectsWithProposalStatus = await Promise.all(
+            projectsData.map(async (project) => {
+              try {
+                const statusRes = await fetch(
+                  `${API_URL}/api/check-proposal-status/${project.id}`,
+                  {
+                    headers: { Authorization: `Bearer ${token}` },
+                  }
+                );
+
+                if (statusRes.ok) {
+                  const statusData = await statusRes.json();
+                  return { ...project, proposalStatus: statusData };
+                }
+              } catch (error) {
+                console.error(`Failed to check proposal status for project ${project.id}:`, error);
+              }
+
+              return { ...project, proposalStatus: { has_proposal: false } };
+            })
+          );
+
+          setProjects(projectsWithProposalStatus);
           setTotal(data.total || 0);
         }
       } catch {
@@ -103,6 +138,9 @@ export default function MarketplacePage() {
   }, [searchTerm, projects]);
 
   const getInitials = (name?: string): string => {
+    if (!name || name.trim() === "[REDACTED]") {
+      return "P";
+    }
     return (
       name
         ?.split(" ")
@@ -111,6 +149,10 @@ export default function MarketplacePage() {
         .toUpperCase()
         .slice(0, 2) || "B"
     );
+  };
+
+  const isRedacted = (name?: string): boolean => {
+    return !name || name.trim() === "[REDACTED]";
   };
 
   return (
@@ -190,8 +232,8 @@ export default function MarketplacePage() {
         </div>
 
         {/* Stats Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div 
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div
             className="bg-white dark:bg-[#15325a]/90 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-xl p-4 sm:p-6 transition-all duration-200 ease-in-out"
             style={{
               transition: 'background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
@@ -206,38 +248,6 @@ export default function MarketplacePage() {
                   {total}
                 </p>
                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 font-outfit transition-colors duration-200 ease-in-out">Active Businesses</p>
-              </div>
-            </div>
-          </div>
-          <div 
-            className="bg-white dark:bg-[#15325a]/90 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-xl p-4 sm:p-6 transition-all duration-200 ease-in-out"
-            style={{
-              transition: 'background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
-            }}
-          >
-            <div className="flex items-center space-x-3">
-              <div className="p-2 sm:p-3 bg-accent/10 dark:bg-accent/20 rounded-lg transition-colors duration-200 ease-in-out">
-                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-[#15325a] dark:text-white font-outfit transition-colors duration-200 ease-in-out">500+</p>
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 font-outfit transition-colors duration-200 ease-in-out">College Societies</p>
-              </div>
-            </div>
-          </div>
-          <div 
-            className="bg-white dark:bg-[#15325a]/90 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-xl p-4 sm:p-6 transition-all duration-200 ease-in-out sm:col-span-2 lg:col-span-1"
-            style={{
-              transition: 'background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
-            }}
-          >
-            <div className="flex items-center space-x-3">
-              <div className="p-2 sm:p-3 bg-accent/10 dark:bg-accent/20 rounded-lg transition-colors duration-200 ease-in-out">
-                <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-[#15325a] dark:text-white font-outfit transition-colors duration-200 ease-in-out">1.2k+</p>
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 font-outfit transition-colors duration-200 ease-in-out">Successful Projects</p>
               </div>
             </div>
           </div>
@@ -334,9 +344,23 @@ export default function MarketplacePage() {
                     {/* Card Content */}
                     <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
                       <div className="space-y-2">
-                        <h3 className="text-lg sm:text-xl font-bold text-[#15325a] dark:text-white group-hover:text-blue-600 dark:group-hover:text-accent line-clamp-2 font-outfit transition-colors duration-200 ease-in-out">
-                          {project.compliant_name}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg sm:text-xl font-bold text-[#15325a] dark:text-white group-hover:text-blue-600 dark:group-hover:text-accent line-clamp-2 font-outfit transition-colors duration-200 ease-in-out">
+                            {project.compliant_name}
+                          </h3>
+                          {isRedacted(project.compliant_name) && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button className="flex-shrink-0 w-4 h-4 rounded-full bg-gray-400 hover:bg-gray-500 transition-colors flex items-center justify-center">
+                                  <span className="text-xs text-white font-bold">?</span>
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-blue-600 text-white border-blue-600">
+                                <p>This company prefers to maintain privacy</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
                         <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base line-clamp-3 leading-relaxed font-outfit transition-colors duration-200 ease-in-out">
                           {project.compliant_description}
                         </p>
@@ -353,20 +377,38 @@ export default function MarketplacePage() {
                       </div>
 
                       {/* Action Button */}
-                      <Button
-                        className="w-full h-10 sm:h-12 rounded-2xl group/btn bg-accent  text-white border-2 border-transparent hover:bg-transparent hover:border-accent hover:text-accent transition-all duration-200 ease-in-out text-sm sm:text-base font-outfit"
-                        onClick={() =>
-                          router.push(
-                            `/society/proposal?project_id=${project.id}`
-                          )
-                        }
-                        style={{
-                          transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
-                        }}
-                      >
-                        <span>Send Proposal</span>
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200 ease-in-out" />
-                      </Button>
+                      {project.proposalStatus?.has_proposal ? (
+                        <div className="space-y-2">
+                          <Badge
+                            variant="secondary"
+                            className="w-full justify-center py-2 text-sm font-outfit bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
+                          >
+                            {project.proposalStatus.status === 'accepted' ? '✓ Proposal Accepted' :
+                             project.proposalStatus.status === 'rejected' ? '✗ Proposal Rejected' :
+                             '⏳ Proposal Submitted'}
+                          </Badge>
+                          {project.proposalStatus.status === 'submitted' && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 text-center font-outfit">
+                              Awaiting business response
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <Button
+                          className="w-full h-10 sm:h-12 rounded-2xl group/btn bg-accent text-white border-2 border-transparent hover:bg-transparent hover:border-accent hover:text-accent transition-all duration-200 ease-in-out text-sm sm:text-base font-outfit"
+                          onClick={() =>
+                            router.push(
+                              `/society/proposal?project_id=${project.id}`
+                            )
+                          }
+                          style={{
+                            transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
+                          }}
+                        >
+                          <span>Send Proposal</span>
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200 ease-in-out" />
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

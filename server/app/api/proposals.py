@@ -26,6 +26,11 @@ async def send_proposal(request: Request, authorization: str = Header(...)):
     if not profile.data or profile.data["user_type"] != "college_society":
         raise HTTPException(status_code=403, detail="Only societies can send proposals")
 
+    # ✅ Check if proposal already exists for this project and society
+    existing_proposal = supabase.table("proposals").select("id").eq("project_id", project_id).eq("society_id", user_id).execute()
+    if existing_proposal.data and len(existing_proposal.data) > 0:
+        raise HTTPException(status_code=400, detail="You have already sent a proposal for this project")
+
     # ✅ Insert proposal
     resp = supabase.table("proposals").insert({
         "project_id": project_id,
@@ -178,6 +183,33 @@ async def get_society_projects(authorization: str = Header(...)):
     projects = supabase.table("projects").select("*").eq("society_id", user_id).execute()
 
     return projects.data
+
+
+@router.get("/api/check-proposal-status/{project_id}")
+async def check_proposal_status(project_id: str, authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    # ✅ Confirm society
+    profile = supabase.table("profiles").select("user_type").eq("id", user_id).single().execute()
+    if not profile.data or profile.data["user_type"] != "college_society":
+        raise HTTPException(status_code=403, detail="Only societies can check proposal status")
+
+    # ✅ Check if proposal exists
+    existing_proposal = supabase.table("proposals").select("id, status, created_at").eq("project_id", project_id).eq("society_id", user_id).execute()
+
+    if existing_proposal.data and len(existing_proposal.data) > 0:
+        proposal = existing_proposal.data[0]
+        return {
+            "has_proposal": True,
+            "status": proposal["status"],
+            "created_at": proposal["created_at"]
+        }
+
+    return {"has_proposal": False}
 
 
 
