@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import {
   Send,
@@ -17,7 +18,8 @@ import {
   X,
   MessageSquare,
   Minimize2,
-  User
+  User,
+  Video
 } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
@@ -92,10 +94,12 @@ export function ChatWidget({
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [currentUserTyping, setCurrentUserTyping] = useState(false)
+  const [selectedAttachment, setSelectedAttachment] = useState<Attachment | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const attachmentDialogTriggerRef = useRef<HTMLButtonElement>(null)
   const supabase = getSupabaseClient()
 
   const scrollToBottom = () => {
@@ -417,6 +421,7 @@ export function ChatWidget({
   const getFileIcon = (fileType: string) => {
     // eslint-disable-next-line jsx-a11y/alt-text
     if (fileType.startsWith('image/')) return <Image className="h-4 w-4" />
+    if (fileType.startsWith('video/')) return <Video className="h-4 w-4" />
     return <FileText className="h-4 w-4" />
   }
 
@@ -443,6 +448,27 @@ export function ChatWidget({
     if (status === 'delivered') return <span className="text-muted-foreground">✓✓</span>
     if (status === 'sent') return <span className="text-muted-foreground">✓</span>
     return null
+  }
+
+  const openAttachmentModal = (attachment: Attachment) => {
+    setSelectedAttachment(attachment)
+    // Trigger the dialog by clicking the hidden trigger
+    setTimeout(() => {
+      attachmentDialogTriggerRef.current?.click()
+    }, 0)
+  }
+
+  const closeAttachmentModal = () => {
+    setSelectedAttachment(null)
+  }
+
+  const downloadAttachment = (attachment: Attachment) => {
+    const link = document.createElement('a')
+    link.href = attachment.file_url
+    link.download = attachment.file_name
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const getOtherUserId = (conversation: Conversation) => {
@@ -655,51 +681,52 @@ export function ChatWidget({
                           : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                       }`}
                     >
-                      {message.message_type === "file" && message.message_attachments?.[0] ? (
+                      {message.message_type === "file" && message.message_attachments?.[0] ? (() => {
+                        const attachment = message.message_attachments[0]
+                        return (
                         <div className="space-y-2">
-                          {message.message_attachments[0].file_type.startsWith('image/') ? (
+                          {attachment.file_type.startsWith('image/') ? (
                             <div className="space-y-2 max-w-full">
-                              <div className="relative w-full max-w-sm h-48 rounded-lg overflow-hidden">
+                              <div 
+                                className="relative w-full max-w-sm h-48 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => openAttachmentModal(attachment)}
+                              >
                                 <ImageComponent
                                   fill
-                                  src={message.message_attachments[0].file_url}
-                                  alt={message.message_attachments[0].file_name}
+                                  src={attachment.file_url}
+                                  alt={attachment.file_name}
                                   className="object-contain"
                                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 />
                               </div>
                               <div className="flex items-center space-x-2">
                                 <span className="text-sm font-medium">
-                                  {message.message_attachments[0].file_name}
+                                  {attachment.file_name}
                                 </span>
                               </div>
                               <div className="text-xs opacity-70">
-                                {formatFileSize(message.message_attachments[0].file_size)}
+                                {formatFileSize(attachment.file_size)}
                               </div>
                             </div>
                           ) : (
-                            <div className="space-y-2">
+                            <div 
+                              className="space-y-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 p-2 rounded-lg transition-colors"
+                              onClick={() => openAttachmentModal(attachment)}
+                            >
                               <div className="flex items-center space-x-2">
-                                {getFileIcon(message.message_attachments[0].file_type)}
+                                {getFileIcon(attachment.file_type)}
                                 <span className="text-sm font-medium">
-                                  {message.message_attachments[0].file_name}
+                                  {attachment.file_name}
                                 </span>
                               </div>
                               <div className="text-xs opacity-70">
-                                {formatFileSize(message.message_attachments[0].file_size)}
+                                {formatFileSize(attachment.file_size)}
                               </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => message.message_attachments?.[0] && window.open(message.message_attachments[0].file_url, '_blank')}
-                              >
-                                <Download className="h-3 w-3 mr-1" />
-                                Download
-                              </Button>
                             </div>
                           )}
                         </div>
-                      ) : (
+                        )
+                      })() : (
                         <p className="text-sm break-words whitespace-pre-wrap">
                           {message.content}
                         </p>
@@ -786,6 +813,115 @@ export function ChatWidget({
           </div>
         </div>
       )}
+
+      {/* Attachment Modal */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <button ref={attachmentDialogTriggerRef} className="hidden" />
+        </DialogTrigger>
+        <DialogContent className="max-w-xs sm:max-w-2xl lg:max-w-5xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl">
+          {selectedAttachment && (
+            <>
+              <DialogHeader className="pb-4">
+                <DialogTitle className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                  {selectedAttachment.file_name}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-xl overflow-hidden">
+                {(() => {
+                  const fileType = selectedAttachment.file_type
+                  const fileName = selectedAttachment.file_name.toLowerCase()
+                  const isImage = fileType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp'].some(ext => fileName.endsWith('.' + ext))
+                  const isVideo = fileType.startsWith('video/') || ['mp4', 'mov', 'avi', 'webm'].some(ext => fileName.endsWith('.' + ext))
+                  const isPDF = fileType === 'application/pdf' || fileName.endsWith('.pdf')
+
+                  if (isImage) {
+                    return (
+                      <div className="relative w-full h-[50vh] sm:h-[70vh]">
+                        <ImageComponent
+                          fill
+                          src={selectedAttachment.file_url}
+                          alt={selectedAttachment.file_name}
+                          className="object-contain"
+                        />
+                      </div>
+                    )
+                  }
+                  if (isVideo) {
+                    return <video src={selectedAttachment.file_url} controls className="max-w-full max-h-[50vh] sm:max-h-[70vh] mx-auto rounded-lg" />
+                  }
+                  if (isPDF) {
+                    return (
+                      <div className="text-center py-8 sm:py-12">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                          <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                        </div>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                          PDF Document
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
+                          Click below to view or download this PDF
+                        </p>
+                        <div className="flex gap-3 justify-center">
+                          <Button
+                            asChild
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-2xl"
+                          >
+                            <a href={selectedAttachment.file_url} target="_blank" rel="noopener noreferrer">
+                              View PDF
+                            </a>
+                          </Button>
+                          <Button
+                            onClick={() => downloadAttachment(selectedAttachment)}
+                            variant="outline"
+                            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 sm:px-6 py-2 sm:py-3 rounded-2xl"
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Download
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="text-center py-8 sm:py-12">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                      </div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        {fileType.split('/')[1]?.toUpperCase() || 'FILE'}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
+                        Click below to download this file
+                      </p>
+                      <Button
+                        onClick={() => downloadAttachment(selectedAttachment)}
+                        className="bg-gray-600 hover:bg-gray-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-2xl"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download File
+                      </Button>
+                    </div>
+                  )
+                })()}
+              </div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-600 space-y-3 sm:space-y-0">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Size: {formatFileSize(selectedAttachment.file_size)}
+                </div>
+                <Button
+                  onClick={() => downloadAttachment(selectedAttachment)}
+                  variant="outline"
+                  className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
