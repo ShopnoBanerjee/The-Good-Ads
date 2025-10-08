@@ -659,12 +659,15 @@ export function ChatWidget({
                         <div className="space-y-2">
                           {message.message_attachments[0].file_type.startsWith('image/') ? (
                             <div className="space-y-2 max-w-full">
-                              <ImageComponent
-                                fill
-                                src={message.message_attachments[0].file_url}
-                                alt={message.message_attachments[0].file_name}
-                                className="object-contain"
-                              />
+                              <div className="relative w-full max-w-sm h-48 rounded-lg overflow-hidden">
+                                <ImageComponent
+                                  fill
+                                  src={message.message_attachments[0].file_url}
+                                  alt={message.message_attachments[0].file_name}
+                                  className="object-contain"
+                                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                />
+                              </div>
                               <div className="flex items-center space-x-2">
                                 <span className="text-sm font-medium">
                                   {message.message_attachments[0].file_name}
