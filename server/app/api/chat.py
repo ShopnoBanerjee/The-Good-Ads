@@ -207,6 +207,18 @@ async def get_user_conversations(authorization: str = Header(...)):
         projects!inner(compliant_name, compliant_description)
     """).or_(f"business_id.eq.{user_id},society_id.eq.{user_id}").execute()
 
+    # Add profile names to each conversation
+    for conv in conversations.data:
+        # Fetch business name
+        business_profile = supabase.table("business_profiles").select("business_name").eq("id", conv["business_id"]).execute()
+        if business_profile.data:
+            conv["business_profiles"] = {"business_name": business_profile.data[0]["business_name"]}
+        
+        # Fetch society name
+        society_profile = supabase.table("college_society_profiles").select("society_name").eq("id", conv["society_id"]).execute()
+        if society_profile.data:
+            conv["college_society_profiles"] = {"society_name": society_profile.data[0]["society_name"]}
+
     return conversations.data
 
 @router.get("/api/chat/messages/{conversation_id}")

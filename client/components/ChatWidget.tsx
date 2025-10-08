@@ -56,6 +56,12 @@ interface Conversation {
     compliant_name: string
     compliant_description: string
   }
+  business_profiles?: {
+    business_name: string
+  }
+  college_society_profiles?: {
+    society_name: string
+  }
 }
 
 interface ChatWidgetProps {
@@ -479,6 +485,14 @@ export function ChatWidget({
     return currentUserType === 'business' ? 'Society' : 'Business'
   }
 
+  const getOtherUserName = (conversation: Conversation) => {
+    if (currentUserType === 'business') {
+      return conversation.college_society_profiles?.society_name || 'Unknown Society'
+    } else {
+      return conversation.business_profiles?.business_name || 'Unknown Business'
+    }
+  }
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -495,6 +509,7 @@ export function ChatWidget({
 
   const filteredConversations = conversations.filter(conversation =>
     conversation.projects.compliant_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    getOtherUserName(conversation).toLowerCase().includes(searchQuery.toLowerCase()) ||
     getOtherUserId(conversation).toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -509,7 +524,7 @@ export function ChatWidget({
             <MessageSquare className="h-4 w-4 text-primary-foreground" />
           </div>
           <h3 className="font-semibold text-gray-900 dark:text-white">
-            {activeConversation ? `Chat - ${activeConversation.projects.compliant_name}` : 'Messages'}
+            {activeConversation ? `Chat with ${getOtherUserName(activeConversation)}` : 'Messages'}
           </h3>
         </div>
         <div className="flex items-center space-x-1">
@@ -580,7 +595,7 @@ export function ChatWidget({
                       <div className="flex-1 text-left min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium truncate text-gray-900 dark:text-white">
-                            {conversation.projects.compliant_name}
+                            {getOtherUserName(conversation)}
                           </p>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             {formatTime(conversation.updated_at)}
@@ -588,7 +603,7 @@ export function ChatWidget({
                         </div>
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
-                            {getOtherUserType()}: {getOtherUserId(conversation).slice(0, 8)}...
+                            {getOtherUserType()}
                           </p>
                           <Badge variant="secondary" className="text-xs">
                             Active
@@ -623,7 +638,7 @@ export function ChatWidget({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium truncate text-gray-900 dark:text-white">
-                  {getOtherUserType()} {getOtherUserId(activeConversation).slice(0, 8)}...
+                  {getOtherUserName(activeConversation)}
                 </p>
                 <div className="flex items-center space-x-1">
                   <Badge variant={isOnline ? "default" : "secondary"} className="text-xs">
