@@ -377,7 +377,10 @@ export default function SocietyDashboard() {
                         )}
                       </div>
                       <div className="flex gap-3">
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white flex-1">
+                        <Button 
+                          className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                          onClick={() => router.push(`/society/project/${project.id}`)}
+                        >
                           Manage Project
                         </Button>
                       </div>
