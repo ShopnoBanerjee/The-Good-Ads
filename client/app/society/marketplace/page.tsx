@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Users,
   Briefcase,
+  ArrowLeft,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -123,6 +124,18 @@ export default function MarketplacePage() {
       <div className="relative overflow-hidden bg-gradient-to-br from-accent via-accent/90 to-blue-600 dark:from-accent dark:via-accent/80 dark:to-blue-700">
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+          {/* Back Button */}
+          <div className="mb-4 sm:mb-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/society')}
+              className="text-white hover:bg-white/20 -ml-2 rounded-2xl font-outfit transition-all"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </div>
           <div className="text-center space-y-6">
             <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-2 sm:px-4 text-sm font-medium text-white font-outfit">
               <Building2 className="w-4 h-4" />

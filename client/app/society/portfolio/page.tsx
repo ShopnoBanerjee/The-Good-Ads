@@ -31,6 +31,7 @@ import {
   Video,
   File,
   Star,
+  ArrowLeft,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -310,6 +311,18 @@ export default function SocietyPortfolioPage() {
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+          {/* Back Button */}
+          <div className="mb-4 sm:mb-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/society')}
+              className="text-white hover:bg-white/20 -ml-2 rounded-2xl font-outfit transition-all"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </div>
           {profile && (
             <div className="space-y-6 sm:space-y-8">
               {/* Profile Header */}
