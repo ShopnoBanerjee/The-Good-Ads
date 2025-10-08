@@ -77,28 +77,16 @@ export default function SocietyDashboard() {
           .eq("id", session.user.id);
 
         if (error) {
-          toast.error("Failed to load society profile", {
-            description: error.message || "An error occurred while loading your profile.",
-          });
+          // Handle error silently
         } else if (userProfile && userProfile.length === 1) {
           setProfile(userProfile[0]);
-          toast.success("Profile loaded successfully", {
-            description: "Welcome back to your dashboard!",
-          });
         } else if (userProfile && userProfile.length > 1) {
-          toast.error("Multiple profiles found", {
-            description: "Please contact support for assistance.",
-          });
+          // Handle multiple profiles silently
         } else {
-          toast.info("No profile found", {
-            description: "Please complete your society profile to get started.",
-          });
+          // Handle no profile silently
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : "An unknown error occurred";
-        toast.error("Failed to load profile", {
-          description: message,
-        });
+        // Handle error silently
       } finally {
         setLoading(false);
       }
