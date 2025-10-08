@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ChevronDown, ChevronRight, CheckCircle, Clock, AlertCircle, Calendar } from 'lucide-react';
 import { useMilestones } from '@/hooks/useMilestones';
 import { useProjectStore } from '@/stores/useProjectStore';
@@ -18,6 +19,7 @@ export default function MilestoneList({ projectId }: MilestoneListProps) {
   const { milestones, confirmMilestone } = useMilestones(projectId);
   const { loading } = useProjectStore();
   const [expandedMilestones, setExpandedMilestones] = useState<Set<string>>(new Set());
+  const [confirmingMilestone, setConfirmingMilestone] = useState<string | null>(null);
 
   const toggleMilestone = (milestoneId: string) => {
     const newExpanded = new Set(expandedMilestones);
@@ -27,6 +29,11 @@ export default function MilestoneList({ projectId }: MilestoneListProps) {
       newExpanded.add(milestoneId);
     }
     setExpandedMilestones(newExpanded);
+  };
+
+  const handleConfirmMilestone = async (milestoneId: string) => {
+    await confirmMilestone(milestoneId);
+    setConfirmingMilestone(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -207,7 +214,7 @@ export default function MilestoneList({ projectId }: MilestoneListProps) {
                   {milestone.status === 'awaiting_confirmation' && (
                     <div className="pt-4 border-t">
                       <Button
-                        onClick={() => confirmMilestone(milestone.id)}
+                        onClick={() => setConfirmingMilestone(milestone.id)}
                         className="w-full bg-green-600 hover:bg-green-700 text-white"
                         aria-label={`Confirm completion of milestone: ${milestone.title}`}
                       >
@@ -221,6 +228,30 @@ export default function MilestoneList({ projectId }: MilestoneListProps) {
           </Card>
         );
       })}
+      
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmingMilestone !== null} onOpenChange={() => setConfirmingMilestone(null)}>
+        <DialogContent className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-gray-100">Confirm Milestone Completion</DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              Are you sure you want to confirm the completion of &ldquo;{milestones.find(m => m.id === confirmingMilestone)?.title}&rdquo;?
+              This action cannot be undone and will mark the milestone as completed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmingMilestone(null)} className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => confirmingMilestone && handleConfirmMilestone(confirmingMilestone)}
+              className="bg-green-600 hover:bg-green-700 text-white dark:bg-green-500 dark:hover:bg-green-600"
+            >
+              Confirm Completion
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { getSupabaseClient } from '@/lib/supabaseClient';
 import { MilestoneWithTasks, CreateMilestoneData } from '@/types/project-tracking';
 import { useProjectStore } from '@/stores/useProjectStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+import { API_URL } from '@/lib/constants';
 
 export const useMilestones = (projectId: string) => {
   const supabase = getSupabaseClient();
@@ -115,11 +116,13 @@ export const useMilestones = (projectId: string) => {
 
       const token = sessionData.session.access_token;
 
-      const response = await fetch(`/api/milestones/${milestoneId}/confirm`, {
+      const response = await fetch(`${API_URL}/api/milestones/${milestoneId}/status`, {
         method: 'PUT',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
+        body: JSON.stringify({ status: 'completed' }),
       });
 
       if (!response.ok) {

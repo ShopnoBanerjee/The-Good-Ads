@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
+import Image from "next/image"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -656,9 +657,11 @@ export default function ProjectProposalsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   {selectedSocietyPortfolio?.society_profile?.logo_url ? (
-                    <img
+                    <Image
                       src={selectedSocietyPortfolio.society_profile.logo_url}
                       alt={selectedSocietyPortfolio.society_profile.society_name}
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-lg object-cover"
                     />
                   ) : (
@@ -742,10 +745,11 @@ export default function ProjectProposalsPage() {
                             <Card key={item.id} className="group card rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200">
                               <div className="aspect-video bg-primary relative overflow-hidden">
                                 {isImage ? (
-                                  <img
+                                  <Image
                                     src={url}
                                     alt={item.caption}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                    fill
+                                    className="object-cover group-hover:scale-105 transition-transform duration-200"
                                   />
                                 ) : isVideo ? (
                                   <video

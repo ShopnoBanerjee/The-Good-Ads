@@ -151,9 +151,18 @@ async def create_milestone(request: Request, authorization: str = Header(...)):
         raise HTTPException(status_code=500, detail=f"Failed to create milestone: {str(e)}")
 
 
-@router.put("/api/milestones/{milestone_id}/confirm")
-async def confirm_milestone(milestone_id: str, authorization: str = Header(...)):
-    """Confirm milestone completion (business users only)"""
+@router.put("/api/milestones/{milestone_id}/status")
+async def update_milestone_status(milestone_id: str, request: Request, authorization: str = Header(...)):
+    """Update milestone status"""
+    body = await request.json()
+    new_status = body.get("status")
+
+    if not new_status:
+        raise HTTPException(status_code=400, detail="Missing status field")
+
+    valid_statuses = [ "in_progress", "awaiting_confirmation", "completed"]
+    if new_status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}")
 
     # Check JWT
     if not authorization.startswith("Bearer "):
@@ -168,45 +177,7 @@ async def confirm_milestone(milestone_id: str, authorization: str = Header(...))
         raise HTTPException(status_code=404, detail="Milestone not found")
 
     milestone = milestone_resp.data
-
-    # Check if user is the business owner
-    if milestone["projects"]["business_id"] != user_id:
-        raise HTTPException(status_code=403, detail="Only the business owner can confirm milestone completion")
-
-    # Check if milestone is awaiting confirmation
-    if milestone["status"] != "awaiting_confirmation":
-        raise HTTPException(status_code=400, detail="Milestone is not awaiting confirmation")
-
-    # Update milestone status
-    update_resp = supabase.table("milestones").update({
-        "status": "completed",
-        "confirmed_at": datetime.utcnow().isoformat()
-    }).eq("id", milestone_id).execute()
-
-    if not update_resp.data:
-        raise HTTPException(status_code=500, detail="Failed to confirm milestone")
-
-    return update_resp.data[0]
-
-
-@router.put("/api/tasks/{task_id}/toggle")
-async def toggle_task_completion(task_id: str, authorization: str = Header(...)):
-    """Toggle task completion status"""
-
-    # Check JWT
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing Bearer token")
-    token = authorization.split(" ")[1]
-    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
-
-    # Get task and verify ownership through project
-    task_resp = supabase.table("tasks").select("*, milestones(project_id)").eq("id", task_id).single().execute()
-
-    if task_resp.data is None:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    task = task_resp.data
-    project_id = task["milestones"]["project_id"]
+    project_id = milestone["project_id"]
 
     # Check project ownership
     project_resp = supabase.table("projects").select("business_id").eq("id", project_id).single().execute()
@@ -226,41 +197,119 @@ async def toggle_task_completion(task_id: str, authorization: str = Header(...))
         is_society_user = proposal_resp.data is not None
 
     if not is_business_owner and not is_society_user:
-        raise HTTPException(status_code=403, detail="You don't have permission to update this task")
+        raise HTTPException(status_code=403, detail="You don't have permission to update this milestone")
 
-    # Toggle completion status
+    # Additional validation for status transitions
+    current_status = milestone["status"]
+
+    # Only business owners can confirm completion (move to completed status)
+    if new_status == "completed" and not is_business_owner:
+        raise HTTPException(status_code=403, detail="Only business owners can confirm milestone completion")
+
+    # Can only move to completed from awaiting_confirmation
+    if new_status == "completed" and current_status != "awaiting_confirmation":
+        raise HTTPException(status_code=400, detail="Can only confirm completion for milestones awaiting confirmation")
+
+    # Update milestone status
+    update_data = {
+        "status": new_status,
+        "updated_at": datetime.utcnow().isoformat()
+    }
+
+    update_resp = supabase.table("milestones").update(update_data).eq("id", milestone_id).execute()
+
+    if not update_resp.data:
+        raise HTTPException(status_code=500, detail="Failed to update milestone status")
+
+    return update_resp.data[0]
+
+
+@router.put("/api/tasks/{task_id}/toggle")
+async def toggle_task_completion(task_id: str, authorization: str = Header(...)):
+    """Toggle task completion status"""
+
+    # 🔐 Check JWT
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    # 🧾 Fetch task + its project (via milestone relation)
+    task_resp = (
+        supabase.table("tasks")
+        .select("*, milestones(project_id)")
+        .eq("id", task_id)
+        .single()
+        .execute()
+    )
+
+    if task_resp.data is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task = task_resp.data
+    project_id = task["milestones"]["project_id"]
+
+    # 🧭 Verify project ownership or accepted society link
+    project_resp = (
+        supabase.table("projects")
+        .select("business_id")
+        .eq("id", project_id)
+        .single()
+        .execute()
+    )
+
+    if project_resp.data is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    project = project_resp.data
+    is_business_owner = project["business_id"] == user_id
+
+    # Check if society user has accepted proposal
+    is_society_user = False
+    if not is_business_owner:
+        proposal_resp = (
+            supabase.table("proposals")
+            .select("status")
+            .eq("project_id", project_id)
+            .eq("society_id", user_id)
+            .eq("status", "accepted")
+            .single()
+            .execute()
+        )
+        is_society_user = proposal_resp.data is not None
+
+    if not is_business_owner and not is_society_user:
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to update this task",
+        )
+
+    # ✅ Toggle completion status
     new_status = not task["is_completed"]
     update_data = {
         "is_completed": new_status,
-        "completed_at": datetime.utcnow().isoformat() if new_status else None
+        "completed_at": datetime.utcnow().isoformat() if new_status else None,
     }
 
-    update_resp = supabase.table("tasks").update(update_data).eq("id", task_id).execute()
+    update_resp = (
+        supabase.table("tasks")
+        .update(update_data)
+        .eq("id", task_id)
+        .execute()
+    )
 
     if not update_resp.data:
         raise HTTPException(status_code=500, detail="Failed to update task")
 
-    updated_task = update_resp.data[0] if isinstance(update_resp.data, list) else update_resp.data
+    updated_task = (
+        update_resp.data[0] if isinstance(update_resp.data, list) else update_resp.data
+    )
 
-    # TODO: Milestone status update logic removed due to database stack depth issues
-    # Check if all tasks in milestone are completed - handle this on frontend instead
-    # milestone_id = task["milestone_id"]
-    # all_tasks_resp = supabase.table("tasks").select("is_completed").eq("milestone_id", milestone_id).execute()
-    #
-    # milestone_status_updated = False
-    # if all_tasks_resp.data:
-    #     all_completed = all(task_item["is_completed"] for task_item in all_tasks_resp.data)
-    #     if all_completed:
-    #         # Check current milestone status to avoid unnecessary updates
-    #         current_milestone_resp = supabase.table("milestones").select("status").eq("id", milestone_id).single().execute()
-    #         if current_milestone_resp.data and current_milestone_resp.data["status"] != "awaiting_confirmation":
-    #             # Update milestone status to awaiting_confirmation
-    #             milestone_update_resp = supabase.table("milestones").update({
-    #                 "status": "awaiting_confirmation"
-    #             }).eq("id", milestone_id).execute()
-    #             milestone_status_updated = milestone_update_resp.data is not None
+    # 🧩 Milestone status update is now handled automatically by the database trigger
+    # So we just return the updated task
 
     return {
         **updated_task,
-        "milestone_status_updated": False  # Temporarily disabled due to database issues
+        "message": f"Task {'completed' if new_status else 'reopened'} successfully. Milestone status will auto-update if needed."
     }

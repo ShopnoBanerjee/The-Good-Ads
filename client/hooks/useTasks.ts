@@ -39,17 +39,13 @@ export const useTasks = () => {
         completed_at: updatedTask.completed_at,
       });
 
-      // Check if all tasks in the milestone are now completed
-      const milestone = milestones.find(m => m.id === milestoneId);
-      if (milestone) {
-        const allTasksCompleted = milestone.tasks.every(task => task.is_completed);
-        if (allTasksCompleted && milestone.status !== 'awaiting_confirmation' && milestone.status !== 'completed') {
-          updateMilestone(milestoneId, { status: 'awaiting_confirmation' });
-          addNotification({
-            type: 'info',
-            message: 'All tasks completed! Milestone is now awaiting business confirmation.',
-          });
-        }
+      // Check if milestone status was updated by the backend
+      if (updatedTask.milestone_status_updated) {
+        updateMilestone(milestoneId, { status: 'awaiting_confirmation' });
+        addNotification({
+          type: 'info',
+          message: 'All tasks completed! Milestone is now awaiting business confirmation.',
+        });
       }
 
       addNotification({

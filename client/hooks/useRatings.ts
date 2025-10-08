@@ -34,6 +34,33 @@ export const useRatings = (projectId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Validate that the user is involved in this project
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .select('business_id, society_id, status')
+        .eq('id', data.project_id)
+        .single();
+
+      if (projectError) throw new Error('Project not found');
+      if (project.business_id !== user.id && project.society_id !== user.id) {
+        throw new Error('You are not authorized to rate this project');
+      }
+      if (project.status !== 'completed') {
+        throw new Error('You can only rate completed projects');
+      }
+
+      // Check if user has already rated this project
+      const { data: existingRating } = await supabase
+        .from('project_ratings')
+        .select('id')
+        .eq('project_id', data.project_id)
+        .eq('rater_id', user.id)
+        .single();
+
+      if (existingRating) {
+        throw new Error('You have already rated this project');
+      }
+
       const ratingData = {
         project_id: data.project_id,
         rater_id: user.id,

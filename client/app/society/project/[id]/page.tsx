@@ -35,6 +35,7 @@ export default function SocietyProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [businessName, setBusinessName] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
 
   const { milestones } = useMilestones(projectId);
   const { ratings } = useRatings(projectId);
@@ -50,6 +51,7 @@ export default function SocietyProjectDetailPage() {
         return;
       }
 
+      setCurrentUserId(session.user.id);
       const token = session.access_token;
 
       try {
@@ -114,6 +116,8 @@ export default function SocietyProjectDetailPage() {
     return null;
   }
 
+  const hasUserRated = ratings.some(rating => rating.rater_id === currentUserId);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -161,7 +165,7 @@ export default function SocietyProjectDetailPage() {
               </div>
             </div>
 
-            {project.status === 'completed' && businessName && (
+            {project.status === 'completed' && businessName && !hasUserRated && (
               <RatingModal
                 projectId={projectId}
                 rateeId={project.business_id}
@@ -173,6 +177,17 @@ export default function SocietyProjectDetailPage() {
                   </Button>
                 }
               />
+            )}
+            {project.status === 'completed' && businessName && hasUserRated && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                <div className="flex items-center space-x-2 text-green-800 dark:text-green-300">
+                  <Star className="w-4 h-4" />
+                  <span className="text-sm font-medium">Rating Submitted</span>
+                </div>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  You have already rated this collaboration
+                </p>
+              </div>
             )}
           </div>
         </div>
