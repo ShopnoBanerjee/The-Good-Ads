@@ -85,7 +85,7 @@ export default function SocietyDashboard() {
         } else {
           // Handle no profile silently
         }
-      } catch (err) {
+      } catch {
         // Handle error silently
       } finally {
         setLoading(false);

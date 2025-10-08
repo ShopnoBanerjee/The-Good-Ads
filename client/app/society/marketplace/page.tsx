@@ -15,9 +15,6 @@ import {
   Building2,
   ArrowRight,
   ArrowLeft,
-  CheckCircle,
-  X,
-  Clock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 

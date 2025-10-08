@@ -284,7 +284,7 @@ export function ChatWidget({
       }
 
       websocket.onerror = (error) => {
-        console.error("WebSocket error:", error)
+        console.log("WebSocket error:", error)
       }
     } catch (error) {
       console.error("Failed to connect WebSocket:", error)
@@ -462,10 +462,6 @@ export function ChatWidget({
     setTimeout(() => {
       attachmentDialogTriggerRef.current?.click()
     }, 0)
-  }
-
-  const closeAttachmentModal = () => {
-    setSelectedAttachment(null)
   }
 
   const downloadAttachment = (attachment: Attachment) => {
