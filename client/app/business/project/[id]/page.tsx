@@ -35,7 +35,6 @@ export default function ProjectDetailPage() {
   const projectId = params.id as string;
 
   const [project, setProject] = useState<Project | null>(null);
-  const [societyName, setSocietyName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
@@ -81,19 +80,7 @@ export default function ProjectDetailPage() {
 
         setProject(currentProject);
         setCurrentProject(currentProject);
-
-        // Fetch society name if society_id exists
-        if (currentProject.society_id) {
-          const { data: society } = await supabase
-            .from('profiles')
-            .select('society_name')
-            .eq('id', currentProject.society_id)
-            .single();
-
-          if (society) {
-            setSocietyName(society.society_name);
-          }
-        }
+        console.log('Fetched id:', currentProject.society_id);
       } catch {
         toast.error('Failed to load project');
         router.push('/business');
@@ -204,12 +191,6 @@ export default function ProjectDetailPage() {
                 <Badge className={getStatusColor(project.status)}>
                   {project.status}
                 </Badge>
-                {societyName && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <Users className="w-4 h-4" />
-                    Partner: {societyName}
-                  </div>
-                )}
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Calendar className="w-4 h-4" />
                   Created: {new Date(project.created_at).toLocaleDateString()}
@@ -238,11 +219,11 @@ export default function ProjectDetailPage() {
               </Button>
             )}
 
-            {project.status === 'completed' && societyName && !hasUserRated && (
+            {project.status === 'completed' && project.society_id && !hasUserRated && (
               <RatingModal
                 projectId={projectId}
                 rateeId={project.society_id!}
-                rateeName={societyName}
+                rateeName="Society"
                 trigger={
                   <Button className="bg-yellow-600 hover:bg-yellow-700 text-white">
                     <CheckCircle className="w-4 h-4 mr-2" />
@@ -251,7 +232,7 @@ export default function ProjectDetailPage() {
                 }
               />
             )}
-            {project.status === 'completed' && societyName && hasUserRated && (
+            {project.status === 'completed' && project.society_id && hasUserRated && (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
                 <div className="flex items-center space-x-2 text-green-800 dark:text-green-300">
                   <CheckCircle className="w-4 h-4" />

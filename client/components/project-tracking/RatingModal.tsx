@@ -8,6 +8,8 @@ import * as z from 'zod';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -81,14 +83,14 @@ export default function RatingModal({ projectId, rateeId, rateeName, trigger }: 
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-gray-900">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-center">
             Rate Your Collaboration
           </DialogTitle>
-          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+          <DialogDescription className="text-sm text-gray-600 dark:text-gray-400 text-center">
             How was your experience working with {rateeName}?
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -136,7 +138,7 @@ export default function RatingModal({ projectId, rateeId, rateeName, trigger }: 
           </div>
 
           {/* Submit Button */}
-          <div className="flex gap-3 pt-4">
+          <DialogFooter className="flex gap-3 pt-4">
             <Button
               type="button"
               variant="outline"
@@ -152,7 +154,7 @@ export default function RatingModal({ projectId, rateeId, rateeName, trigger }: 
             >
               {submitting ? 'Submitting...' : 'Submit Rating'}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
