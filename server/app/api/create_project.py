@@ -95,11 +95,65 @@ async def create_project(request: Request, authorization: str = Header(...)):
     project_id = insert_resp.data[0]["id"]
 
 
-    return {
+@router.post("/api/submit-rating")
+async def submit_rating(request: Request, authorization: str = Header(...)):
+    body = await request.json()
+
+    # Validate fields
+    project_id = body.get("project_id")
+    ratee_id = body.get("ratee_id")
+    communication_rating = body.get("communication_rating")
+    quality_rating = body.get("quality_rating")
+    timeliness_rating = body.get("timeliness_rating")
+    overall_rating = body.get("overall_rating")
+    review_text = body.get("review_text")
+
+    if not project_id or not ratee_id or communication_rating is None or quality_rating is None or timeliness_rating is None or overall_rating is None:
+        raise HTTPException(status_code=400, detail="Missing required fields")
+
+    if not all(1 <= r <= 5 for r in [communication_rating, quality_rating, timeliness_rating, overall_rating]):
+        raise HTTPException(status_code=400, detail="All ratings must be between 1 and 5")
+
+    # Check JWT
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    # Validate that the user is involved in this project
+    project_resp = supabase.table("projects").select("business_id, society_id, status").eq("id", project_id).single().execute()
+    if not project_resp.data:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    project = project_resp.data
+    if project["business_id"] != user_id and project["society_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to rate this project")
+
+    if project["status"] != "completed":
+        raise HTTPException(status_code=400, detail="Can only rate completed projects")
+
+    # Check if user has already rated
+    existing = supabase.table("ratings").select("id").eq("project_id", project_id).eq("rater_id", user_id).execute()
+    if existing.data:
+        raise HTTPException(status_code=400, detail="Already rated this project")
+
+    # Insert rating
+    insert_resp = supabase.table("ratings").insert({
         "project_id": project_id,
-        "compliant_name": compliant_name,
-        "compliant_description": compliant_description
-    }
+        "rater_id": user_id,
+        "ratee_id": ratee_id,
+        "communication_rating": communication_rating,
+        "quality_rating": quality_rating,
+        "timeliness_rating": timeliness_rating,
+        "overall_rating": overall_rating,
+        "review_text": review_text,
+        "is_visible": True,
+    }).execute()
+
+    if not insert_resp.data:
+        raise HTTPException(status_code=500, detail="Failed to submit rating")
+
+    return insert_resp.data[0]
     
 @router.post("/api/confirm-project")
 async def confirm_project(request: Request, authorization: str = Header(...)):
