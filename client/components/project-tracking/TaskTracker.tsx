@@ -13,9 +13,10 @@ import { CircularProgress } from '@/components/ui/circular-progress';
 
 interface TaskTrackerProps {
   milestones: MilestoneWithTasks[];
+  projectStatus?: string;
 }
 
-export default function TaskTracker({ milestones }: TaskTrackerProps) {
+export default function TaskTracker({ milestones, projectStatus }: TaskTrackerProps) {
   const { updateTaskCompletion } = useTasks();
   const { loading } = useProjectStore();
   const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set());
@@ -194,7 +195,7 @@ export default function TaskTracker({ milestones }: TaskTrackerProps) {
                         onCheckedChange={() =>
                           handleTaskToggle(task.id, milestone.id, task.is_completed)
                         }
-                        disabled={updatingTasks.has(task.id) || milestone.status === 'completed'}
+                        disabled={updatingTasks.has(task.id) || milestone.status === 'completed' || projectStatus === 'completed'}
                         className="mt-0.5"
                         aria-label={`Mark task "${task.description}" as ${task.is_completed ? 'incomplete' : 'complete'}`}
                       />

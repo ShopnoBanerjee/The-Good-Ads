@@ -25,8 +25,12 @@ export interface ProjectRating {
   project_id: string;
   rater_id: string;
   ratee_id: string;
-  rating: number;
-  review?: string;
+  communication_rating: number;
+  quality_rating: number;
+  timeliness_rating: number;
+  overall_rating: number;
+  review_text?: string;
+  is_visible: boolean;
   created_at: string;
 }
 
@@ -57,8 +61,11 @@ export interface UpdateTaskData {
 export interface CreateRatingData {
   project_id: string;
   ratee_id: string;
-  rating: number;
-  review?: string;
+  communication_rating: number;
+  quality_rating: number;
+  timeliness_rating: number;
+  overall_rating: number;
+  review_text?: string;
 }
 
 // Existing Project interface (from business page)

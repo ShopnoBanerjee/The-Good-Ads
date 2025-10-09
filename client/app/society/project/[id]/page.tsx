@@ -184,7 +184,7 @@ export default function SocietyProjectDetailPage() {
           </TabsList>
 
           <TabsContent value="tasks" className="space-y-6">
-            <TaskTracker milestones={milestones} />
+            <TaskTracker milestones={milestones} projectStatus={project.status} />
           </TabsContent>
 
           <TabsContent value="ratings" className="space-y-6">
