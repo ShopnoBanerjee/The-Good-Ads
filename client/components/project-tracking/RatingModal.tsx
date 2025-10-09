@@ -53,7 +53,6 @@ export default function RatingModal({ projectId, rateeId, rateeName, trigger }: 
     setValue,
     watch,
     reset,
-    formState: { errors },
   } = useForm<RatingFormData>({
     resolver: zodResolver(ratingSchema),
     defaultValues: {

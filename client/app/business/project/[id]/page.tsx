@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, Users, Calendar, CheckCircle, Star } from 'lucide-react';
+import { ArrowLeft, Plus, Calendar, CheckCircle, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import MilestoneForm from '@/components/project-tracking/MilestoneForm';
 import MilestoneList from '@/components/project-tracking/MilestoneList';
