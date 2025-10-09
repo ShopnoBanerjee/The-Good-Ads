@@ -58,7 +58,7 @@ export default function Footer() {
                 alt="Company Logo"
                 width={240}
                 height={80}
-                className="w-auto h-28 object-contain"
+                className="w-auto h-28 object-contain dark:brightness-0 dark:invert"
               />
             </div>
             <p 
