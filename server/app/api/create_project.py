@@ -94,6 +94,11 @@ async def create_project(request: Request, authorization: str = Header(...)):
 
     project_id = insert_resp.data[0]["id"]
 
+    return {
+        "project_id": project_id,
+        "compliant_description": compliant_description
+    }
+
 
 @router.post("/api/submit-rating")
 async def submit_rating(request: Request, authorization: str = Header(...)):
