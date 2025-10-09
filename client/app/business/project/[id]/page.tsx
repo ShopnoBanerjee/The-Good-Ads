@@ -39,10 +39,13 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [completingProject, setCompletingProject] = useState(false);
 
   const { setCurrentProject } = useProjectStore();
   const { ratings } = useRatings(projectId);
   const { milestones } = useMilestones(projectId);
+
+  const supabase = getSupabaseClient();
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -132,6 +135,50 @@ export default function ProjectDetailPage() {
     }
   };
 
+  // Check if all milestones are completed
+  const allMilestonesCompleted = milestones.length > 0 && milestones.every(milestone => milestone.status === 'completed');
+
+  const handleCompleteProject = async () => {
+    if (!project || completingProject) return;
+
+    setCompletingProject(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const token = session.access_token;
+      const res = await fetch(`${API_URL}/api/complete-project`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ project_id: projectId }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Failed to complete project');
+      }
+
+      toast('Success', {
+        description: 'Project completed successfully!',
+      });
+
+      // Update the project status locally
+      setProject(prev => prev ? { ...prev, status: 'completed' } : null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      toast('Error', {
+        description: errorMessage,
+      });
+    } finally {
+      setCompletingProject(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
@@ -169,6 +216,27 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Complete Project Button */}
+            {project.status !== 'completed' && allMilestonesCompleted && (
+              <Button
+                onClick={handleCompleteProject}
+                disabled={completingProject}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {completingProject ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Completing...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Complete Project</span>
+                  </div>
+                )}
+              </Button>
+            )}
 
             {project.status === 'completed' && societyName && !hasUserRated && (
               <RatingModal

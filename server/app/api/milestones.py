@@ -313,3 +313,70 @@ async def toggle_task_completion(task_id: str, authorization: str = Header(...))
         **updated_task,
         "message": f"Task {'completed' if new_status else 'reopened'} successfully. Milestone status will auto-update if needed."
     }
+
+
+@router.post("/api/complete-project")
+async def complete_project(request: Request, authorization: str = Header(...)):
+    """Complete a project after verifying all milestones are completed"""
+    body = await request.json()
+    project_id = body.get("project_id")
+
+    if not project_id:
+        raise HTTPException(status_code=400, detail="Project ID is required")
+
+    # Check JWT
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    # Verify user owns the project
+    project_resp = supabase.table("projects").select("business_id, status").eq("id", project_id).single().execute()
+
+    if project_resp.data is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    project = project_resp.data
+
+    # Check if user is business owner
+    if project["business_id"] != user_id:
+        raise HTTPException(status_code=403, detail="You don't have permission to complete this project")
+
+    # Check if project is already completed
+    if project["status"] == "completed":
+        raise HTTPException(status_code=400, detail="Project is already completed")
+
+    # Verify all milestones are completed
+    milestones_resp = supabase.table("milestones").select("status").eq("project_id", project_id).execute()
+
+    if milestones_resp.data is None:
+        raise HTTPException(status_code=500, detail="Failed to fetch milestones")
+
+    milestones = milestones_resp.data
+
+    # Check if there are any milestones
+    if len(milestones) == 0:
+        raise HTTPException(status_code=400, detail="Project has no milestones to complete")
+
+    # Check if all milestones are completed
+    incomplete_milestones = [m for m in milestones if m["status"] != "completed"]
+
+    if incomplete_milestones:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot complete project: {len(incomplete_milestones)} milestone(s) are not yet completed"
+        )
+
+    # All milestones are completed, update project status
+    update_resp = supabase.table("projects").update({
+        "status": "completed"
+    }).eq("id", project_id).execute()
+
+    if not update_resp.data:
+        raise HTTPException(status_code=500, detail="Failed to update project status")
+
+    return {
+        "message": "Project completed successfully",
+        "project_id": project_id,
+        "status": "completed"
+    }
