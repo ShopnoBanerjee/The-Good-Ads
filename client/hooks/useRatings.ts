@@ -1,6 +1,7 @@
 // hooks/useRatings.ts
 import { useEffect } from 'react';
 import { getSupabaseClient } from '@/lib/supabaseClient';
+import { API_URL } from '@/lib/constants';
 import { ProjectRating, CreateRatingData } from '@/types/project-tracking';
 import { useRatingStore } from '@/stores/useRatingStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
@@ -15,7 +16,7 @@ export const useRatings = (projectId: string) => {
 
     try {
       const { data, error } = await supabase
-        .from('project_ratings')
+        .from('ratings')
         .select('*')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
@@ -31,51 +32,26 @@ export const useRatings = (projectId: string) => {
   const submitRating = async (data: CreateRatingData) => {
     setSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
 
-      // Validate that the user is involved in this project
-      const { data: project, error: projectError } = await supabase
-        .from('projects')
-        .select('business_id, society_id, status')
-        .eq('id', data.project_id)
-        .single();
+      const token = session.access_token;
 
-      if (projectError) throw new Error('Project not found');
-      if (project.business_id !== user.id && project.society_id !== user.id) {
-        throw new Error('You are not authorized to rate this project');
-      }
-      if (project.status !== 'completed') {
-        throw new Error('You can only rate completed projects');
-      }
+      const res = await fetch(`${API_URL}/api/submit-rating`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
 
-      // Check if user has already rated this project
-      const { data: existingRating } = await supabase
-        .from('project_ratings')
-        .select('id')
-        .eq('project_id', data.project_id)
-        .eq('rater_id', user.id)
-        .single();
-
-      if (existingRating) {
-        throw new Error('You have already rated this project');
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Failed to submit rating');
       }
 
-      const ratingData = {
-        project_id: data.project_id,
-        rater_id: user.id,
-        ratee_id: data.ratee_id,
-        rating: data.rating,
-        review: data.review,
-      };
-
-      const { data: newRating, error } = await supabase
-        .from('project_ratings')
-        .insert(ratingData)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const newRating = await res.json();
 
       addRating(newRating);
       addNotification({
@@ -112,7 +88,7 @@ export const useRatings = (projectId: string) => {
         {
           event: '*',
           schema: 'public',
-          table: 'project_ratings',
+          table: 'ratings',
           filter: `project_id=eq.${projectId}`,
         },
         (payload) => {

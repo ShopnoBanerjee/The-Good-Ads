@@ -304,27 +304,82 @@ export default function ProjectDetailPage() {
                 {ratings.map((rating) => (
                   <Card key={rating.id}>
                     <CardContent className="pt-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-5 h-5 ${
-                                i < rating.rating
-                                  ? 'text-yellow-400 fill-yellow-400'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                          <span className="font-medium ml-2">{rating.rating}/5</span>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Communication</p>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < rating.communication_rating
+                                      ? 'text-yellow-400 fill-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-sm ml-1">{rating.communication_rating}/5</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Quality</p>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < rating.quality_rating
+                                      ? 'text-yellow-400 fill-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-sm ml-1">{rating.quality_rating}/5</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Timeliness</p>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < rating.timeliness_rating
+                                      ? 'text-yellow-400 fill-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-sm ml-1">{rating.timeliness_rating}/5</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Overall</p>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < rating.overall_rating
+                                      ? 'text-yellow-400 fill-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-sm ml-1">{rating.overall_rating}/5</span>
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-sm text-gray-500">
-                          {new Date(rating.created_at).toLocaleDateString()}
-                        </span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">
+                            {new Date(rating.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {rating.review_text && (
+                          <p className="text-gray-700 dark:text-gray-300">{rating.review_text}</p>
+                        )}
                       </div>
-                      {rating.review && (
-                        <p className="text-gray-700 dark:text-gray-300">{rating.review}</p>
-                      )}
                     </CardContent>
                   </Card>
                 ))}

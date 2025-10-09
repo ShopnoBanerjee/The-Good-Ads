@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Building2, Calendar, Star } from 'lucide-react';
+import { ArrowLeft, Calendar, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import TaskTracker from '@/components/project-tracking/TaskTracker';
 import RatingModal from '@/components/project-tracking/RatingModal';
@@ -33,7 +33,6 @@ export default function SocietyProjectDetailPage() {
   const projectId = params.id as string;
 
   const [project, setProject] = useState<Project | null>(null);
-  const [businessName, setBusinessName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string>('');
 
@@ -77,17 +76,6 @@ export default function SocietyProjectDetailPage() {
 
         setProject(currentProject);
         setCurrentProject(currentProject);
-
-        // Fetch business name
-        const { data: business } = await supabase
-          .from('profiles')
-          .select('company_name')
-          .eq('id', currentProject.business_id)
-          .single();
-
-        if (business) {
-          setBusinessName(business.company_name || 'Business Partner');
-        }
       } catch {
         toast.error('Failed to load project');
         router.push('/society');
@@ -155,21 +143,17 @@ export default function SocietyProjectDetailPage() {
                   {project.status}
                 </Badge>
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <Building2 className="w-4 h-4" />
-                  Client: {businessName}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Calendar className="w-4 h-4" />
                   Started: {new Date(project.created_at).toLocaleDateString()}
                 </div>
               </div>
             </div>
 
-            {project.status === 'completed' && businessName && !hasUserRated && (
+            {project.status === 'completed' && project.business_id && !hasUserRated && (
               <RatingModal
                 projectId={projectId}
                 rateeId={project.business_id}
-                rateeName={businessName}
+                rateeName="Business"
                 trigger={
                   <Button className="bg-yellow-600 hover:bg-yellow-700 text-white">
                     <Star className="w-4 h-4 mr-2" />
@@ -178,7 +162,7 @@ export default function SocietyProjectDetailPage() {
                 }
               />
             )}
-            {project.status === 'completed' && businessName && hasUserRated && (
+            {project.status === 'completed' && project.business_id && hasUserRated && (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
                 <div className="flex items-center space-x-2 text-green-800 dark:text-green-300">
                   <Star className="w-4 h-4" />
@@ -223,27 +207,82 @@ export default function SocietyProjectDetailPage() {
                 {ratings.map((rating) => (
                   <Card key={rating.id}>
                     <CardContent className="pt-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-5 h-5 ${
-                                i < rating.rating
-                                  ? 'text-yellow-400 fill-yellow-400'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                          <span className="font-medium ml-2">{rating.rating}/5</span>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Communication</p>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < rating.communication_rating
+                                      ? 'text-yellow-400 fill-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-sm ml-1">{rating.communication_rating}/5</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Quality</p>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < rating.quality_rating
+                                      ? 'text-yellow-400 fill-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-sm ml-1">{rating.quality_rating}/5</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Timeliness</p>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < rating.timeliness_rating
+                                      ? 'text-yellow-400 fill-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-sm ml-1">{rating.timeliness_rating}/5</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Overall</p>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < rating.overall_rating
+                                      ? 'text-yellow-400 fill-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-sm ml-1">{rating.overall_rating}/5</span>
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-sm text-gray-500">
-                          {new Date(rating.created_at).toLocaleDateString()}
-                        </span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">
+                            {new Date(rating.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {rating.review_text && (
+                          <p className="text-gray-700 dark:text-gray-300">{rating.review_text}</p>
+                        )}
                       </div>
-                      {rating.review && (
-                        <p className="text-gray-700 dark:text-gray-300">{rating.review}</p>
-                      )}
                     </CardContent>
                   </Card>
                 ))}
