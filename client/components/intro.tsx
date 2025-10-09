@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { FC, useState, useEffect } from "react";
 
 const Intro: FC = () => {
@@ -122,8 +123,24 @@ const Intro: FC = () => {
           </div>
         </div>
 
-        <div className="pt-6 sm:pt-8 lg:pt-12">
-          {/* Trusted By section removed as requested */}
+        {/* CTA Section */}
+        <div className="mt-8 sm:mt-10 lg:mt-12 pt-8 sm:pt-10 lg:pt-12 border-t border-white/20">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a5173] dark:text-white font-outfit mb-4 leading-tight transition-colors duration-200 ease-in-out">
+              Ready to Get Started?
+            </h2>
+            <p className="text-[#1a5173] dark:text-gray-200 text-base sm:text-lg max-w-2xl mx-auto mb-6 font-medium leading-relaxed transition-colors duration-200 ease-in-out">
+              Join inHalt today and connect with talented college societies or find the perfect business partner for your projects.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/auth" className="bg-[#11aad4] hover:bg-[#0d8bb8] text-white px-6 py-3 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center transform hover:scale-105">
+                Join as a Business
+              </Link>
+              <Link href="/auth" className="bg-white hover:bg-gray-50 text-[#11aad4] border-2 border-[#11aad4] hover:border-[#0d8bb8] px-6 py-3 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center transform hover:scale-105">
+                Join as a Society
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>

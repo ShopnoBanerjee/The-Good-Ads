@@ -96,7 +96,7 @@ const Header = () => {
             alt="inHalt"
             width={120}
             height={80}
-            className="object-contain"
+            className="object-contain dark:brightness-0 dark:invert"
           />
         </Link>
       </div>
