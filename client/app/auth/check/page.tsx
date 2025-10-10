@@ -18,7 +18,14 @@ export default async function CheckPage() {
     .single()
 
   if (profileError || !profile?.user_type) {
-    redirect('/auth')
+    // For new users (signUp), check metadata for userType
+    const userType = user.user_metadata?.userType
+    if (userType) {
+      redirect(`/register?userType=${userType}`)
+    } else {
+      // For signIn without profile, redirect back to auth
+      redirect('/auth')
+    }
   }
 
   // Redirect based on user_type
