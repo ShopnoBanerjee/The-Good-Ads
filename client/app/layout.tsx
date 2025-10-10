@@ -3,7 +3,6 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { AuthProvider } from "@/app/providers";
 import { ThemeProvider } from "next-themes";
-import { UserProvider } from "@/context/UserContext";
 import NotificationProvider from "@/components/NotificationProvider";
 import { Metadata } from "next";
 
@@ -34,11 +33,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`${raleway.variable} ${outfit.variable}`}>
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <UserProvider>
-              <NotificationProvider />
-              <Toaster />
-              {children}
-            </UserProvider>
+            <NotificationProvider />
+            <Toaster />
+            {children}
           </ThemeProvider>
         </AuthProvider>
       </body>
