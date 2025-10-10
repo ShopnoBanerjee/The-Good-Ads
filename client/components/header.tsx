@@ -5,12 +5,12 @@ import Link from "next/link";
 import { FiArrowRight, FiMenu, FiX } from "react-icons/fi";
 import { Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useUser } from "@/context/UserContext";
+import { useAuth } from "@/app/providers";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
-  const { user, userType, isLoading, setUser } = useUser();
+  const { session, userType } = useAuth();
   const { theme, setTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -23,7 +23,6 @@ const Header = () => {
     try {
       const supabase = (await import("@/lib/supabaseClient")).getSupabaseClient();
       await supabase.auth.signOut();
-      setUser(null);
       window.location.href = "/";
     } catch (error) {
       console.error("Error signing out:", error);
@@ -31,7 +30,7 @@ const Header = () => {
   };
 
   // Updated dashboard link logic with business user type support
-  const dashboardLink = user
+  const dashboardLink = session?.user
     ? (() => {
         if (userType === "college_society" || userType === "society") {
           return "/society";
@@ -142,9 +141,9 @@ const Header = () => {
           <span className="sr-only">Toggle theme</span>
         </Button>
 
-        {isLoading ? (
+        {session === undefined ? (
           <div className="w-32 h-10 bg-gray-200 animate-pulse rounded-lg"></div>
-        ) : user ? (
+        ) : session?.user ? (
           <>
             <Button
               variant="outline"
@@ -247,9 +246,9 @@ const Header = () => {
 
           {/* Auth buttons (mobile) - Removed theme toggle from here */}
           <div className="mt-4 flex flex-col gap-3">
-            {isLoading ? (
+            {session === undefined ? (
               <div className="w-32 h-10 bg-gray-200 animate-pulse rounded-lg"></div>
-            ) : user ? (
+            ) : session?.user ? (
               <>
                 <Button
                   variant="outline"
