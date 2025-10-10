@@ -64,7 +64,7 @@ function ProjectPreviewContent() {
 
         const data: Project = await res.json();
         setProject(data);
-      } catch (err) {
+      } catch {
         setError("Unexpected error while fetching project");
       } finally {
         setLoading(false);

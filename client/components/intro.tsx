@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { FC, useState, useEffect } from "react";
-import { useTheme } from "next-themes";
 
 const Intro: FC = () => {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -68,7 +67,7 @@ const Intro: FC = () => {
       {/* Content At z-10 */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center">
-          <div className="space-y-4 sm:space-y-6 text-center lg:text-left">
+          <div className="space-y-6 sm:space-y-8 lg:space-y-10 text-center lg:text-left">
             <h1 
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-[#1a5173] dark:text-white font-outfit drop-shadow-lg leading-tight transition-colors duration-200 ease-in-out"
               style={{
@@ -77,41 +76,37 @@ const Intro: FC = () => {
             >
               Welcome to
               <br />
-              The GoodAds
+              inHalt
             </h1>
             <p 
-              className="text-[#1a5173] dark:text-gray-200 text-base sm:text-lg lg:text-xl max-w-xl mx-auto lg:mx-0 font-semibold transition-colors duration-200 ease-in-out"
+              className="text-[#1a5173] dark:text-gray-200 text-base sm:text-lg lg:text-xl max-w-xl mx-auto lg:mx-0 font-semibold leading-relaxed transition-colors duration-200 ease-in-out"
               style={{
-                transition: 'color 0.2s ease-in-out',
+              transition: 'color 0.2s ease-in-out',
               }}
             >
-              We're building the future of brand collaborations! a vibrant marketplace where college societies meet
-              forward-thinking businesses to create innovative, niche-driven content.
+              We&apos;re building the future of brand collaborations! A marketplace that connects businesses with college societies for contractual projects.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-2 sm:space-y-0 sm:space-x-2 mt-6 sm:mt-8">
-              <div className="relative">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 relative sm:-top-4 sm:left-0">
-                  <Image
-                    src="/illustrations/earth illus.png"
-                    alt="Globe icon"
-                    width={50}
-                    height={50}
-                    className="object-contain"
-                  />
-                </div>
+            <div className="flex items-center justify-center lg:justify-start gap-4 mt-8 sm:mt-10 lg:mt-12">
+              <div className="flex-shrink-0">
+                <Image
+                  src="/illustrations/earth illus.png"
+                  alt="Globe icon"
+                  width={48}
+                  height={48}
+                  className="object-contain"
+                />
               </div>
-              <div className="relative sm:absolute">
-                <p 
-                  className="text-[#1a5173] dark:text-gray-100 text-xl sm:text-2xl md:text-3xl font-medium sm:ml-6 font-outfit text-center lg:text-left transition-colors duration-200 ease-in-out"
-                  style={{
-                    transition: 'color 0.2s ease-in-out',
-                  }}
-                >
-                  For the <span className="text-white font-semibold drop-shadow-md">Creators</span>, By the{" "}
-                  <span className="text-white font-semibold drop-shadow-md">Creators</span>
-                </p>
-              </div>
+              <p 
+                className="text-[#1a5173] dark:text-gray-100 text-xl sm:text-2xl md:text-3xl font-medium font-outfit transition-colors duration-200 ease-in-out"
+                style={{
+                  transition: 'color 0.2s ease-in-out',
+                }}
+              >
+                <span className="text-white font-semibold drop-shadow-md">Teams.</span>{" "}
+                <span className="text-white font-semibold drop-shadow-md">Tailor-made.</span>{" "}
+                <span className="text-white font-semibold drop-shadow-md">To you.</span>
+              </p>
             </div>
           </div>
 
@@ -128,50 +123,22 @@ const Intro: FC = () => {
           </div>
         </div>
 
-        <div className="pt-6 sm:pt-8 lg:pt-12">
-          <p 
-            className="text-[#1a5173] dark:text-white text-xl sm:text-2xl font-bold font-outfit mb-3 sm:mb-4 text-center lg:text-left transition-colors duration-200 ease-in-out"
-            style={{
-              transition: 'color 0.2s ease-in-out',
-            }}
-          >
-            Trusted By:
-          </p>
-          <div 
-            className="bg-[#1A97BA80] dark:bg-[rgba(255,255,255,0.1)] p-3 sm:p-4 lg:p-6 rounded-lg transition-colors duration-200 ease-in-out"
-            style={{
-              transition: 'background-color 0.2s ease-in-out',
-            }}
-          >
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 items-center justify-items-center">
-              <Image
-                src="/logo/iitk-logo.png"
-                alt="IIT KANPUR"
-                width={120}
-                height={50}
-                className="object-contain w-full max-w-[80px] sm:max-w-[100px] lg:max-w-[120px] h-auto"
-              />
-              <Image
-                src="/logo/fc-logo.png"
-                alt="FAST COMPANY"
-                width={120}
-                height={50}
-                className="object-contain w-full max-w-[80px] sm:max-w-[100px] lg:max-w-[120px] h-auto"
-              />
-              <Image
-                src="/logo/mit-logo.png"
-                alt="MIT"
-                width={80}
-                height={50}
-                className="object-contain w-full max-w-[60px] sm:max-w-[70px] lg:max-w-[80px] h-auto"
-              />
-              <Image
-                src="/logo/forbes-logo.png"
-                alt="Forbes"
-                width={120}
-                height={50}
-                className="object-contain w-full max-w-[80px] sm:max-w-[100px] lg:max-w-[120px] h-auto"
-              />
+        {/* CTA Section */}
+        <div className="mt-8 sm:mt-10 lg:mt-12 pt-8 sm:pt-10 lg:pt-12 border-t border-white/20">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a5173] dark:text-white font-outfit mb-4 leading-tight transition-colors duration-200 ease-in-out">
+              Ready to Get Started?
+            </h2>
+            <p className="text-[#1a5173] dark:text-gray-200 text-base sm:text-lg max-w-2xl mx-auto mb-6 font-medium leading-relaxed transition-colors duration-200 ease-in-out">
+              Join inHalt today and connect with talented college societies or find the perfect business partner for your projects.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/auth" className="bg-[#11aad4] hover:bg-[#0d8bb8] text-white px-6 py-3 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center transform hover:scale-105">
+                Join as a Business
+              </Link>
+              <Link href="/auth" className="bg-white hover:bg-gray-50 text-[#11aad4] border-2 border-[#11aad4] hover:border-[#0d8bb8] px-6 py-3 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center transform hover:scale-105">
+                Join as a Society
+              </Link>
             </div>
           </div>
         </div>

@@ -3,11 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { MdEmail, MdPhone } from 'react-icons/md';
-import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 export default function Footer() {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -31,7 +29,7 @@ export default function Footer() {
                 />
               </div>
               <p className="font-outfit text-xs sm:text-sm text-gray-400 text-center lg:text-left border-t lg:border-none border-gray-700 pt-4 lg:pt-0 w-full">
-                © 2025 The GoodAds. All Rights Reserved.
+                © 2025 inHalt. All Rights Reserved.
               </p>
             </div>
             <div className="w-32 h-40 bg-gray-700 animate-pulse rounded"></div>
@@ -60,7 +58,7 @@ export default function Footer() {
                 alt="Company Logo"
                 width={240}
                 height={80}
-                className="w-auto h-28 object-contain"
+                className="w-auto h-28 object-contain dark:brightness-0 dark:invert"
               />
             </div>
             <p 
@@ -69,7 +67,7 @@ export default function Footer() {
                 transition: 'color 0.2s ease-in-out, border-color 0.2s ease-in-out',
               }}
             >
-              © 2025 The GoodAds. All Rights Reserved.
+              © 2025 inHalt. All Rights Reserved.
             </p>
           </div>
 
@@ -118,25 +116,25 @@ export default function Footer() {
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
               <MdEmail className="text-blue-500 dark:text-blue-400 text-lg transition-colors duration-200 ease-in-out" />
               <a 
-                href="mailto:support@thegoodads.com" 
+                href="mailto:supratimdas@inhalt.in" 
                 className="font-outfit text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200 ease-in-out break-all"
                 style={{
                   transition: 'color 0.2s ease-in-out',
                 }}
               >
-                support@thegoodads.com
+                supratimdas@inhalt.in
               </a>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
               <MdPhone className="text-blue-500 dark:text-blue-400 text-lg transition-colors duration-200 ease-in-out" />
               <a 
-                href="tel:+1234567890" 
+                href="tel:+91 9749460016" 
                 className="font-outfit text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200 ease-in-out"
                 style={{
                   transition: 'color 0.2s ease-in-out',
                 }}
               >
-                +1 (234) 567-890
+                +91 97494 60016
               </a>
             </div>
           </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, ChangeEvent, FormEvent, useEffect, Suspense } from "react"
+import { useState, ChangeEvent, FormEvent, useEffect, Suspense, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
@@ -11,13 +11,15 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Building2, CheckCircle, Plus, FileText } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ArrowLeft, Building2, CheckCircle, Plus, FileText, Shield } from "lucide-react"
 
 // Form shape
 interface ProjectForm {
   name: string
   services: string
   description: string
+  hideDetails: boolean
 }
 
 // Error shape
@@ -87,6 +89,7 @@ function AddProjectForm() {
     name: "",
     services: "",
     description: "",
+    hideDetails: false,
   })
   const [errors, setErrors] = useState<ProjectFormErrors>({})
   const [loading, setLoading] = useState<boolean>(false)
@@ -102,14 +105,7 @@ function AddProjectForm() {
   })
 
   // ✅ Fetch project data if in edit mode
-  useEffect(() => {
-    if (projectId) {
-      setIsEditMode(true)
-      fetchProjectForEdit()
-    }
-  }, [projectId])
-
-  const fetchProjectForEdit = async () => {
+  const fetchProjectForEdit = useCallback(async () => {
     if (!projectId) return
 
     try {
@@ -141,11 +137,19 @@ function AddProjectForm() {
         name: project.raw_name,
         services: project.services_required,
         description: project.raw_description,
+        hideDetails: false, // Default to false for existing projects
       })
-    } catch (err: any) {
-      setApiError(err.message || "Failed to load project for editing")
+    } catch (err: unknown) {
+      setApiError(err instanceof Error ? err.message : "Failed to load project for editing")
     }
-  }
+  }, [projectId])
+
+  useEffect(() => {
+    if (projectId) {
+      setIsEditMode(true)
+      fetchProjectForEdit()
+    }
+  }, [projectId, fetchProjectForEdit])
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -187,7 +191,6 @@ function AddProjectForm() {
       const token = session.access_token
 
       let res: Response
-      let requestBody: any
 
       if (isEditMode && currentProject) {
         // Edit mode - call edit API
@@ -202,6 +205,7 @@ function AddProjectForm() {
             name: form.name,
             services_required: form.services,
             description: form.description,
+            hide_details: form.hideDetails,
           }),
         })
       } else {
@@ -216,6 +220,7 @@ function AddProjectForm() {
             name: form.name,
             services_required: form.services,
             description: form.description,
+            hide_details: form.hideDetails,
           }),
         })
       }
@@ -238,8 +243,8 @@ function AddProjectForm() {
           `/business/preview?project_id=${responseData.project_id}&compliant=${encodeURIComponent(responseData.compliant_description)}`,
         )
       }
-    } catch (err: any) {
-      setApiError(err.message || "Unknown error")
+    } catch (err: unknown) {
+      setApiError(err instanceof Error ? err.message : "Unknown error")
     } finally {
       setLoading(false)
     }
@@ -368,6 +373,24 @@ function AddProjectForm() {
                     Minimum 10 characters. Be specific about your needs to attract the right societies.
                   </p>
                 </div>
+
+                <div className="flex items-center space-x-3 p-4 bg-accent/5 rounded-lg border border-accent/20">
+                  <Checkbox
+                    id="hideDetails"
+                    checked={form.hideDetails}
+                    onCheckedChange={(checked) => setForm({ ...form, hideDetails: checked as boolean })}
+                    className="data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Shield className="w-4 h-4 text-accent" />
+                    <Label htmlFor="hideDetails" className="text-sm font-medium text-text cursor-pointer">
+                      Hide sensitive details for privacy compliance
+                    </Label>
+                  </div>
+                </div>
+                <p className="text-xs text-text-muted ml-7">
+                  When enabled, our AI will automatically redact company names, emails, phone numbers, and personal information from your project before publishing.
+                </p>
               </div>
 
               {/* Submit Button */}

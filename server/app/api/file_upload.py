@@ -5,7 +5,6 @@ from datetime import datetime
 from app.core.config import settings
 from app.core.security import verify_jwt
 from supabase import create_client
-import aiofiles
 import os
 from app.api.chat import manager
 

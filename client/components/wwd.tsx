@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 
 const Wwd: React.FC = () => {
   const { theme } = useTheme();
@@ -62,7 +63,7 @@ const Wwd: React.FC = () => {
               transition: 'color 0.2s ease-in-out',
             }}
           >
-            Whether you're a brand looking to tap into fresh, creative energy or a student group eager to showcase your talent to real-world clients, The GoodAds is your launchpad.
+            inHalt connects businesses with college societies and student-run organizations for innovative consulting and project needs, showcasing each society’s portfolio and achievements for transparent, informed partnerships
           </p>
         </div>
 
@@ -83,7 +84,7 @@ const Wwd: React.FC = () => {
                   transition: 'color 0.2s ease-in-out',
                 }}
               >
-                We<span className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl font-semibold drop-shadow-md"> Connect </span>businesses<br />with student creators
+                We<span className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl font-semibold drop-shadow-md"> Connect </span>businesses<br />with students
               </p>
               <p 
                 className="pt-4 sm:pt-6 lg:pt-8 pl-2 sm:pl-4 lg:pl-6 font-normal text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-2xl leading-relaxed transition-colors duration-200 ease-in-out"
@@ -92,27 +93,29 @@ const Wwd: React.FC = () => {
                   transition: 'color 0.2s ease-in-out',
                 }}
               >
-                We bridge the gap between innovative companies and the brightest college talent. We match you with the right student teams to drive real, actionable results tailored to your industry needs.
+                We bridge the gap between innovative companies and the brightest college talent. Students gain real-world experience and sustainable revenue.
               </p>
             </div>
           </div>
 
-          <div className="flex justify-center overflow-hidden order-1 lg:order-2">
-            <img
+          <div className="flex justify-center overflow-hidden order-1 lg:order-2 relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl h-64 sm:h-80 md:h-96 lg:h-[400px] xl:h-[500px]">
+            <Image
+              fill
               src="/illustrations/illus2whatwedo.png"
               alt="Illustration 1"
-              className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl h-auto object-contain rounded-lg"
+              className="object-contain rounded-lg"
             />
           </div>
         </div>
 
         {/* WWD- Row 3 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-6 sm:gap-8 lg:gap-12 mt-8 sm:mt-12 lg:mt-4">
-          <div className="flex justify-center overflow-hidden">
-            <img
+          <div className="flex justify-center overflow-hidden relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl h-64 sm:h-80 md:h-96 lg:h-[400px] xl:h-[450px]">
+            <Image
+              fill
               src="/illustrations/illus whatwedo.png"
               alt="Illustration 2"
-              className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl h-auto object-contain rounded-lg"
+              className="object-contain rounded-lg"
             />
           </div>
 
@@ -140,7 +143,7 @@ const Wwd: React.FC = () => {
                   transition: 'color 0.2s ease-in-out',
                 }}
               >
-                From finance and consulting to marketing, tech, and multimedia production, we provide companies with agile, cost-effective solutions through the creativity of student societies.
+                From finance and consulting to marketing, tech, and multimedia production, companies can efficiently outsource to credible, niche-focused teams by reviewing past projects and testimonials.
               </p>
             </div>
           </div>
@@ -162,10 +165,10 @@ const Wwd: React.FC = () => {
               
               {/* Left Half - College Societies */}
               <Link
-                href="/college-societies"
-                className="w-full sm:w-1/2 bg-[#92d4e6] dark:bg-[#2b4c66] text-[#1a5173] dark:text-white flex items-center justify-center hover:bg-[#7dc4d9] dark:hover:bg-[#1e3c52] transition-colors duration-200 rounded-t-3xl sm:rounded-tl-3xl sm:rounded-tr-none rounded-bl-none sm:rounded-bl-[120px] md:rounded-bl-[180px] lg:rounded-bl-[233px] shadow-none sm:shadow-[10px_0px_5px_rgba(0,0,0,0.25)] z-10 min-h-[120px] sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px]"
+                href="/our-services"
+                className="w-full sm:w-1/2 bg-[#92d4e6] dark:bg-[#2b4c66] text-[#1a5173] dark:text-white flex items-center justify-center hover:bg-[#7dc4d9] dark:hover:bg-[#1e3c52] hover:scale-105 hover:shadow-lg transition-all duration-300 rounded-t-3xl sm:rounded-tl-3xl sm:rounded-tr-none rounded-bl-none sm:rounded-bl-[120px] md:rounded-bl-[180px] lg:rounded-bl-[233px] shadow-none sm:shadow-[10px_0px_5px_rgba(0,0,0,0.25)] z-10 min-h-[120px] sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px]"
                 style={{
-                  transition: 'background-color 0.2s ease-in-out, color 0.2s ease-in-out',
+                  transition: 'background-color 0.3s ease-in-out, color 0.3s ease-in-out, transform 0.3s ease-in-out',
                 }}
               >
                 <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold font-outfit drop-shadow-2xl text-center leading-tight">
@@ -175,10 +178,10 @@ const Wwd: React.FC = () => {
 
               {/* Right Half - Companies/Startups */}
               <Link
-                href="/companies-startups"
-                className="w-full sm:w-1/2 bg-[#A3DAEF] dark:bg-[#34546b] text-[#1a5173] dark:text-white flex items-center justify-center hover:bg-[#8ed1eb] dark:hover:bg-[#274157] transition-colors duration-200 rounded-b-3xl sm:rounded-tr-3xl sm:rounded-bl-none rounded-br-3xl sm:rounded-br-[120px] md:rounded-br-[180px] lg:rounded-br-[233px] min-h-[120px] sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px]"
+                href="/our-services"
+                className="w-full sm:w-1/2 bg-[#A3DAEF] dark:bg-[#34546b] text-[#1a5173] dark:text-white flex items-center justify-center hover:bg-[#8ed1eb] dark:hover:bg-[#274157] hover:scale-105 hover:shadow-lg transition-all duration-300 rounded-b-3xl sm:rounded-tr-3xl sm:rounded-bl-none rounded-br-3xl sm:rounded-br-[120px] md:rounded-br-[180px] lg:rounded-br-[233px] min-h-[120px] sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px]"
                 style={{
-                  transition: 'background-color 0.2s ease-in-out, color 0.2s ease-in-out',
+                  transition: 'background-color 0.3s ease-in-out, color 0.3s ease-in-out, transform 0.3s ease-in-out',
                 }}
               >
                 <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold font-outfit drop-shadow-2xl text-center leading-tight">
@@ -191,11 +194,14 @@ const Wwd: React.FC = () => {
       </div>
 
       {/* Decorative overlay image - overlaps buttons on larger screens */}
-      <img
-        src="/illustrations/comb standing.png"
-        alt="Decorative Overlay"
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl h-auto pointer-events-none lg:-translate-y-0 xl:-translate-y-0"
-      />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl h-64 sm:h-80 md:h-96 lg:h-[400px] xl:h-[500px] pointer-events-none lg:-translate-y-0 xl:-translate-y-0">
+        <Image
+          fill
+          src="/illustrations/comb standing.png"
+          alt="Decorative Overlay"
+          className="object-contain"
+        />
+      </div>
     </section>
   );
 };

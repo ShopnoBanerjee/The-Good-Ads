@@ -183,3 +183,30 @@ async def update_logo(
 
     return {"message": "Logo updated", "logo_url": public_url}
 
+@router.get("/api/get-society-portfolio/{society_id}")
+async def get_society_portfolio(society_id: str, authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    # ✅ Confirm the user is a business (only businesses can view society portfolios)
+    profile = supabase.table("profiles").select("user_type").eq("id", user_id).single().execute()
+    if not profile.data or profile.data["user_type"] != "business":
+        raise HTTPException(status_code=403, detail="Only businesses can view society portfolios")
+
+    try:
+        # Get portfolio items for the specified society
+        portfolio_resp = supabase.table("portfolio_items").select("*").eq("society_id", society_id).execute()
+
+        # Get society profile information
+        society_profile = supabase.table("college_society_profiles").select("*").eq("id", society_id).single().execute()
+
+        return {
+            "portfolio_items": portfolio_resp.data,
+            "society_profile": society_profile.data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve society portfolio: {str(e)}")
+

@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
@@ -15,7 +14,6 @@ import {
   MoreVertical,
   Phone,
   Video,
-  User,
   FileText,
   Image,
   Download,
@@ -23,6 +21,7 @@ import {
 } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
+import ImageComponent from "next/image"
 
 interface Message {
   id: string
@@ -48,14 +47,12 @@ interface ChatInterfaceProps {
   conversationId: string
   currentUserId: string
   otherUserName: string
-  onClose?: () => void
 }
 
 export function ChatInterface({
   conversationId,
   currentUserId,
   otherUserName,
-  onClose
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -120,9 +117,9 @@ export function ChatInterface({
         clearTimeout(typingTimeoutRef.current)
       }
     }
-  }, [conversationId])
+  }, [conversationId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadMessages = async (loadMore = false) => {
+  const loadMessages = useCallback(async (loadMore = false) => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
@@ -150,14 +147,14 @@ export function ChatInterface({
           setHasMore(false)
         }
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load messages")
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [conversationId, offset, supabase.auth])
 
-  const connectWebSocket = async () => {
+  const connectWebSocket = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session || !API_URL) return
@@ -223,7 +220,21 @@ export function ChatInterface({
     } catch (error) {
       console.error("Failed to connect WebSocket:", error)
     }
-  }
+  }, [conversationId, currentUserId, supabase.auth])
+
+  useEffect(() => {
+    loadMessages()
+    connectWebSocket()
+
+    return () => {
+      if (ws) {
+        ws.close()
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+    }
+  }, [conversationId, connectWebSocket, loadMessages, ws])
 
   const sendMessage = async () => {
     if (!newMessage.trim() || isSending) return
@@ -289,7 +300,7 @@ export function ChatInterface({
       }
 
       setNewMessage("")
-    } catch (error) {
+    } catch {
       // Remove temp message on error
       setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id))
       toast.error("Failed to send message")
@@ -346,12 +357,11 @@ export function ChatInterface({
       })
 
       if (messageResponse.ok) {
-        const data = await messageResponse.json()
         setUploadProgress(100)
         // Message will be added via WebSocket broadcast
         toast.success("File uploaded successfully")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to upload file")
     } finally {
       setIsUploading(false)
@@ -372,6 +382,7 @@ export function ChatInterface({
   }
 
   const getFileIcon = (fileType: string) => {
+    // eslint-disable-next-line jsx-a11y/alt-text
     if (fileType.startsWith('image/')) return <Image className="h-4 w-4" />
     return <FileText className="h-4 w-4" />
   }
@@ -487,10 +498,11 @@ export function ChatInterface({
                       {message.message_attachments[0].file_type.startsWith('image/') ? (
                         <div className="space-y-2">
                           <div className="relative">
-                            <img
+                            <ImageComponent
+                              fill
                               src={message.message_attachments[0].file_url}
                               alt={message.message_attachments[0].file_name}
-                              className="max-w-full h-auto rounded-lg max-h-64 object-contain"
+                              className="object-contain"
                               onLoad={() => console.log('Image loaded')}
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none'

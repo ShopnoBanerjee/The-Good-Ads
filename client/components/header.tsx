@@ -3,90 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FiArrowRight, FiMenu, FiX } from "react-icons/fi";
-import { FaCaretDown } from "react-icons/fa";
 import { Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-
-interface MenuItem {
-  label: string;
-  href: string;
-}
-
-interface DropdownProps {
-  title: string;
-  menuItems: MenuItem[];
-  mobile?: boolean;
-}
-
-// Reusable Dropdown Component
-const Dropdown = ({ title, menuItems, mobile = false }: DropdownProps) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1 transition-colors duration-200 ease-in-out ${
-          mobile 
-            ? "w-full justify-between py-2 text-[#15325a] dark:text-white font-outfit text-lg font-medium hover:text-blue-600 dark:hover:text-primary" 
-            : "text-[#15325a] dark:text-white hover:text-blue-600 dark:hover:text-primary"
-        }`}
-        style={{
-          transition: 'color 0.2s ease-in-out',
-        }}
-      >
-        {title} <FaCaretDown size={14} />
-      </button>
-
-      {/* Desktop dropdown */}
-      {!mobile && (
-        <div
-          className={`absolute top-full left-0 mt-2 w-44 bg-white dark:bg-[#15325a] shadow-md rounded-md py-2 z-10 transition-all duration-200 ease-in-out ${
-            isOpen ? "block" : "hidden"
-          } group-hover:block`}
-          onMouseLeave={() => setIsOpen(false)}
-          style={{
-            transition: 'background-color 0.2s ease-in-out',
-          }}
-        >
-          {menuItems.map((item, index) => (
-            <Link
-              key={index}
-              href={item.href}
-              className="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 hover:text-blue-600 dark:hover:text-primary transition-all duration-200 ease-in-out"
-              style={{
-                transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out',
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {/* Mobile dropdown */}
-      {mobile && isOpen && (
-        <div className="flex flex-col pl-4">
-          {menuItems.map((item, index) => (
-            <Link
-              key={index}
-              href={item.href}
-              className="block py-2 text-base text-[#15325a] dark:text-white font-outfit font-medium hover:text-blue-600 dark:hover:text-primary transition-colors duration-200 ease-in-out"
-              style={{
-                transition: 'color 0.2s ease-in-out',
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 const Header = () => {
   const { user, userType, isLoading, setUser } = useUser();
@@ -172,10 +93,10 @@ const Header = () => {
         <Link href="/">
           <Image
             src="/logo/our-logo.png"
-            alt="The GoodAds"
+            alt="inHalt"
             width={120}
             height={80}
-            className="object-contain"
+            className="object-contain dark:brightness-0 dark:invert"
           />
         </Link>
       </div>
@@ -191,22 +112,17 @@ const Header = () => {
         >
           Home
         </Link>
+        
 
-        <Dropdown
-          title="About Us"
-          menuItems={[
-            { label: "Our Story", href: "/about#story" },
-            { label: "Team", href: "/about#team" },
-          ]}
-        />
-
-        <Dropdown
-          title="Our Services"
-          menuItems={[
-            { label: "College Societies", href: "/society" },
-            { label: "Companies / Startups", href: "/business" },
-          ]}
-        />
+        <Link 
+          href="/our-services" 
+          className="text-[#15325a] dark:text-white hover:text-blue-600 dark:hover:text-primary transition-colors duration-200 ease-in-out"
+          style={{
+            transition: 'color 0.2s ease-in-out',
+          }}
+        >
+          Our Services
+        </Link>
       </nav>
 
       {/* Auth buttons and theme toggle (desktop) */}
@@ -232,7 +148,7 @@ const Header = () => {
           <>
             <Button
               variant="outline"
-              className="rounded-2xl text-[#15325a] dark:text-white border-2 border-[#15325a] dark:border-white hover:bg-[#15325a] hover:text-white dark:hover:bg-white dark:hover:text-[#15325a] transition-all duration-200 ease-in-out"
+              className="rounded-2xl text-[#15325a] dark:text-white border-2 border-[#15325a] dark:border-white hover:bg-[#15325a] hover:text-white dark:hover:bg-white dark:hover:text-[#15325a] transition-all duration-200 ease-in-out font-medium"
               asChild
               style={{
                 transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
@@ -244,7 +160,7 @@ const Header = () => {
             </Button>
             <Button
               onClick={handleSignOut}
-              className="rounded-2xl bg-red-600 border-2 border-transparent hover:bg-transparent hover:text-red-600 hover:border-2 hover:border-red-600 transition-all duration-200 ease-in-out"
+              className="rounded-2xl bg-gray-600 hover:bg-gray-700 text-white border-2 border-gray-600 hover:border-gray-700 transition-all duration-200 ease-in-out font-medium"
               style={{
                 transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
               }}
@@ -253,13 +169,18 @@ const Header = () => {
             </Button>
           </>
         ) : (
-          <Link
-            href="/auth"
-            className="flex font-outfit items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg text-lg transition-colors hover:bg-blue-700 duration-200 ease-in-out"
+          <Button
+            asChild
+            className="rounded-2xl bg-[#11aad4] hover:bg-[#0d8bb8] text-white border-2 border-[#11aad4] hover:border-[#0d8bb8] transition-all duration-200 ease-in-out font-medium"
+            style={{
+              transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
+            }}
           >
-            Login / Signup
-            <FiArrowRight size={16} />
-          </Link>
+            <Link href="/auth" className="flex font-outfit items-center gap-2 text-lg">
+              Login / Signup
+              <FiArrowRight size={16} />
+            </Link>
+          </Button>
         )}
       </div>
 
@@ -311,23 +232,18 @@ const Header = () => {
             Home
           </Link>
 
-          <Dropdown
-            title="About Us"
-            menuItems={[
-              { label: "Our Story", href: "/about#story" },
-              { label: "Team", href: "/about#team" },
-            ]}
-            mobile
-          />
 
-          <Dropdown
-            title="Our Services"
-            menuItems={[
-              { label: "College Societies", href: "/society" },
-              { label: "Companies / Startups", href: "/business" },
-            ]}
-            mobile
-          />
+
+          <Link 
+            href="/our-services" 
+            className="text-[#15325a] dark:text-white font-outfit text-lg font-medium hover:text-blue-600 dark:hover:text-primary transition-colors duration-200 ease-in-out" 
+            onClick={() => setMenuOpen(false)}
+            style={{
+              transition: 'color 0.2s ease-in-out',
+            }}
+          >
+            Our Services
+          </Link>
 
           {/* Auth buttons (mobile) - Removed theme toggle from here */}
           <div className="mt-4 flex flex-col gap-3">
@@ -337,7 +253,7 @@ const Header = () => {
               <>
                 <Button
                   variant="outline"
-                  className="rounded-2xl text-[#15325a] dark:text-white border-2 border-[#15325a] dark:border-white hover:bg-[#15325a] hover:text-white dark:hover:bg-white dark:hover:text-[#15325a] transition-all duration-200 ease-in-out"
+                  className="rounded-2xl text-[#15325a] dark:text-white border-2 border-[#15325a] dark:border-white hover:bg-[#15325a] hover:text-white dark:hover:bg-white dark:hover:text-[#15325a] transition-all duration-200 ease-in-out font-medium"
                   asChild
                   style={{
                     transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
@@ -349,7 +265,7 @@ const Header = () => {
                 </Button>
                 <Button
                   onClick={handleSignOut}
-                  className="rounded-2xl bg-red-600 border-2 border-transparent hover:bg-transparent hover:text-red-600 hover:border-2 hover:border-red-600 transition-all duration-200 ease-in-out"
+                  className="rounded-2xl bg-gray-600 hover:bg-gray-700 text-white border-2 border-gray-600 hover:border-gray-700 transition-all duration-200 ease-in-out font-medium"
                   style={{
                     transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
                   }}
@@ -358,14 +274,22 @@ const Header = () => {
                 </Button>
               </>
             ) : (
-              <Link
-                href="/auth"
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-accent text-white rounded-2xl text-lg font-outfit transition-colors hover:bg-blue-700 w-full duration-200 ease-in-out"
-                onClick={() => setMenuOpen(false)}
+              <Button
+                asChild
+                className="rounded-2xl bg-[#11aad4] hover:bg-[#0d8bb8] text-white border-2 border-[#11aad4] hover:border-[#0d8bb8] transition-all duration-200 ease-in-out w-full font-medium"
+                style={{
+                  transition: 'color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
+                }}
               >
-                Login / Signup
-                <FiArrowRight size={16} />
-              </Link>
+                <Link
+                  href="/auth"
+                  className="flex items-center justify-center gap-2 text-lg font-outfit w-full"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Login / Signup
+                  <FiArrowRight size={16} />
+                </Link>
+              </Button>
             )}
           </div>
         </div>

@@ -1,59 +1,130 @@
-<h1> The GoodAds </h1>
+# The GoodAds 📢
 
+**The GoodAds** is a full-stack, collaborative platform designed to seamlessly connect businesses with creative professionals ("society members"). It provides a comprehensive suite of tools for posting projects, managing proposals, tracking progress with milestones, and communicating in real-time.
 
-# 🛠️ Backend Setup To-Do List
+This repository contains the complete monorepo, including the Next.js frontend and the FastAPI backend.
 
----
+## ✨ Key Features
 
-## 🔧 Project Initialization (complete)
+* **👥 Dual User Roles** : Separate, feature-rich dashboards for **Businesses** (to post projects and manage freelancers) and **Society Members** (to find work and showcase portfolios).
+* **🛒 Project Marketplace** : Businesses can post project requirements, and society members can browse and submit detailed proposals.
+* **🎯 Milestone & Task Tracking** : A robust system for defining project milestones and tracking individual task completion, ensuring clarity and accountability for both parties.
+* **💬 Real-Time Chat** : Integrated chat functionality for direct and instant communication between businesses and the creators they hire.
+* **🔒 Secure Authentication** : Built with Supabase for secure and reliable user authentication and management.
+* **💅 Modern UI** : A sleek, responsive, and user-friendly interface built with Next.js, TypeScript, and shadcn/ui.
 
-- [X] Choose backend framework
-- [X] Setup project directory
-- [X] Initialize Git
-- [X] Create `.env` file and setup environment config
-- [X] Install required dependencies
+## 🛠️ Tech Stack
 
----
+The project is a monorepo divided into a `client` (frontend) and a `server` (backend).
 
-## 🔐 Authentication Setup
+| **Area**            | **Technology**                                                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Frontend**        | **Next.js** , **React** , **TypeScript** , **Tailwind CSS** , **shadcn/ui** ,**Zustand**(State Management),**React Hook Form** |
+| **Backend**         | **Python** , **FastAPI** ,**Uvicorn**(ASGI Server)                                                                                                     |
+| **Database & Auth** | **Supabase**(PostgreSQL Database, Authentication, Storage)                                                                                                         |
+| **Deployment**      | **Docker** ,**GitHub Actions**(CI/CD)                                                                                                                        |
 
-- [X] Decide on auth method (JWT, OAuth2, etc.)
-- [X] Create user model/schema
-- [X] Implement register endpoint
-- [X] Implement login endpoint
-- [X] Add password hashing
-- [X] Generate and verify JWT tokens
-- [ ] Middleware to protect routes
-- [ ] Add protected route test (e.g., `/me`)
+## 📂 Project Structure
 
----
+The repository is structured as a monorepo with two main packages:
 
-## 📡 API Setup
+```
+└── shopnobanerjee-the-good-ads/
+    ├── .github/              # GitHub Actions CI/CD workflows
+    ├── client/               # Next.js 14+ frontend application
+    │   ├── app/              # App Router, components, and pages
+    │   ├── components/       # Shared UI components (powered by shadcn/ui)
+    │   ├── lib/              # Utility functions and Supabase client
+    │   └── ...
+    ├── server/               # FastAPI backend application
+    │   ├── app/              # Main application source code
+    │   │   ├── api/          # API endpoint logic
+    │   │   ├── core/         # Configuration and security
+    │   │   ├── models/       # Database models
+    │   │   └── services/     # Business logic and external services
+    │   └── Dockerfile        # Docker configuration for the server
+    └── README.md             # You are here!
 
-- [ ] Define API routes and structure
-- [ ] Design database schema
-- [ ] Connect to database
-- [ ] Implement CRUD for main resource
-- [ ] Validate input data
-- [ ] Error handling middleware
-- [ ] Auth middleware on private routes
-- [ ] Add Swagger/OpenAPI or Postman doc
+```
 
----
+## 🚀 Getting Started
 
-## 🧪 Testing & Tools
+Follow these instructions to get the project up and running on your local machine.
 
-- [ ] Setup unit testing
-- [ ] Setup test DB
-- [ ] Write tests for auth endpoints
-- [ ] Write tests for APIs
-- [ ] Add logging
+### Prerequisites
 
----
+* **Node.js** (v18 or higher)
+* **Python** (v3.10 or higher) & `pip`
+* **Git**
+* **Docker** (optional, for running the backend in a container)
+* A **Supabase** project for your database and authentication keys.
 
-## 🚀 Deployment Prep
+### Installation & Setup
 
-- [ ] Add CORS config
-- [ ] Setup build scripts
-- [ ] Production env variables
-- [ ] Create `README.md`
+1. **Clone the repository:**
+   ```
+   git clone [https://github.com/shopnobanerjee/the-good-ads.git](https://github.com/shopnobanerjee/the-good-ads.git)
+   cd the-good-ads
+
+   ```
+2. **Set up the Backend (`server`):**
+   * Navigate to the server directory:
+     ```
+     cd server
+
+     ```
+   * Create a virtual environment and activate it:
+     ```
+     python -m venv venv
+     source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+
+     ```
+   * Install the required Python packages:
+     ```
+     pip install -r requirements.txt
+
+     ```
+   * Set up environment variables. Copy the example file:
+     ```
+     cp .env.example .env
+
+     ```
+   * Populate the `.env` file with your Supabase project URL, anon key, and service role key.
+3. **Set up the Frontend (`client`):**
+   * Navigate to the client directory from the root:
+     ```
+     cd ../client
+
+     ```
+   * Install the required npm packages:
+     ```
+     npm install
+
+     ```
+   * Set up environment variables. Copy the example file:
+     ```
+     cp .env.example .env.local
+
+     ```
+   * Populate the `.env.local` file with your **public** Supabase URL and anon key.
+
+### Running the Application
+
+You'll need to run both the backend and frontend servers concurrently in separate terminal windows.
+
+1. **Run the Backend Server:**
+   * In your terminal, navigate to the `/server` directory and run:
+     ```
+     uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+     ```
+   * The API will be available at `http://localhost:8000`.
+2. **Run the Frontend Development Server:**
+   * In a new terminal, navigate to the `/client` directory and run:
+     ```
+     npm run dev
+
+     ```
+   * Open your browser and navigate to `http://localhost:3000`.
+
+You should now have the full application running locally! 🎉

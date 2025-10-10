@@ -5,7 +5,7 @@ import { Toaster as Sonner, type ToasterProps } from "sonner"
 
 const Toaster = (props: ToasterProps) => {
   const { theme = "system" } = useTheme()
-  return <Sonner theme={theme as any} {...props} />
+  return <Sonner theme={theme as "light" | "dark" | "system"} {...props} />
 }
 
 export { Toaster }
