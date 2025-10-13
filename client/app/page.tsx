@@ -23,10 +23,10 @@ const Home: React.FC = () => {
           </svg>
         </div>
 
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">We'll be back soon</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">We&apos;ll be back soon</h1>
         <p className="text-gray-600 dark:text-gray-300 mb-4">
           The site is currently under maintenance. All services, including registration, are temporarily offline.
-          We're working to bring everything back as quickly as possible.
+          We&apos;re working to bring everything back as quickly as possible.
         </p>
 
         <p className="text-sm text-gray-500 dark:text-gray-400">Please check back in a little while. Thank you for your patience.</p>
