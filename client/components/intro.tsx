@@ -42,7 +42,7 @@ const Intro: FC = () => {
 
   return (
     <section 
-      className="bg-[#a8e0f0] dark:bg-[#15325a] relative w-full py-8 sm:py-12 md:py-16 lg:py-20 transition-colors duration-200 ease-in-out"
+      className="bg-[rgba(0,200,255,0.76)] dark:bg-[#15325a] relative w-full py-8 sm:py-12 md:py-16 lg:py-20 transition-colors duration-200 ease-in-out"
       style={{
         transition: 'background-color 0.2s ease-in-out',
       }}
@@ -57,7 +57,7 @@ const Intro: FC = () => {
         />
         {/* Overlay */}
         <div 
-          className="absolute inset-0 bg-[rgba(99,195,221,0.61)] dark:bg-[rgba(21,50,90,0.8)] transition-colors duration-200 ease-in-out"
+          className="absolute inset-0 bg-[rgba(0,200,255,0.76)] dark:bg-[rgba(21,50,90,0.8)] transition-colors duration-200 ease-in-out"
           style={{
             transition: 'background-color 0.2s ease-in-out',
           }}
@@ -84,7 +84,7 @@ const Intro: FC = () => {
               transition: 'color 0.2s ease-in-out',
               }}
             >
-              We&apos;re building the future of brand collaborations! A marketplace that connects businesses with college societies for contractual projects.
+              A marketplace that connects businesses with college societies for contractual projects.
             </p>
 
             <div className="flex items-center justify-center lg:justify-start gap-4 mt-8 sm:mt-10 lg:mt-12">
