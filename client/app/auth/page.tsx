@@ -114,6 +114,17 @@ function AuthPageContent() {
     setActiveTab(tab);
   };
 
+  // Normalize known Supabase security/rate-limit messages into friendly UX text
+  const formatAuthError = (err?: unknown): string | null => {
+    if (!err) return null
+    const msg = typeof err === 'string' ? err : String(err)
+    // Supabase returns: "For security purposes, you can only request this after X seconds."
+    if (msg.includes('For security purposes, you can only request this after')) {
+      return 'A magic link has already been sent. Please check your email or try again in a few minutes.'
+    }
+    return msg
+  }
+
   return (
     <div className="relative min-h-screen grid grid-cols-12 overflow-hidden bg-white dark:bg-[#15325a] transition-colors duration-200 ease-in-out">
       <div className="col-span-2 lg:col-span-3 -ml-3 hidden md:flex items-center justify-center bg-white dark:bg-[#15325a]">
@@ -156,7 +167,7 @@ function AuthPageContent() {
               )}
               {signInState?.error && (
                 <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl">
-                  <p className="text-red-600 dark:text-red-300 text-sm font-outfit">{signInState.error}</p>
+                  <p className="text-red-600 dark:text-red-300 text-sm font-outfit">{formatAuthError(signInState.error)}</p>
                 </div>
               )}
               <button
@@ -227,9 +238,9 @@ function AuthPageContent() {
                 </div>
               )}
               {signUpState?.error && (
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl">
-                  <p className="text-red-600 dark:text-red-300 text-sm font-outfit">{signUpState.error}</p>
-                </div>
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl">
+                    <p className="text-red-600 dark:text-red-300 text-sm font-outfit">{formatAuthError(signUpState.error)}</p>
+                  </div>
               )}
               <button
                 type="submit"
