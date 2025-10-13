@@ -49,6 +49,7 @@ interface Project {
   society_id?: string | null
   domains: string[]
   services_offered: string[]
+  budget: number
 }
 
 interface Stats {
@@ -417,6 +418,16 @@ export default function BusinessDashboard() {
                                   year: 'numeric'
                                 })}
                               </span>
+                            </div>
+                            <div className="flex items-center mt-3">
+                              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-lg px-4 py-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <span className="text-sm font-semibold text-green-700 dark:text-green-300">
+                                    ₹{project.budget.toLocaleString('en-IN')}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
 

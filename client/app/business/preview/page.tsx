@@ -14,6 +14,7 @@ interface Project {
   description: string;
   domains: string[];
   services_offered: string[];
+  budget: number;
 }
 
 // Separate component that uses useSearchParams
@@ -193,6 +194,16 @@ function ProjectPreviewContent() {
                     </h3>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed pl-5">
                       {project.services_offered.join(", ")}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                      <div className="w-2 h-2 bg-green-600 dark:bg-green-400 rounded-full mr-3" />
+                      Project Budget
+                    </h3>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400 pl-5">
+                      ₹{project.budget.toLocaleString('en-IN')}
                     </p>
                   </div>
 

@@ -31,7 +31,7 @@ async def get_marketplace_projects(
     start = (page - 1) * page_size
     end = start + page_size - 1
     query = supabase.table("projects").select(
-        "id, compliant_name, compliant_description, services_required"
+        "id, description, domains, services_offered, budget, created_at, proposal_count"
     ).eq("status", "published").range(start, end)
     resp = query.execute()
 

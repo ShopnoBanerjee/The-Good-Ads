@@ -8,10 +8,11 @@ import { DOMAINS } from "@/lib/constants"
 import { z } from "zod"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Building2, CheckCircle, FileText, Plus, Globe, Settings } from "lucide-react"
+import { ArrowLeft, Building2, CheckCircle, FileText, Plus, Globe, Settings, DollarSign } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -26,6 +27,7 @@ interface ProjectForm {
   description: string
   domains: string[]
   servicesOffered: string[]
+  budget: string
 }
 
 // Error shape
@@ -33,6 +35,7 @@ interface ProjectFormErrors {
   description?: string
   domains?: string
   servicesOffered?: string
+  budget?: string
 }
 
 // Project interface for edit mode
@@ -41,6 +44,7 @@ interface Project {
   description: string
   domains: string[]
   services_offered: string[]
+  budget: number
 }
 
 // Loading fallback component
@@ -95,6 +99,7 @@ function AddProjectForm() {
     description: "",
     domains: [],
     servicesOffered: [],
+    budget: "",
   })
   const [errors, setErrors] = useState<ProjectFormErrors>({})
   const [loading, setLoading] = useState<boolean>(false)
@@ -108,6 +113,10 @@ function AddProjectForm() {
     description: z.string().min(10, "Description must be at least 10 characters"),
     domains: z.array(z.string()).min(1, "At least one domain is required"),
     servicesOffered: z.array(z.string()).min(1, "At least one service is required"),
+    budget: z.string().refine((val) => {
+      const num = parseFloat(val);
+      return !isNaN(num) && num > 1000;
+    }, "Budget must be a number greater than 1000"),
   })
 
   // ✅ Fetch project data if in edit mode
@@ -143,6 +152,7 @@ function AddProjectForm() {
         description: project.description,
         domains: project.domains,
         servicesOffered: project.services_offered,
+        budget: project.budget.toString(),
       })
     } catch (err: unknown) {
       setApiError(err instanceof Error ? err.message : "Failed to load project for editing")
@@ -240,6 +250,7 @@ function AddProjectForm() {
             description: form.description,
             domains: form.domains,
             services_offered: form.servicesOffered,
+            budget: parseFloat(form.budget),
           }),
         })
       } else {
@@ -254,6 +265,7 @@ function AddProjectForm() {
             description: form.description,
             domains: form.domains,
             services_offered: form.servicesOffered,
+            budget: parseFloat(form.budget),
           }),
         })
       }
@@ -286,7 +298,8 @@ function AddProjectForm() {
   const isFormValid =
     !!form.description &&
     form.domains.length > 0 &&
-    form.servicesOffered.length > 0
+    form.servicesOffered.length > 0 &&
+    !!form.budget
 
   return (
     <main className="min-h-screen bg-primary">
@@ -383,6 +396,29 @@ function AddProjectForm() {
                       {fieldErrors.domains}
                     </div>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="budget" className="text-sm font-medium text-text flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-accent" />
+                    Project Budget *
+                  </Label>
+                  <Input
+                    id="budget"
+                    name="budget"
+                    type="number"
+                    value={form.budget}
+                    onChange={handleChange}
+                    placeholder="Enter project budget (minimum ₹1001)"
+                    className="input h-12"
+                    min="1001"
+                    step="0.01"
+                    required
+                  />
+                  {errors.budget && <p className="text-xs text-error font-medium">{errors.budget}</p>}
+                  <p className="text-xs text-text-muted">
+                    Budget must be greater than ₹1000. This helps societies understand project scope.
+                  </p>
                 </div>
 
                 <div className="space-y-6">

@@ -16,10 +16,19 @@ async def create_project(request: Request, authorization: str = Header(...)):
     description = body.get("description")
     domains = body.get("domains", [])
     services_offered = body.get("services_offered", [])
+    budget = body.get("budget")
     hide_details = body.get("hide_details", False)
 
-    if not description or not domains or not services_offered:
-        raise HTTPException(status_code=400, detail="Missing fields")
+    if not description or not domains or not services_offered or budget is None:
+        raise HTTPException(status_code=400, detail="Missing required fields")
+
+    # ✅ Validate budget
+    try:
+        budget = float(budget)
+        if budget <= 1000:
+            raise HTTPException(status_code=400, detail="Budget must be greater than 1000")
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid budget format")
 
     # ✅ Check JWT
     if not authorization.startswith("Bearer "):
@@ -37,6 +46,7 @@ async def create_project(request: Request, authorization: str = Header(...)):
         "description": description,
         "domains": domains,
         "services_offered": services_offered,
+        "budget": budget,
         "status": "draft"
     }).execute()
 
@@ -219,11 +229,20 @@ async def edit_project(request: Request, authorization: str = Header(...)):
     description = body.get("description")
     domains = body.get("domains", [])
     services_offered = body.get("services_offered", [])
+    budget = body.get("budget")
     hide_details = body.get("hide_details", False)
     status = body.get("status")
 
-    if not project_id or not description or not domains or not services_offered:
-        raise HTTPException(status_code=400, detail="Missing fields")
+    if not project_id or not description or not domains or not services_offered or budget is None:
+        raise HTTPException(status_code=400, detail="Missing required fields")
+
+    # ✅ Validate budget
+    try:
+        budget = float(budget)
+        if budget <= 1000:
+            raise HTTPException(status_code=400, detail="Budget must be greater than 1000")
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid budget format")
 
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing Bearer token")
@@ -242,6 +261,7 @@ async def edit_project(request: Request, authorization: str = Header(...)):
         "description": description,
         "domains": domains,
         "services_offered": services_offered,
+        "budget": budget,
         **({"status": status} if status else {})
     }).eq("id", project_id).execute()
 
