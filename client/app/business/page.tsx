@@ -19,10 +19,7 @@ import {
   Calendar,
   TrendingUp,
   FileText,
-  Clock,
   CheckCircle,
-  XCircle,
-  AlertCircle,
   Pencil,
   Trash2,
 } from "lucide-react"
@@ -43,13 +40,15 @@ import { FloatingChatButton } from "@/components/FloatingChatButton"
 // Define the type for each project
 interface Project {
   id: string
-  compliant_name: string
-  compliant_description: string
-  status: "active" | "completed" | "paused" | "cancelled" | "draft" | string
-  proposal_count?: number
-  services_required?: string
+  business_id: string
+  description: string
+  status: "draft" | "published" | string
   created_at: string
-  has_accepted_proposal?: boolean
+  proposal_count?: number
+  society_id?: string | null
+  domains: string[]
+  services_offered: string[]
+  budget: number
 }
 
 interface Stats {
@@ -139,7 +138,7 @@ export default function BusinessDashboard() {
 
           // Calculate stats
           const totalProjects = data.length
-          const activeProjects = data.filter((p) => p.status === "active").length
+          const activeProjects = data.filter((p) => p.status === "published").length
           const completedProjects = data.filter((p) => p.status === "completed").length
           const totalProposals = data.reduce((sum, p) => sum + (p.proposal_count || 0), 0)
 
@@ -180,33 +179,9 @@ export default function BusinessDashboard() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isChatOpen])
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "published":
-        return <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
-      case "active":
-        return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-      case "completed":
-        return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-      case "pending_review":
-        return <Eye className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-      case "paused":
-        return <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
-      case "cancelled":
-        return <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
-      default:
-        return <AlertCircle className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-    }
-  }
-
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
       published: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700",
-      active: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700",
-      completed: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700",
-      pending_review: "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-700",
-      paused: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700",
-      cancelled: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-200 dark:border-red-700",
       draft: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700",
     }
 
@@ -419,107 +394,161 @@ export default function BusinessDashboard() {
               </Card>
             ) : (
               /* Projects List */
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {projects.map((project) => (
                   <Card
                     key={project.id}
-                    className="group bg-white dark:bg-gray-800 rounded-2xl hover:shadow-lg transition-all duration-200"
+                    className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700/50 overflow-hidden relative"
                   >
-                    <CardHeader className="pb-4">
+
+                    <CardHeader className="pb-6 pt-8 px-8 relative z-10">
                       <div className="flex items-start justify-between">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center space-x-3">
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                              {project.compliant_name}
+                        <div className="space-y-4 flex-1">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                              {project.description.split('\n')[0] || 'Project Title'}
                             </h3>
-                            {getStatusIcon(project.status)}
+                            <div className="flex items-center space-x-2 mt-2">
+                              {getStatusBadge(project.status)}
+                              <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                                {new Date(project.created_at).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                            <div className="flex items-center mt-3">
+                              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-lg px-4 py-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <span className="text-sm font-semibold text-green-700 dark:text-green-300">
+                                    ₹{project.budget.toLocaleString('en-IN')}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2 transition-colors duration-200">
-                            {project.compliant_description}
+
+                          <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base line-clamp-3 transition-colors duration-300">
+                            {project.description}
                           </p>
-                        </div>
-                        <div className="flex flex-col items-end space-y-2">
-                          {getStatusBadge(project.status)}
-                          {project.has_accepted_proposal && (
-                            <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700 flex items-center">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Proposal Accepted
-                            </Badge>
+
+                          {project.services_offered.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {project.services_offered.slice(0, 10).map((service, index) => (
+                                <Badge
+                                  key={index}
+                                  variant="secondary"
+                                  className="text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700 px-3 py-1 rounded-full"
+                                >
+                                  {service}
+                                </Badge>
+                              ))}
+                              {project.services_offered.length > 10 && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs font-medium bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-600 px-3 py-1 rounded-full"
+                                >
+                                  +{project.services_offered.length - 10} more
+                                </Badge>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
                     </CardHeader>
 
-                    <CardContent className="pt-0">
-                      <div className="flex flex-col space-y-4">
-                        {/* Metadata Section */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6">
-                          <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                            <div className="flex items-center space-x-2">
-                              <Calendar className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate">Created {new Date(project.created_at).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Users className="w-4 h-4 flex-shrink-0" />
-                              <span>{project.proposal_count || 0} proposals</span>
-                            </div>
-                            {project.services_required && (
-                              <div className="flex items-center space-x-2 min-w-0">
-                                <FileText className="w-4 h-4 flex-shrink-0" />
-                                <span className="truncate max-w-32">{project.services_required}</span>
+                    <CardContent className="pt-0 px-8 pb-8 relative z-10">
+                      <div className="flex flex-col space-y-6">
+                        {/* Enhanced Metadata Section */}
+                        <div className="bg-gray-50/50 dark:bg-gray-700/20 rounded-2xl p-6 border border-gray-100 dark:border-gray-600/30">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center shadow-sm">
+                                <Users className="w-5 h-5 text-white" />
                               </div>
-                            )}
+                              <div>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{project.proposal_count || 0}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Proposals</p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center shadow-sm">
+                                <FileText className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{project.services_offered.length}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Services</p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-sm">
+                                <Calendar className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                  {new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Created</p>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                          <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200 flex-1 sm:flex-initial">
+                        {/* Enhanced Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Button asChild className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex-1 sm:flex-initial h-12 rounded-xl font-semibold group/btn">
                             <Link href={`/business/project/${project.id}`} className="flex items-center justify-center space-x-2">
-                              <Eye className="w-4 h-4" />
+                              <Eye className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
                               <span className="sm:inline hidden">Manage Project</span>
                               <span className="sm:hidden inline">Manage</span>
                             </Link>
                           </Button>
-                          <Button asChild className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 flex-1 sm:flex-initial">
+
+                          <Button asChild className="bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 shadow-lg hover:shadow-xl transition-all duration-300 flex-1 sm:flex-initial h-12 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 group/btn">
                             <Link href={`/business/proposals/${project.id}`} className="flex items-center justify-center space-x-2">
-                              <Eye className="w-4 h-4" />
+                              <Eye className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
                               <span className="sm:inline hidden">View Proposals</span>
                               <span className="sm:hidden inline">Proposals</span>
                             </Link>
                           </Button>
-                          <div className="flex gap-2 sm:gap-3">
+
+                          <div className="flex gap-3">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 bg-transparent transition-colors duration-200 flex-1 sm:flex-initial p-2"
-                              onClick={() => router.push(`/business/edit-project/${project.id}`)}
+                              className="border-blue-200 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 bg-transparent shadow-lg hover:shadow-xl transition-all duration-300 flex-1 sm:flex-initial h-12 px-4 rounded-xl font-semibold group/btn"
+                              onClick={() => router.push(`/business/add-project?project_id=${project.id}`)}
                             >
-                              <Pencil className="w-4 h-4" />
-                              <span className="sr-only">Edit</span>
+                              <Pencil className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                              <span className="sr-only sm:not-sr-only sm:ml-2">Edit</span>
                             </Button>
+
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 bg-transparent transition-colors duration-200 flex-1 sm:flex-initial p-2"
+                                  className="border-red-200 dark:border-red-600/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 bg-transparent shadow-lg hover:shadow-xl transition-all duration-300 flex-1 sm:flex-initial h-12 px-4 rounded-xl font-semibold group/btn"
                                 >
-                                  <Trash2 className="w-4 h-4" />
-                                  <span className="sr-only">Delete</span>
+                                  <Trash2 className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                  <span className="sr-only sm:not-sr-only sm:ml-2">Delete</span>
                                 </Button>
                               </AlertDialogTrigger>
-                              <AlertDialogContent className="bg-white dark:bg-gray-800 rounded-xl border-gray-200 dark:border-gray-700 shadow-lg transition-colors duration-200">
+                              <AlertDialogContent className="bg-white dark:bg-gray-800 rounded-2xl border-gray-200 dark:border-gray-700 shadow-2xl">
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-gray-900 dark:text-white font-semibold">Delete Project</AlertDialogTitle>
-                                  <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
+                                  <AlertDialogTitle className="text-gray-900 dark:text-white font-semibold text-xl">Delete Project</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
                                     Are you sure you want to delete this project? This action cannot be undone and will permanently remove the project and all associated data.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
-                                <AlertDialogFooter className="gap-2 sm:gap-3">
-                                  <AlertDialogCancel className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200">Cancel</AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    className="bg-red-600 hover:bg-red-700 text-white transition-colors duration-200"
+                                <AlertDialogFooter className="gap-3">
+                                  <AlertDialogCancel className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 h-11 px-6 rounded-xl font-semibold">Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-11 px-6 rounded-xl font-semibold"
                                     onClick={() => handleDeleteProject(project.id)}
                                   >
                                     Delete Project

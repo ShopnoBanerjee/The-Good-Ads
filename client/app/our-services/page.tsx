@@ -348,12 +348,12 @@ const OurServices: React.FC = () => {
             <p className="text-lg sm:text-xl text-white/90 font-outfit mb-8 max-w-2xl mx-auto">
               Join inHalt today and connect with talented college societies or find the perfect business partner for your projects.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/auth" className="bg-white text-[#11aad4] px-8 py-4 rounded-xl font-outfit font-semibold hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl text-center">
-                Join as a Business
-              </Link>
-              <Link href="/auth" className="bg-white text-[#11aad4] px-8 py-4 rounded-xl font-outfit font-semibold hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl text-center">
-                Join as a Society
+            <div className="flex justify-center">
+              <Link
+                href="/auth"
+                className="bg-[#0b7f91] hover:bg-[#096270] text-white px-10 py-4 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center dark:bg-white dark:text-[#11aad4] dark:hover:bg-gray-50"
+              >
+                Join inHalt
               </Link>
             </div>
           </div>

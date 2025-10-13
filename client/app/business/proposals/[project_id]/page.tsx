@@ -14,12 +14,7 @@ import { toast } from "sonner"
 import {
   ArrowLeft,
   Users,
-  Mail,
-  Phone,
-  Instagram,
   Calendar,
-  DollarSign,
-  Award,
   CheckCircle,
   Clock,
   XCircle,
@@ -33,27 +28,25 @@ import {
   X,
   ExternalLink,
   Lock,
+  Award,
 } from "lucide-react"
 
 // Type definitions
 interface Proposal {
-  id: number
-  society_id: number
-  societyName?: string
+  id: string | number
+  society_id: string | number
   society_name?: string
-  contactPerson?: string
-  contact_person?: string
-  email?: string
-  phone?: string
-  instagramHandle?: string
-  pitch: string
-  teamSize?: string
-  timeline?: string
-  budget?: string
-  socialReach?: string
-  experience?: string
-  deliverables?: string
-  status?: "pending" | "accepted" | "rejected"
+  poc_name?: string
+  establishment_date?: string
+  state?: string
+  city?: string
+  society_domains?: string[]
+  society_services_offered?: string[]
+  total_member_count?: number
+  college_name?: string
+  status?: "pending" | "accepted" | "rejected" | "submitted"
+  created_at?: string
+  project_id?: string
 }
 
 interface ProjectDetails {
@@ -73,13 +66,23 @@ interface PortfolioItem {
 
 interface SocietyProfile {
   id: string
-  user_id: string
   society_name: string
-  domain: string
-  services_offered: string
-  description?: string
-  logo_url?: string
-  average_rating?: number
+  poc_name?: string
+  phone_number?: string
+  domain?: string | null
+  services_offered: string[]
+  created_at?: string
+  logo_url?: string | null
+  description?: string | null
+  average_rating?: number | null
+  total_ratings?: number
+  rating_breakdown?: Record<number, number>
+  establishment_date?: string
+  college_name?: string
+  state?: string
+  city?: string
+  domains?: string[]
+  total_member_count?: number
 }
 
 interface SocietyPortfolio {
@@ -87,7 +90,7 @@ interface SocietyPortfolio {
   society_profile: SocietyProfile
 }
 
-type StatusType = "pending" | "accepted" | "rejected"
+type StatusType = "pending" | "accepted" | "rejected" | "submitted"
 
 export default function ProjectProposalsPage() {
   const params = useParams()
@@ -99,7 +102,7 @@ export default function ProjectProposalsPage() {
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null)
   const [error, setError] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(true)
-  const [acceptingId, setAcceptingId] = useState<number | null>(null)
+  const [acceptingId, setAcceptingId] = useState<string | number | null>(null)
   const [portfolioModalOpen, setPortfolioModalOpen] = useState<boolean>(false)
   const [selectedSocietyPortfolio, setSelectedSocietyPortfolio] = useState<SocietyPortfolio | null>(null)
   const [portfolioLoading, setPortfolioLoading] = useState<boolean>(false)
@@ -160,7 +163,7 @@ export default function ProjectProposalsPage() {
     fetchData()
   }, [project_id, supabase])
 
-  const handleAccept = async (proposalId: number): Promise<void> => {
+  const handleAccept = async (proposalId: string | number): Promise<void> => {
     setAcceptingId(proposalId)
     try {
       const {
@@ -202,7 +205,7 @@ export default function ProjectProposalsPage() {
     }
   }
 
-  const handleViewPortfolio = async (societyId: number): Promise<void> => {
+  const handleViewPortfolio = async (societyId: string | number): Promise<void> => {
     setPortfolioLoading(true)
     setPortfolioModalOpen(true)
     try {
@@ -324,7 +327,7 @@ export default function ProjectProposalsPage() {
                 </>
               )}
             </h1>
-            <p className="text-xl text-white/80 max-w-2xl leading-relaxed">
+            <p className="text-xl text-white/80 max-w-2xl leading-relaxed mb-4">
               Review and manage proposals from college societies interested in your project
             </p>
           </div>
@@ -380,47 +383,6 @@ export default function ProjectProposalsPage() {
 
           {/* Proposals List */}
           <div className={projectDetails ? "lg:col-span-3" : "lg:col-span-4"}>
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="card rounded-xl p-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-accent/10 rounded-lg">
-                    <MessageSquare className="w-6 h-6 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-text">{proposals.length}</p>
-                    <p className="text-text-muted">Total Proposals</p>
-                  </div>
-                </div>
-              </div>
-              <div className="card rounded-xl p-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-warning/10 rounded-lg">
-                    <Clock className="w-6 h-6 text-warning" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-text">
-                      {proposals.filter((p) => p.status === "pending" || !p.status).length}
-                    </p>
-                    <p className="text-text-muted">Pending Review</p>
-                  </div>
-                </div>
-              </div>
-              <div className="card rounded-xl p-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-success/10 rounded-lg">
-                    <CheckCircle className="w-6 h-6 text-success" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-text">
-                      {proposals.filter((p) => p.status === "accepted").length}
-                    </p>
-                    <p className="text-text-muted">Accepted</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Accepted Proposal Notification */}
             {hasAcceptedProposal && (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 mb-6">
@@ -482,128 +444,127 @@ export default function ProjectProposalsPage() {
                 {proposals.map((proposal) => (
                   <Card
                     key={proposal.id}
-                    className="group card rounded-2xl hover:shadow-lg transition-all duration-200"
+                    className="group card rounded-2xl hover:shadow-xl transition-all duration-200 border border-border/50 overflow-hidden"
                   >
-                    <CardContent className="p-6">
-                      <div className="space-y-6">
-                        {/* Header */}
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-16 h-16 bg-brand-gradient rounded-2xl flex items-center justify-center text-white font-bold text-xl">
-                              {getInitials(proposal.society_name || proposal.societyName)}
+                    <CardContent className="p-0">
+                      <div className="space-y-0">
+                        {/* Hero Section */}
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 p-4 border-b border-blue-100 dark:border-blue-900/50">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                {getInitials(proposal.society_name)}
+                              </div>
+                              <div className="space-y-1">
+                                <h3 className="text-lg font-bold text-text">
+                                  {proposal.society_name || `Society ${proposal.society_id}`}
+                                </h3>
+                                <p className="text-sm text-text-muted flex items-center">
+                                  <Building2 className="w-4 h-4 mr-2" />
+                                  {proposal.college_name || "College Society"}
+                                </p>
+                                {proposal.city && proposal.state && (
+                                  <p className="text-sm text-text-muted">
+                                    {proposal.city}, {proposal.state}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <div>
-                              <h3 className="text-xl font-bold text-text">
-                                {proposal.society_name || proposal.societyName || `Society ${proposal.society_id}`}
-                              </h3>
-                              <p className="text-text-muted">
-                                Contact: {proposal.contactPerson || proposal.contact_person || "Not provided"}
+                            {getStatusBadge(proposal.status)}
+                          </div>
+
+                          {/* Key Stats */}
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                            {proposal.establishment_date && (
+                              <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 text-center">
+                                <Calendar className="w-3 h-3 text-blue-600 mx-auto mb-1" />
+                                <p className="text-xs text-text-muted">Established</p>
+                                <p className="font-semibold text-text text-sm">
+                                  {new Date(proposal.establishment_date).getFullYear()}
+                                </p>
+                              </div>
+                            )}
+                            {proposal.total_member_count && (
+                              <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 text-center">
+                                <Users className="w-3 h-3 text-green-600 mx-auto mb-1" />
+                                <p className="text-xs text-text-muted">Members</p>
+                                <p className="font-semibold text-text text-sm">{proposal.total_member_count}</p>
+                              </div>
+                            )}
+                            <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 text-center">
+                              <Target className="w-3 h-3 text-purple-600 mx-auto mb-1" />
+                              <p className="text-xs text-text-muted">Services</p>
+                              <p className="font-semibold text-text text-sm">
+                                {proposal.society_services_offered?.length || 0}
+                              </p>
+                            </div>
+                            <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 text-center">
+                              <Eye className="w-3 h-3 text-orange-600 mx-auto mb-1" />
+                              <p className="text-xs text-text-muted">Domains</p>
+                              <p className="font-semibold text-text text-sm">
+                                {proposal.society_domains?.length || 0}
                               </p>
                             </div>
                           </div>
-                          {getStatusBadge(proposal.status)}
                         </div>
 
-                        {/* Contact Information */}
-                        {(proposal.email || proposal.phone || proposal.instagramHandle) && (
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-primary rounded-xl">
-                            {proposal.email && (
-                              <div className="flex items-center space-x-2">
-                                <Mail className="w-4 h-4 text-accent" />
-                                <span className="text-sm text-text">{proposal.email}</span>
+                        {/* Domains Section */}
+                        {proposal.society_domains && proposal.society_domains.length > 0 && (
+                          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 p-4 border-b border-purple-100 dark:border-purple-900/50">
+                            <div className="flex items-center space-x-2 mb-3">
+                              <div className="w-5 h-5 bg-purple-500 rounded-lg flex items-center justify-center">
+                                <Award className="w-3 h-3 text-white" />
                               </div>
-                            )}
-                            {proposal.phone && (
-                              <div className="flex items-center space-x-2">
-                                <Phone className="w-4 h-4 text-accent" />
-                                <span className="text-sm text-text">{proposal.phone}</span>
-                              </div>
-                            )}
-                            {proposal.instagramHandle && (
-                              <div className="flex items-center space-x-2">
-                                <Instagram className="w-4 h-4 text-accent" />
-                                <span className="text-sm text-text">{proposal.instagramHandle}</span>
-                              </div>
-                            )}
+                              <h4 className="font-semibold text-text">Domains</h4>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {proposal.society_domains.map((domain, index) => (
+                                <Badge key={index} variant="secondary" className="bg-purple-100 text-purple-800 hover:bg-purple-200 text-xs">
+                                  {domain}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
                         )}
 
-                        {/* Proposal Content */}
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="font-semibold text-text mb-2 flex items-center">
-                              <Target className="w-4 h-4 mr-2 text-accent" />
-                              Proposal Pitch
-                            </h4>
-                            <p className="text-text-muted leading-relaxed">{proposal.pitch}</p>
-                          </div>
-
-                          {/* Additional Details */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {proposal.teamSize && (
-                              <div className="flex items-center space-x-2">
-                                <Users className="w-4 h-4 text-accent" />
-                                <div>
-                                  <p className="text-xs text-text-muted">Team Size</p>
-                                  <p className="text-sm font-medium text-text">{proposal.teamSize}</p>
-                                </div>
+                        {/* Services Section */}
+                        {proposal.society_services_offered && proposal.society_services_offered.length > 0 && (
+                          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-4 border-b border-green-100 dark:border-green-900/50">
+                            <div className="flex items-center space-x-2 mb-3">
+                              <div className="w-5 h-5 bg-green-500 rounded-lg flex items-center justify-center">
+                                <Target className="w-3 h-3 text-white" />
                               </div>
-                            )}
-                            {proposal.timeline && (
-                              <div className="flex items-center space-x-2">
-                                <Calendar className="w-4 h-4 text-accent" />
-                                <div>
-                                  <p className="text-xs text-text-muted">Timeline</p>
-                                  <p className="text-sm font-medium text-text">{proposal.timeline}</p>
+                              <h4 className="font-semibold text-text">Services Offered</h4>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {proposal.society_services_offered.slice(0, 6).map((service, index) => (
+                                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm border border-green-100 dark:border-green-900/50">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-md flex items-center justify-center">
+                                      <span className="text-green-600 dark:text-green-400 font-bold text-xs">{index + 1}</span>
+                                    </div>
+                                    <span className="text-sm font-medium text-text">{service}</span>
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                            {proposal.budget && (
-                              <div className="flex items-center space-x-2">
-                                <DollarSign className="w-4 h-4 text-accent" />
-                                <div>
-                                  <p className="text-xs text-text-muted">Budget</p>
-                                  <p className="text-sm font-medium text-text">{proposal.budget}</p>
-                                </div>
-                              </div>
-                            )}
-                            {proposal.socialReach && (
-                              <div className="flex items-center space-x-2">
-                                <Award className="w-4 h-4 text-accent" />
-                                <div>
-                                  <p className="text-xs text-text-muted">Social Reach</p>
-                                  <p className="text-sm font-medium text-text">{proposal.socialReach}</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Experience and Deliverables */}
-                          {(proposal.experience || proposal.deliverables) && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              {proposal.experience && (
-                                <div>
-                                  <h5 className="font-medium text-text mb-2">Experience</h5>
-                                  <p className="text-sm text-text-muted leading-relaxed">{proposal.experience}</p>
-                                </div>
-                              )}
-                              {proposal.deliverables && (
-                                <div>
-                                  <h5 className="font-medium text-text mb-2">Deliverables</h5>
-                                  <p className="text-sm text-text-muted leading-relaxed">{proposal.deliverables}</p>
+                              ))}
+                              {proposal.society_services_offered.length > 6 && (
+                                <div className="bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm border border-green-100 dark:border-green-900/50 flex items-center justify-center">
+                                  <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                                    +{proposal.society_services_offered.length - 6} more services
+                                  </span>
                                 </div>
                               )}
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
 
                         {/* Action Buttons */}
-                        <div className="pt-4 border-t border-border">
+                        <div className="p-4">
                           <div className="flex flex-col sm:flex-row gap-3">
                             <Button
                               onClick={() => handleViewPortfolio(proposal.society_id)}
                               variant="outline"
-                              className="flex-1 px-4 py-3 h-auto group border-accent/20 hover:border-accent/40 hover:bg-accent/5"
+                              className="flex-1 px-4 py-2.5 h-auto group border-border hover:border-blue-300 hover:bg-blue-50/50"
                             >
                               <div className="flex items-center space-x-2">
                                 <Eye className="w-4 h-4 group-hover:scale-110 transition-transform" />
@@ -611,12 +572,12 @@ export default function ProjectProposalsPage() {
                               </div>
                             </Button>
                             {proposal.status !== "accepted" && !hasAcceptedProposal && (
-                              <Button
-                                onClick={() => handleAccept(proposal.id)}
-                                disabled={acceptingId === proposal.id}
-                                className="flex-1 btn-primary px-4 py-3 h-auto group"
-                              >
-                                {acceptingId === proposal.id ? (
+                            <Button
+                              onClick={() => handleAccept(proposal.id)}
+                              disabled={acceptingId === Number(proposal.id)}
+                              className="flex-1 px-4 py-2.5 h-auto group bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700"
+                            >
+                                {acceptingId === Number(proposal.id) ? (
                                   <div className="flex items-center space-x-2">
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                     <span>Accepting...</span>
@@ -630,7 +591,7 @@ export default function ProjectProposalsPage() {
                               </Button>
                             )}
                             {hasAcceptedProposal && proposal.status !== "accepted" && (
-                              <div className="flex-1 px-4 py-3 h-auto bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center">
+                              <div className="flex-1 px-4 py-2.5 h-auto bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center">
                                 <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
                                   <Lock className="w-4 h-4" />
                                   <span className="text-sm font-medium">Another proposal accepted</span>
@@ -653,34 +614,15 @@ export default function ProjectProposalsPage() {
       {portfolioModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  {selectedSocietyPortfolio?.society_profile?.logo_url ? (
-                    <Image
-                      src={selectedSocietyPortfolio.society_profile.logo_url}
-                      alt={selectedSocietyPortfolio.society_profile.society_name}
-                      width={40}
-                      height={40}
-                      className="w-10 h-10 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-brand-gradient rounded-lg flex items-center justify-center text-white font-bold">
-                      {getInitials(selectedSocietyPortfolio?.society_profile?.society_name)}
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="text-xl font-bold text-text">
-                      {selectedSocietyPortfolio?.society_profile?.society_name || "Society Portfolio"}
-                    </h3>
-                    <p className="text-sm text-text-muted">
-                      {selectedSocietyPortfolio?.society_profile?.domain || "College Society"}
-                    </p>
-                  </div>
+                <div>
+                  <h2 className="text-xl font-bold text-text">Society Portfolio</h2>
+                  <p className="text-sm text-text-muted">Explore their work and services</p>
                 </div>
                 <button
                   onClick={closePortfolioModal}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/70 dark:hover:bg-gray-800/70 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
@@ -694,101 +636,139 @@ export default function ProjectProposalsPage() {
                   <span className="ml-3 text-text-muted">Loading portfolio...</span>
                 </div>
               ) : selectedSocietyPortfolio ? (
-                <div className="p-6 space-y-6">
-                  {/* Society Info */}
-                  <div className="bg-primary rounded-xl p-6">
-                    <h4 className="font-semibold text-text mb-3">About</h4>
-                    <p className="text-text-muted leading-relaxed mb-4">
-                      {selectedSocietyPortfolio.society_profile?.description || "No description available."}
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-text">Services Offered</p>
-                        <p className="text-sm text-text-muted">
-                          {selectedSocietyPortfolio.society_profile?.services_offered || "Not specified"}
-                        </p>
-                      </div>
-                      {selectedSocietyPortfolio.society_profile?.average_rating && (
-                        <div>
-                          <p className="text-sm font-medium text-text">Average Rating</p>
-                          <div className="flex items-center space-x-1">
-                            <Award className="w-4 h-4 text-yellow-500" />
-                            <span className="text-sm text-text-muted">
-                              {selectedSocietyPortfolio.society_profile.average_rating.toFixed(1)}/5.0
-                            </span>
-                          </div>
+                <div className="p-8">
+                  {/* Portfolio Header */}
+                  <div className="text-center mb-8">
+                    <div className="flex items-center justify-center space-x-4 mb-4">
+                      {selectedSocietyPortfolio.society_profile.logo_url ? (
+                        <Image
+                          src={selectedSocietyPortfolio.society_profile.logo_url}
+                          alt={selectedSocietyPortfolio.society_profile.society_name}
+                          width={60}
+                          height={60}
+                          className="w-15 h-15 rounded-2xl object-cover shadow-lg"
+                        />
+                      ) : (
+                        <div className="w-15 h-15 bg-brand-gradient rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                          {getInitials(selectedSocietyPortfolio.society_profile.society_name)}
                         </div>
                       )}
+                      <div>
+                        <h2 className="text-2xl font-bold text-text">
+                          {selectedSocietyPortfolio.society_profile.society_name}
+                        </h2>
+                        <p className="text-text-muted">
+                          {selectedSocietyPortfolio.society_profile.college_name || "College Society"}
+                        </p>
+                      </div>
                     </div>
+                    <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200 text-sm px-4 py-2">
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                      {selectedSocietyPortfolio.portfolio_items.length} Portfolio Items
+                    </Badge>
                   </div>
 
-                  {/* Portfolio Items */}
-                  <div>
-                    <h4 className="font-semibold text-text mb-4">
-                      Portfolio ({selectedSocietyPortfolio.portfolio_items.length} items)
-                    </h4>
-                    {selectedSocietyPortfolio.portfolio_items.length === 0 ? (
-                      <div className="text-center py-12 bg-primary rounded-xl">
-                        <File className="w-12 h-12 text-text-muted mx-auto mb-4" />
-                        <p className="text-text-muted">No portfolio items available</p>
+                  {/* Portfolio Items - Enhanced Media Gallery */}
+                  {selectedSocietyPortfolio.portfolio_items.length === 0 ? (
+                    <div className="text-center py-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-2xl border-2 border-dashed border-purple-200 dark:border-purple-800">
+                      <div className="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <File className="w-10 h-10 text-purple-600 dark:text-purple-400" />
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {selectedSocietyPortfolio.portfolio_items.map((item) => {
-                          const url = supabase.storage.from("society-portfolio").getPublicUrl(item.file_path).data.publicUrl
-                          const ext = item.file_path.split(".").pop()?.toLowerCase() || ""
-                          const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext)
-                          const isVideo = ["mp4", "mov", "avi", "webm"].includes(ext)
-                          const FileIcon = getFileIcon(ext)
+                      <h3 className="text-xl font-semibold text-text mb-3">No Portfolio Items Yet</h3>
+                      <p className="text-text-muted max-w-md mx-auto leading-relaxed">
+                        This society hasn&apos;t uploaded any portfolio items yet. Check back later to see their work!
+                      </p>
+                      <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl">
+                        <h4 className="font-semibold text-text mb-2">What they offer:</h4>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {selectedSocietyPortfolio.society_profile.services_offered.slice(0, 6).map((service, index) => (
+                            <Badge key={index} className="bg-green-100 text-green-800 hover:bg-green-200">
+                              {service}
+                            </Badge>
+                          ))}
+                          {selectedSocietyPortfolio.society_profile.services_offered.length > 6 && (
+                            <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
+                              +{selectedSocietyPortfolio.society_profile.services_offered.length - 6} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {selectedSocietyPortfolio.portfolio_items.map((item) => {
+                        const url = supabase.storage.from("society-portfolio").getPublicUrl(item.file_path).data.publicUrl
+                        const ext = item.file_path.split(".").pop()?.toLowerCase() || ""
+                        const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext)
+                        const isVideo = ["mp4", "mov", "avi", "webm"].includes(ext)
+                        const FileIcon = getFileIcon(ext)
 
-                          return (
-                            <Card key={item.id} className="group card rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200">
-                              <div className="aspect-video bg-primary relative overflow-hidden">
-                                {isImage ? (
-                                  <Image
-                                    src={url}
-                                    alt={item.caption}
-                                    fill
-                                    className="object-cover group-hover:scale-105 transition-transform duration-200"
-                                  />
-                                ) : isVideo ? (
-                                  <video
-                                    src={url}
-                                    className="w-full h-full object-cover"
-                                    controls={false}
-                                    muted
-                                    onMouseEnter={(e) => e.currentTarget.play()}
-                                    onMouseLeave={(e) => e.currentTarget.pause()}
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <FileIcon className="w-12 h-12 text-text-muted" />
-                                  </div>
-                                )}
-                                <div className="absolute top-2 right-2">
-                                  <Badge className="badge text-xs">
-                                    {getFileTypeLabel(ext)}
-                                  </Badge>
+                        return (
+                          <Card key={item.id} className="group card rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 shadow-lg hover:-translate-y-1">
+                            <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 relative overflow-hidden">
+                              {isImage ? (
+                                <Image
+                                  src={url}
+                                  alt={item.caption}
+                                  fill
+                                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                />
+                              ) : isVideo ? (
+                                <video
+                                  src={url}
+                                  className="w-full h-full object-cover"
+                                  controls={false}
+                                  muted
+                                  loop
+                                  onMouseEnter={(e) => e.currentTarget.play()}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.pause()
+                                    e.currentTarget.currentTime = 0
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center p-6">
+                                  <FileIcon className="w-16 h-16 text-text-muted mb-4" />
+                                  <p className="text-sm text-text-muted text-center">{getFileTypeLabel(ext)} File</p>
                                 </div>
+                              )}
+
+                              {/* Overlay with type badge */}
+                              <div className="absolute top-3 right-3">
+                                <Badge className={`badge text-xs font-semibold ${
+                                  isImage ? 'bg-blue-500/90 text-white' :
+                                  isVideo ? 'bg-red-500/90 text-white' :
+                                  'bg-gray-500/90 text-white'
+                                }`}>
+                                  {isImage && <ImageIcon className="w-3 h-3 mr-1" />}
+                                  {isVideo && <Video className="w-3 h-3 mr-1" />}
+                                  {!isImage && !isVideo && <File className="w-3 h-3 mr-1" />}
+                                  {getFileTypeLabel(ext)}
+                                </Badge>
                               </div>
-                              <CardContent className="p-4">
-                                <p className="text-sm text-text-muted line-clamp-2">{item.caption}</p>
+
+                              {/* Hover overlay */}
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
                                 <Button
-                                  variant="ghost"
+                                  variant="secondary"
                                   size="sm"
-                                  className="mt-2 p-0 h-auto text-accent hover:text-accent/80"
+                                  className="bg-white/90 hover:bg-white text-black font-medium"
                                   onClick={() => window.open(url, "_blank")}
                                 >
-                                  <ExternalLink className="w-4 h-4 mr-1" />
+                                  <ExternalLink className="w-4 h-4 mr-2" />
                                   View Full Size
                                 </Button>
-                              </CardContent>
-                            </Card>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
+                              </div>
+                            </div>
+
+                            <CardContent className="p-4">
+                              <p className="text-sm text-text line-clamp-2 font-medium">{item.caption}</p>
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center justify-center py-12">

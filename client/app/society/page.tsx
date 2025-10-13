@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +16,8 @@ import {
   Camera,
   ArrowRight,
   Eye,
+  FileText,
+  Calendar,
 } from "lucide-react";
 import { ChatWidget } from "@/components/ChatWidget";
 import { FloatingChatButton } from "@/components/FloatingChatButton";
@@ -32,14 +33,16 @@ interface Profile {
 }
 
 interface Project {
-  id: number;
-  compliant_name: string;
-  compliant_description: string;
+  id: string;
+  business_id: string;
+  description: string;
   status: string;
   created_at: string;
-  proposal_count?: number;
-  services_required?: string;
-  business_id: string;
+  proposal_count: number;
+  society_id: string;
+  domains: string[];
+  services_offered: string[];
+  budget: number;
 }
 
 export default function SocietyDashboard() {
@@ -71,19 +74,16 @@ export default function SocietyDashboard() {
         } = await supabase.auth.getSession();
         if (!session) return;
 
-        const { data: userProfile, error } = await supabase
-          .from("college_society_profiles")
-          .select("*")
-          .eq("id", session.user.id);
+        const token = session.access_token;
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/society-profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        if (error) {
-          // Handle error silently
-        } else if (userProfile && userProfile.length === 1) {
-          setProfile(userProfile[0]);
-        } else if (userProfile && userProfile.length > 1) {
-          // Handle multiple profiles silently
+        if (res.ok) {
+          const profileData = await res.json();
+          setProfile(profileData);
         } else {
-          // Handle no profile silently
+          // Handle error silently
         }
       } catch {
         // Handle error silently
@@ -236,30 +236,6 @@ export default function SocietyDashboard() {
                 </p>
               </div>
             </div>
-
-            {/* Profile Card */}
-            {profile && (
-              <div className="bg-white/10 dark:bg-white/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6 w-full lg:w-auto lg:min-w-[300px]">
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden ring-4 ring-white/30">
-                    <Image
-                      src={profile.logo_url || "/placeholder.svg?height=80&width=80&query=society+logo"}
-                      alt="Society Logo"
-                      width={80}
-                      height={80}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-white text-lg mb-1">{profile.society_name}</h3>
-                    <Badge className="bg-white/20 text-white border-white/30 mb-2 rounded-xl">
-                      {profile.domain}
-                    </Badge>
-                    <p className="text-white/70 text-sm line-clamp-2">{profile.services_offered}</p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -341,46 +317,116 @@ export default function SocietyDashboard() {
               ))}
             </div>
           ) : activeProjects.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {activeProjects.map((project) => (
                 <Card
                   key={project.id}
-                  className="group bg-white dark:bg-gray-800 rounded-2xl hover:shadow-lg transition-all duration-200"
+                  className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700/50 overflow-hidden relative"
                 >
-                  <CardContent className="p-6">
+                  <CardContent className="p-8">
                     <div className="flex items-start justify-between">
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center space-x-3">
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-accent transition-colors">
-                            {project.compliant_name}
+                      <div className="space-y-4 flex-1">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                            {project.description.split('\n')[0] || 'Project Title'}
                           </h3>
-                          <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-xl">
-                            Active
-                          </Badge>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-xl">
+                              Active
+                            </Badge>
+                            <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                              {new Date(project.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                          <div className="flex items-center mt-3">
+                            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-lg px-4 py-2">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-sm font-semibold text-green-700 dark:text-green-300">
+                                  ₹{project.budget.toLocaleString('en-IN')}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2">
-                          {project.compliant_description}
+
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base line-clamp-3 transition-colors duration-300">
+                          {project.description}
                         </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col space-y-4 mt-4">
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                        <div className="flex items-center space-x-2">
-                          <Building2 className="w-4 h-4 flex-shrink-0" />
-                          <span>Started {new Date(project.created_at).toLocaleDateString()}</span>
-                        </div>
-                        {project.services_required && (
-                          <div className="flex items-center space-x-2 min-w-0">
-                            <Eye className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate max-w-32">{project.services_required}</span>
+
+                        {project.services_offered && project.services_offered.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {project.services_offered.slice(0, 10).map((service, index) => (
+                              <Badge
+                                key={index}
+                                variant="secondary"
+                                className="text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700 px-3 py-1 rounded-full"
+                              >
+                                {service}
+                              </Badge>
+                            ))}
+                            {project.services_offered.length > 10 && (
+                              <Badge
+                                variant="secondary"
+                                className="text-xs font-medium bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-600 px-3 py-1 rounded-full"
+                              >
+                                +{project.services_offered.length - 10} more
+                              </Badge>
+                            )}
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    <div className="flex flex-col space-y-6 mt-6">
+                      {/* Enhanced Metadata Section */}
+                      <div className="bg-gray-50/50 dark:bg-gray-700/20 rounded-2xl p-6 border border-gray-100 dark:border-gray-600/30">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center shadow-sm">
+                              <Users className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-2xl font-bold text-gray-900 dark:text-white">{project.proposal_count || 0}</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Proposals</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center shadow-sm">
+                              <FileText className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-2xl font-bold text-gray-900 dark:text-white">{project.services_offered?.length || 0}</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Services</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-sm">
+                              <Calendar className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                {new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Created</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
                       <div className="flex gap-3">
                         <Button 
-                          className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex-1 h-12 rounded-xl font-semibold group/btn"
                           onClick={() => router.push(`/society/project/${project.id}`)}
                         >
+                          <Eye className="w-5 h-5 mr-2 group-hover/btn:scale-110 transition-transform" />
                           Manage Project
                         </Button>
                       </div>

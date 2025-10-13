@@ -42,7 +42,7 @@ const Intro: FC = () => {
 
   return (
     <section 
-      className="bg-[#a8e0f0] dark:bg-[#15325a] relative w-full py-8 sm:py-12 md:py-16 lg:py-20 transition-colors duration-200 ease-in-out"
+      className="bg-[rgba(0,200,255,0.76)] dark:bg-[#15325a] relative w-full py-8 sm:py-12 md:py-16 lg:py-20 transition-colors duration-200 ease-in-out"
       style={{
         transition: 'background-color 0.2s ease-in-out',
       }}
@@ -57,7 +57,7 @@ const Intro: FC = () => {
         />
         {/* Overlay */}
         <div 
-          className="absolute inset-0 bg-[rgba(99,195,221,0.61)] dark:bg-[rgba(21,50,90,0.8)] transition-colors duration-200 ease-in-out"
+          className="absolute inset-0 bg-[rgba(0,200,255,0.76)] dark:bg-[rgba(21,50,90,0.8)] transition-colors duration-200 ease-in-out"
           style={{
             transition: 'background-color 0.2s ease-in-out',
           }}
@@ -84,7 +84,7 @@ const Intro: FC = () => {
               transition: 'color 0.2s ease-in-out',
               }}
             >
-              We&apos;re building the future of brand collaborations! A marketplace that connects businesses with college societies for contractual projects.
+              A marketplace that connects businesses with college societies for contractual projects.
             </p>
 
             <div className="flex items-center justify-center lg:justify-start gap-4 mt-8 sm:mt-10 lg:mt-12">
@@ -132,12 +132,12 @@ const Intro: FC = () => {
             <p className="text-[#1a5173] dark:text-gray-200 text-base sm:text-lg max-w-2xl mx-auto mb-6 font-medium leading-relaxed transition-colors duration-200 ease-in-out">
               Join inHalt today and connect with talented college societies or find the perfect business partner for your projects.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/auth" className="bg-[#11aad4] hover:bg-[#0d8bb8] text-white px-6 py-3 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center transform hover:scale-105">
-                Join as a Business
-              </Link>
-              <Link href="/auth" className="bg-white hover:bg-gray-50 text-[#11aad4] border-2 border-[#11aad4] hover:border-[#0d8bb8] px-6 py-3 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center transform hover:scale-105">
-                Join as a Society
+            <div className="flex justify-center">
+              <Link
+                href="/auth"
+                className="bg-[#0b7f91] hover:bg-[#096270] text-white px-8 py-3 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center transform hover:scale-105 dark:bg-[#11aad4] dark:hover:bg-[#0d8bb8]"
+              >
+                Join inHalt
               </Link>
             </div>
           </div>

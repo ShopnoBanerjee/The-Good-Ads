@@ -204,7 +204,7 @@ async def get_user_conversations(authorization: str = Header(...)):
     # Get conversations where user is business or society
     conversations = supabase.table("conversations").select("""
         *,
-        projects!inner(compliant_name, compliant_description)
+        projects!inner(description)
     """).or_(f"business_id.eq.{user_id},society_id.eq.{user_id}").execute()
 
     # Add profile names to each conversation

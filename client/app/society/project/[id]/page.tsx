@@ -20,11 +20,15 @@ import { useProjectStore } from '@/stores/useProjectStore';
 
 interface Project {
   id: string;
-  compliant_name: string;
-  compliant_description: string;
+  business_id: string;
+  description: string;
   status: string;
   created_at: string;
-  business_id: string;
+  proposal_count: number;
+  society_id: string;
+  domains: string[];
+  services_offered: string[];
+  budget: number;
 }
 
 export default function SocietyProjectDetailPage() {
@@ -54,28 +58,31 @@ export default function SocietyProjectDetailPage() {
       const token = session.access_token;
 
       try {
-        // For society, we need to get projects they're assigned to
-        // This might need a new API endpoint, for now let's assume we can get it
-        // You might need to adjust this based on your API
-        const res = await fetch(`${API_URL}/api/society-projects`, {
+        // Fetch the specific project for the society
+        const res = await fetch(`${API_URL}/api/society-project/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) {
-          throw new Error('Failed to fetch projects');
+          if (res.status === 403) {
+            toast.error('You don\'t have access to this project');
+            router.push('/society');
+            return;
+          }
+          throw new Error('Failed to fetch project');
         }
 
-        const projects: Project[] = await res.json();
-        const currentProject = projects.find(p => p.id === projectId);
+        const project: Project = await res.json();
 
-        if (!currentProject) {
-          toast.error('Project not found');
-          router.push('/society');
-          return;
-        }
+        // Transform for compatibility with ProjectWithTracking
+        const transformedProject = {
+          ...project,
+          compliant_name: project.description.split('\n')[0] || 'Project Title',
+          compliant_description: project.description,
+        };
 
-        setProject(currentProject);
-        setCurrentProject(currentProject);
+        setProject(transformedProject);
+        setCurrentProject(transformedProject);
       } catch {
         toast.error('Failed to load project');
         router.push('/society');
@@ -130,21 +137,72 @@ export default function SocietyProjectDetailPage() {
           </Link>
 
           <div className="flex items-start justify-between">
-            <div>
+            <div className="flex-1">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                {project.compliant_name}
+                {project.description.split('\n')[0] || 'Project Title'}
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {project.compliant_description}
+              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+                {project.description}
               </p>
 
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4 mb-6">
                 <Badge className={getStatusColor(project.status)}>
                   {project.status}
                 </Badge>
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Calendar className="w-4 h-4" />
                   Started: {new Date(project.created_at).toLocaleDateString()}
+                </div>
+                {project.budget && (
+                  <div className="inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200/50 dark:border-green-800/30">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-semibold text-green-700 dark:text-green-300">
+                        ₹{project.budget.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Additional metadata */}
+              <div className="bg-white/50 dark:bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 p-6">
+                <div className="space-y-4">
+                  {project.domains && project.domains.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Domains
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {project.domains.map((domain, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700"
+                          >
+                            {domain}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {project.services_offered && project.services_offered.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Technologies & Services
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {project.services_offered.map((service, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700"
+                          >
+                            {service}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

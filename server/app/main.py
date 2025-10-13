@@ -9,6 +9,7 @@ from app.api import portfolio
 from app.api import chat
 from app.api import file_upload
 from app.api import milestones
+from app.api import society
 
 app = FastAPI()
 
@@ -32,4 +33,5 @@ app.include_router(proposals.router)
 app.include_router(portfolio.router)
 app.include_router(chat.router)
 app.include_router(file_upload.router)
-app.include_router(milestones.router)    
+app.include_router(milestones.router)
+app.include_router(society.router)    

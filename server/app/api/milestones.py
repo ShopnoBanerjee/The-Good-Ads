@@ -32,8 +32,8 @@ async def get_milestones(project_id: str, authorization: str = Header(...)):
     # Check if user is society user with accepted proposal for this project
     is_society_user = False
     if not is_business_owner:
-        proposal_resp = supabase.table("proposals").select("status").eq("project_id", project_id).eq("society_id", user_id).eq("status", "accepted").single().execute()
-        is_society_user = proposal_resp.data is not None
+        proposal_resp = supabase.table("proposals").select("status").eq("project_id", project_id).eq("society_id", user_id).eq("status", "accepted").execute()
+        is_society_user = len(proposal_resp.data) > 0
 
     if not is_business_owner and not is_society_user:
         raise HTTPException(status_code=403, detail="You don't have permission to view milestones for this project")
@@ -96,8 +96,8 @@ async def create_milestone(request: Request, authorization: str = Header(...)):
     # Check if user is society user with accepted proposal for this project
     is_society_user = False
     if not is_business_owner:
-        proposal_resp = supabase.table("proposals").select("status").eq("project_id", project_id).eq("society_id", user_id).eq("status", "accepted").single().execute()
-        is_society_user = proposal_resp.data is not None
+        proposal_resp = supabase.table("proposals").select("status").eq("project_id", project_id).eq("society_id", user_id).eq("status", "accepted").execute()
+        is_society_user = len(proposal_resp.data) > 0
 
     if not is_business_owner and not is_society_user:
         raise HTTPException(status_code=403, detail="You don't have permission to create milestones for this project")
@@ -193,8 +193,8 @@ async def update_milestone_status(milestone_id: str, request: Request, authoriza
     # Check if user is society user with accepted proposal for this project
     is_society_user = False
     if not is_business_owner:
-        proposal_resp = supabase.table("proposals").select("status").eq("project_id", project_id).eq("society_id", user_id).eq("status", "accepted").single().execute()
-        is_society_user = proposal_resp.data is not None
+        proposal_resp = supabase.table("proposals").select("status").eq("project_id", project_id).eq("society_id", user_id).eq("status", "accepted").execute()
+        is_society_user = len(proposal_resp.data) > 0
 
     if not is_business_owner and not is_society_user:
         raise HTTPException(status_code=403, detail="You don't have permission to update this milestone")
@@ -274,10 +274,9 @@ async def toggle_task_completion(task_id: str, authorization: str = Header(...))
             .eq("project_id", project_id)
             .eq("society_id", user_id)
             .eq("status", "accepted")
-            .single()
             .execute()
         )
-        is_society_user = proposal_resp.data is not None
+        is_society_user = len(proposal_resp.data) > 0
 
     if not is_business_owner and not is_society_user:
         raise HTTPException(

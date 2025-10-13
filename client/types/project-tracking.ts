@@ -71,10 +71,16 @@ export interface CreateRatingData {
 // Existing Project interface (from business page)
 export interface Project {
   id: string;
-  compliant_name: string;
-  compliant_description: string;
-  status: "active" | "completed" | "paused" | "cancelled" | "draft" | string;
+  compliant_name?: string;
+  compliant_description?: string;
+  description?: string;
+  status: "active" | "completed" | "paused" | "cancelled" | "draft" | "published" | string;
   proposal_count?: number;
   services_required?: string;
   created_at: string;
+  business_id?: string;
+  society_id?: string;
+  domains?: string[];
+  services_offered?: string[];
+  budget?: number;
 }
