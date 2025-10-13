@@ -147,22 +147,6 @@ export default function MarketplacePage() {
     setFilteredProjects(filtered);
   }, [searchTerm, projects]);
 
-  const getInitials = (description?: string): string => {
-    if (!description || description.trim() === "") {
-      return "P";
-    }
-    // Extract project name from description (first line or before dash)
-    const firstLine = description.split('\n')[0];
-    const name = firstLine.includes('—') ? firstLine.split('—')[0].replace('Project:', '').trim() : firstLine.trim();
-    const initials = name
-      ?.split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-    return initials || "B";
-  };
-
   const getProjectName = (description?: string): string => {
     if (!description || description.trim() === "") {
       return "Untitled Project";

@@ -76,7 +76,7 @@ interface SocietyProfile {
   description?: string | null
   average_rating?: number | null
   total_ratings?: number
-  rating_breakdown?: any
+  rating_breakdown?: Record<number, number>
   establishment_date?: string
   college_name?: string
   state?: string
@@ -676,7 +676,7 @@ export default function ProjectProposalsPage() {
                       </div>
                       <h3 className="text-xl font-semibold text-text mb-3">No Portfolio Items Yet</h3>
                       <p className="text-text-muted max-w-md mx-auto leading-relaxed">
-                        This society hasn't uploaded any portfolio items yet. Check back later to see their work!
+                        This society hasn&apos;t uploaded any portfolio items yet. Check back later to see their work!
                       </p>
                       <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl">
                         <h4 className="font-semibold text-text mb-2">What they offer:</h4>

@@ -36,9 +36,7 @@ import {
   Phone,
   Globe,
   Briefcase,
-  CheckCircle,
   AlertCircle,
-  Loader2,
   LucideIcon,
   MapPin,
 } from "lucide-react"

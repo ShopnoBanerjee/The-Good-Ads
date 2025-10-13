@@ -20,7 +20,6 @@ import {
   TrendingUp,
   FileText,
   CheckCircle,
-  XCircle,
   Pencil,
   Trash2,
 } from "lucide-react"

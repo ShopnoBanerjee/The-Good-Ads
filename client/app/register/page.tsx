@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Building2, Users, Phone, Globe, Briefcase, CheckCircle, AlertCircle, Loader2, LucideIcon, Plus, MapPin } from "lucide-react";
+import { Calendar, Building2, Users, Phone, Briefcase, CheckCircle, AlertCircle, Loader2, LucideIcon, Plus } from "lucide-react";
 import { z } from "zod";
 import { useAuth } from "@/app/providers";
 import Image from "next/image";
