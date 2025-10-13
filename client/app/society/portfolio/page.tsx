@@ -30,17 +30,43 @@ import {
   ImageIcon,
   Video,
   File,
-  Star,
+  Users,
   ArrowLeft,
+  Calendar,
+  Phone,
+  Globe,
+  Briefcase,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  LucideIcon,
+  MapPin,
 } from "lucide-react"
 import { toast } from "sonner"
+import { z } from "zod"
+import { DOMAINS, INDIAN_STATES, INDIAN_CITIES } from "@/lib/constants"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // Type definitions
 interface Profile {
   id: string
   society_name: string
-  domain: string
-  services_offered: string
+  poc_name?: string
+  phone_number?: string
+  establishment_date?: string
+  state?: string
+  city?: string
+  domains?: string[]
+  services_offered?: string[]
+  total_member_count?: number
+  college_name?: string
   description?: string
   logo_url?: string
   average_rating?: number
@@ -51,6 +77,70 @@ interface PortfolioItem {
   file_path: string
   caption: string
 }
+
+interface FieldErrors {
+  [key: string]: string
+}
+
+interface FormFieldProps {
+  label: string
+  name: keyof Profile
+  type?: string
+  icon?: LucideIcon
+  placeholder: string
+  required?: boolean
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  error?: string
+}
+
+// FormField component matching registration page styling
+const FormField = ({ label, name, type = "text", icon: Icon, placeholder, required = true, value, onChange, error }: FormFieldProps) => (
+  <div className="space-y-2">
+    <label htmlFor={name} className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+      {Icon && <Icon className="w-4 h-4 text-gray-400" />}
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
+    <div className="relative">
+      <Input
+        id={name}
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#11aad4] focus:ring-offset-0 placeholder:text-gray-400 transition-all duration-300 ${
+          error ? "border-red-500 focus:ring-red-500 focus:ring-offset-0" : ""
+        }`}
+      />
+      {Icon && (
+        <Icon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" aria-hidden="true" />
+      )}
+    </div>
+    {error && (
+      <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+        <AlertCircle className="w-3 h-3" />
+        {error}
+      </div>
+    )}
+  </div>
+)
+
+// Zod validation schema for society profile
+const societyProfileSchema = z.object({
+  society_name: z.string().min(2, "Society name is required"),
+  poc_name: z.string().min(2, "POC name is required"),
+  phone_number: z.string().regex(/^\+91\s?[6-9]\d{9}$/, "Please enter a valid Indian phone number starting with +91 followed by 10 digits"),
+  establishment_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Please provide a valid establishment date (YYYY-MM-DD)"),
+  state: z.string().min(1, "State is required"),
+  city: z.string().min(1, "City is required"),
+  domains: z.array(z.string()).min(1, "At least one domain is required"),
+  services_offered: z.array(z.string()).min(1, "At least one service is required"),
+  total_member_count: z.number().min(1, "Total member count must be at least 1"),
+  college_name: z.string().optional(),
+  description: z.string().optional(),
+})
 
 export default function SocietyPortfolioPage() {
   const { userType } = useAuth()
@@ -74,6 +164,9 @@ export default function SocietyPortfolioPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [items, setItems] = useState<PortfolioItem[]>([])
   const [mounted, setMounted] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  const [availableCities, setAvailableCities] = useState<string[]>([])
+  const [customService, setCustomService] = useState<string>("")
 
   useEffect(() => {
     setMounted(true)
@@ -86,17 +179,22 @@ export default function SocietyPortfolioPage() {
       } = await supabase.auth.getSession()
       if (!session) return
 
-      const { data: userProfile, error } = await supabase
-        .from("college_society_profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single()
+      // Fetch society profile using the API endpoint
+      const profileRes = await fetch(`${API_URL}/api/society-profile`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
 
-      if (error) {
-        console.error(error)
+      if (profileRes.ok) {
+        const userProfile = await profileRes.json()
+        setProfile(userProfile)
+        setEditedProfile(userProfile)
+        // Initialize available cities based on the profile's state
+        if (userProfile.state) {
+          setAvailableCities(INDIAN_CITIES[userProfile.state] || [])
+        }
+      } else {
+        console.error('Failed to fetch society profile')
       }
-      setProfile(userProfile)
-      setEditedProfile(userProfile || {})
 
       // Fetch portfolio items
       const res = await fetch(`${API_URL}/api/get-portfolio`, {
@@ -232,18 +330,134 @@ export default function SocietyPortfolioPage() {
     }
   }
 
+  // Form handling functions
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const { name, value } = e.target
+    setEditedProfile(prev => ({ ...prev, [name]: value }))
+
+    // Clear field error when user starts typing
+    setFieldErrors(prevErrors => {
+      if (prevErrors[name]) {
+        const newErrors = { ...prevErrors }
+        delete newErrors[name]
+        return newErrors
+      }
+      return prevErrors
+    })
+  }
+
+  const handleDomainChange = (domain: string, checked: boolean) => {
+    setEditedProfile(prev => ({
+      ...prev,
+      domains: checked ? [...(prev.domains || []), domain] : (prev.domains || []).filter(d => d !== domain)
+    }))
+    setFieldErrors(prev => {
+      if (prev.domains) {
+        const newErrors = { ...prev }
+        delete newErrors.domains
+        return newErrors
+      }
+      return prev
+    })
+  }
+
+  const handleServiceChange = (service: string, checked: boolean) => {
+    setEditedProfile(prev => ({
+      ...prev,
+      services_offered: checked ? [...(prev.services_offered || []), service] : (prev.services_offered || []).filter(s => s !== service)
+    }))
+    setFieldErrors(prev => {
+      if (prev.services_offered) {
+        const newErrors = { ...prev }
+        delete newErrors.services_offered
+        return newErrors
+      }
+      return prev
+    })
+  }
+
+  const addCustomService = () => {
+    if (customService.trim() && !(editedProfile.services_offered || []).includes(customService.trim())) {
+      setEditedProfile(prev => ({
+        ...prev,
+        services_offered: [...(prev.services_offered || []), customService.trim()]
+      }))
+      setCustomService("")
+    }
+  }
+
+  const handleStateChange = (state: string) => {
+    setEditedProfile(prev => ({
+      ...prev,
+      state,
+      city: "" // Reset city when state changes
+    }))
+    setAvailableCities(INDIAN_CITIES[state] || [])
+    setFieldErrors(prev => {
+      if (prev.state) {
+        const newErrors = { ...prev }
+        delete newErrors.state
+        return newErrors
+      }
+      return prev
+    })
+  }
+
+  const handleCityChange = (city: string) => {
+    setEditedProfile(prev => ({
+      ...prev,
+      city
+    }))
+    setFieldErrors(prev => {
+      if (prev.city) {
+        const newErrors = { ...prev }
+        delete newErrors.city
+        return newErrors
+      }
+      return prev
+    })
+  }
+
   const handleSaveProfile = async (): Promise<void> => {
     try {
+      // Validate form data
+      const validationResult = societyProfileSchema.safeParse(editedProfile)
+      if (!validationResult.success) {
+        const errors: FieldErrors = {}
+        validationResult.error.errors.forEach(error => {
+          errors[error.path[0] as string] = error.message
+        })
+        setFieldErrors(errors)
+        toast.error("Validation failed", {
+          description: "Please fix the errors in the form.",
+        })
+        return
+      }
+
+      // Clear any existing errors
+      setFieldErrors({})
+
       const {
         data: { session },
       } = await supabase.auth.getSession()
       if (!session) throw new Error("Not authenticated")
 
-      const { error } = await supabase.from("college_society_profiles").update(editedProfile).eq("id", session.user.id)
+      const res = await fetch(`${API_URL}/api/society-profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(editedProfile),
+      })
 
-      if (error) throw error
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.detail || "Failed to update profile")
+      }
 
-      setProfile(editedProfile as Profile)
+      const data = await res.json()
+      setProfile(data.profile)
       setIsEditingProfile(false)
       toast("Portfolio updated", {
         description: "Your portfolio has been successfully updated.",
@@ -370,15 +584,35 @@ export default function SocietyPortfolioPage() {
                         </Button>
                       </div>
 
-                      <div className="flex justify-center lg:justify-start">
-                        <Badge className="bg-white/20 dark:bg-white/30 text-white border-white/30 px-3 sm:px-4 py-1 sm:py-2 text-sm font-medium font-outfit rounded-2xl">
-                          {profile.domain}
-                        </Badge>
-                      </div>
+                      {profile.college_name && (
+                        <p className="text-white/80 text-lg font-medium">
+                          {profile.college_name}
+                        </p>
+                      )}
 
-                      <p className="text-lg sm:text-xl text-white/80 leading-relaxed max-w-2xl font-outfit">
-                        {profile.services_offered}
-                      </p>
+                      {/* Profile metadata badges */}
+                      <div className="flex flex-wrap justify-center lg:justify-start gap-2">
+                        {profile.domains && profile.domains.length > 0 && (
+                          <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 transition-colors px-3 py-1">
+                            {profile.domains.length} Domain{profile.domains.length !== 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                        {profile.services_offered && profile.services_offered.length > 0 && (
+                          <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 transition-colors px-3 py-1">
+                            {profile.services_offered.length} Service{profile.services_offered.length !== 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                        {profile.total_member_count && (
+                          <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 transition-colors px-3 py-1">
+                            {profile.total_member_count} Members
+                          </Badge>
+                        )}
+                        {profile.state && profile.city && (
+                          <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 transition-colors px-3 py-1">
+                            {profile.city}, {profile.state}
+                          </Badge>
+                        )}
+                      </div>
 
                       {profile.description && (
                         <p className="text-white/70 leading-relaxed max-w-2xl text-sm sm:text-base font-outfit">
@@ -387,50 +621,324 @@ export default function SocietyPortfolioPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="space-y-4 max-w-2xl bg-white/10 dark:bg-white/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6">
-                      <Input
+                    <div className="space-y-6 max-w-2xl bg-white/10 dark:bg-white/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6">
+                      <FormField
+                        label="Society Name"
+                        name="society_name"
+                        icon={Users}
+                        placeholder="Enter society name..."
                         value={editedProfile.society_name || ""}
-                        onChange={(e) => setEditedProfile({ ...editedProfile, society_name: e.target.value })}
-                        className="text-lg sm:text-xl font-bold bg-white/20 dark:bg-white/30 border-white/30 text-white placeholder:text-white/60 rounded-2xl font-outfit"
-                        placeholder="Society Name"
+                        onChange={handleChange}
+                        error={fieldErrors.society_name}
                       />
-                      <Input
-                        value={editedProfile.domain || ""}
-                        onChange={(e) => setEditedProfile({ ...editedProfile, domain: e.target.value })}
-                        placeholder="Domain (e.g., Technology, Arts, Sports)"
-                        className="bg-white/20 dark:bg-white/30 border-white/30 text-white placeholder:text-white/60 rounded-2xl font-outfit"
+                      <FormField
+                        label="College Name (optional)"
+                        name="college_name"
+                        icon={Building2}
+                        placeholder="Enter your college/university name"
+                        value={editedProfile.college_name || ""}
+                        onChange={handleChange}
+                        error={fieldErrors.college_name}
+                        required={false}
                       />
-                      <Textarea
-                        value={editedProfile.services_offered || ""}
-                        onChange={(e) => setEditedProfile({ ...editedProfile, services_offered: e.target.value })}
-                        placeholder="Services offered..."
-                        className="bg-white/20 dark:bg-white/30 border-white/30 text-white placeholder:text-white/60 rounded-2xl font-outfit"
-                        rows={2}
+                      <FormField
+                        label="Point of Contact Name"
+                        name="poc_name"
+                        icon={Users}
+                        placeholder="Enter contact person name..."
+                        value={editedProfile.poc_name || ""}
+                        onChange={handleChange}
+                        error={fieldErrors.poc_name}
                       />
-                      <Textarea
-                        value={editedProfile.description || ""}
-                        onChange={(e) => setEditedProfile({ ...editedProfile, description: e.target.value })}
-                        placeholder="Additional description..."
-                        className="bg-white/20 dark:bg-white/30 border-white/30 text-white placeholder:text-white/60 rounded-2xl font-outfit"
-                        rows={3}
+                      <FormField
+                        label="Phone Number"
+                        name="phone_number"
+                        type="tel"
+                        icon={Phone}
+                        placeholder="+91 98765 43210"
+                        value={editedProfile.phone_number || ""}
+                        onChange={handleChange}
+                        error={fieldErrors.phone_number}
                       />
-                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          State
+                          <span className="text-red-500 ml-1">*</span>
+                        </label>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                            >
+                              {editedProfile.state || "Select State"}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-56 bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                            <DropdownMenuLabel className="text-gray-300">Choose State</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-700" />
+                            {INDIAN_STATES.map(state => (
+                              <DropdownMenuCheckboxItem
+                                key={state}
+                                checked={editedProfile.state === state}
+                                onCheckedChange={() => handleStateChange(state)}
+                                className="text-white focus:bg-[#11aad4] focus:text-white"
+                              >
+                                {state}
+                              </DropdownMenuCheckboxItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        {fieldErrors.state && (
+                          <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                            <AlertCircle className="w-3 h-3" />
+                            {fieldErrors.state}
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          City
+                          <span className="text-red-500 ml-1">*</span>
+                        </label>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                              disabled={!editedProfile.state}
+                            >
+                              {editedProfile.city || "Select City"}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-56 bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                            <DropdownMenuLabel className="text-gray-300">Choose City</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-700" />
+                            {availableCities.map(city => (
+                              <DropdownMenuCheckboxItem
+                                key={city}
+                                checked={editedProfile.city === city}
+                                onCheckedChange={() => handleCityChange(city)}
+                                className="text-white focus:bg-[#11aad4] focus:text-white"
+                              >
+                                {city}
+                              </DropdownMenuCheckboxItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        {fieldErrors.city && (
+                          <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                            <AlertCircle className="w-3 h-3" />
+                            {fieldErrors.city}
+                          </div>
+                        )}
+                      </div>
+                      <FormField
+                        label="Establishment Date"
+                        name="establishment_date"
+                        type="date"
+                        icon={Calendar}
+                        placeholder=""
+                        value={editedProfile.establishment_date || ""}
+                        onChange={handleChange}
+                        error={fieldErrors.establishment_date}
+                      />
+                      <div className="space-y-2">
+                        <label htmlFor="total_member_count" className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                          <Users className="w-4 h-4 text-gray-400" />
+                          Total Member Count
+                          <span className="text-red-500 ml-1">*</span>
+                        </label>
+                        <div className="relative">
+                          <Input
+                            id="total_member_count"
+                            type="number"
+                            name="total_member_count"
+                            value={editedProfile.total_member_count ?? ""}
+                            onChange={(e) => {
+                              const value = e.target.value
+                              if (value === "") {
+                                setEditedProfile(prev => ({
+                                  ...prev,
+                                  total_member_count: undefined
+                                }))
+                              } else {
+                                const num = parseInt(value, 10)
+                                if (!isNaN(num) && num >= 0) {
+                                  setEditedProfile(prev => ({
+                                    ...prev,
+                                    total_member_count: num
+                                  }))
+                                }
+                              }
+                            }}
+                            placeholder="Enter total number of members..."
+                            min="1"
+                            className={`h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#11aad4] focus:ring-offset-0 placeholder:text-gray-400 transition-all duration-300 ${
+                              fieldErrors.total_member_count ? "border-red-500 focus:ring-red-500 focus:ring-offset-0" : ""
+                            }`}
+                          />
+                          <Users className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" aria-hidden="true" />
+                        </div>
+                        {fieldErrors.total_member_count && (
+                          <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                            <AlertCircle className="w-3 h-3" />
+                            {fieldErrors.total_member_count}
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                          <Briefcase className="w-4 h-4 text-gray-400" />
+                          Domains
+                          <span className="text-red-500 ml-1">*</span>
+                        </label>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                            >
+                              {editedProfile.domains && editedProfile.domains.length > 0 ? `${editedProfile.domains.length} selected` : "Select Domains"}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-56 bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                            <DropdownMenuLabel className="text-gray-300">Choose Domains</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-700" />
+                            {Object.keys(DOMAINS).map(domain => (
+                              <DropdownMenuCheckboxItem
+                                key={domain}
+                                checked={editedProfile.domains?.includes(domain) || false}
+                                onCheckedChange={(checked) => handleDomainChange(domain, checked as boolean)}
+                                className="text-white focus:bg-[#11aad4] focus:text-white"
+                              >
+                                {domain}
+                              </DropdownMenuCheckboxItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        {editedProfile.domains && editedProfile.domains.length > 0 && (
+                          <p className="text-xs text-gray-400 font-outfit">
+                            Selected: {editedProfile.domains.join(", ")}
+                          </p>
+                        )}
+                        {fieldErrors.domains && (
+                          <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                            <AlertCircle className="w-3 h-3" />
+                            {fieldErrors.domains}
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-6">
+                        <label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                          <Globe className="w-4 h-4 text-gray-400" />
+                          Services Offered
+                          <span className="text-red-500 ml-1">*</span>
+                        </label>
+                        {(editedProfile.domains || []).map(domain => {
+                          const domainServices = DOMAINS[domain] || []
+                          const selectedForDomain = (editedProfile.services_offered || []).filter(service => domainServices.includes(service))
+                          return (
+                            <div key={domain} className="space-y-2">
+                              <h3 className="text-sm font-medium text-gray-300 font-outfit">{domain}</h3>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                                  >
+                                    {selectedForDomain.length > 0 ? `${selectedForDomain.length} selected` : "Select Services"}
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-64 bg-[#15325a] border-gray-700 max-h-64 overflow-auto">
+                                  <DropdownMenuLabel className="text-gray-300">Choose Services</DropdownMenuLabel>
+                                  <DropdownMenuSeparator className="bg-gray-700" />
+                                  {domainServices.map(service => (
+                                    <DropdownMenuCheckboxItem
+                                      key={service}
+                                      checked={(editedProfile.services_offered || []).includes(service)}
+                                      onCheckedChange={(checked) => handleServiceChange(service, checked as boolean)}
+                                      className="text-white focus:bg-[#11aad4] focus:text-white"
+                                    >
+                                      {service}
+                                    </DropdownMenuCheckboxItem>
+                                  ))}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              {selectedForDomain.length > 0 && (
+                                <p className="text-xs text-gray-400 font-outfit">
+                                  Selected: {selectedForDomain.join(", ")}
+                                </p>
+                              )}
+                            </div>
+                          )
+                        })}
+                        <div className="space-y-2">
+                          <h3 className="text-sm font-medium text-gray-300 font-outfit">Other Services</h3>
+                          <div className="flex gap-2">
+                            <Input
+                              type="text"
+                              value={customService}
+                              onChange={(e) => setCustomService(e.target.value)}
+                              placeholder="Add custom service..."
+                              className="flex-1 h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#11aad4] focus:ring-offset-0 placeholder:text-gray-400 transition-all duration-300"
+                              onKeyPress={(e) => e.key === 'Enter' && addCustomService()}
+                            />
+                            <Button
+                              type="button"
+                              onClick={addCustomService}
+                              className="h-11 px-4 bg-[#11aad4] hover:bg-[#0d8bb3] text-white rounded-xl transition-all duration-300"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          {(editedProfile.services_offered || []).filter(service => !Object.values(DOMAINS).flat().includes(service)).length > 0 && (
+                            <p className="text-xs text-gray-400 font-outfit">
+                              Added: {(editedProfile.services_offered || []).filter(service => !Object.values(DOMAINS).flat().includes(service)).join(", ")}
+                            </p>
+                          )}
+                        </div>
+                        {fieldErrors.services_offered && (
+                          <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                            <AlertCircle className="w-3 h-3" />
+                            {fieldErrors.services_offered}
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="description" className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                          <FileText className="w-4 h-4 text-gray-400" />
+                          Description
+                        </label>
+                        <Textarea
+                          id="description"
+                          value={editedProfile.description || ""}
+                          onChange={(e) => setEditedProfile({ ...editedProfile, description: e.target.value })}
+                          placeholder="Additional description..."
+                          className="h-24 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#11aad4] focus:ring-offset-0 placeholder:text-gray-400 transition-all duration-300 resize-none"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
                         <Button
                           onClick={handleSaveProfile}
                           size="sm"
-                          className="bg-green-500 hover:bg-green-600 text-white rounded-2xl font-outfit transition-colors duration-200 ease-in-out"
+                          className="bg-[#11aad4] hover:bg-[#0d8bb3] text-white rounded-xl font-outfit transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2"
                         >
-                          <Check className="w-4 h-4 mr-1" />
-                          Save
+                          <Check className="w-4 h-4" />
+                          Save Changes
                         </Button>
                         <Button
                           onClick={() => {
                             setIsEditingProfile(false)
-                            setEditedProfile(profile)
+                            setEditedProfile(profile || {})
+                            setFieldErrors({})
                           }}
                           variant="outline"
                           size="sm"
-                          className="border-white/30 text-white hover:bg-white/20 rounded-2xl font-outfit transition-all duration-200 ease-in-out"
+                          className="border-white/30 text-white hover:bg-white/20 rounded-xl font-outfit transition-all duration-200 ease-in-out"
                         >
                           <X className="w-4 h-4 mr-1" />
                           Cancel
@@ -453,10 +961,10 @@ export default function SocietyPortfolioPage() {
                   </div>
                   <div className="bg-white/10 dark:bg-white/20 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center transition-colors duration-200 ease-in-out">
                     <div className="flex items-center justify-center mb-2">
-                      <Star className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      <span className="text-xl sm:text-2xl font-bold font-outfit">{profile.average_rating ? profile.average_rating.toFixed(1) : "0.0"}</span>
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                      <span className="text-xl sm:text-2xl font-bold font-outfit">{profile.total_member_count || 0}</span>
                     </div>
-                    <p className="text-white/70 text-xs sm:text-sm font-outfit">Average Rating</p>
+                    <p className="text-white/70 text-xs sm:text-sm font-outfit">Members</p>
                   </div>
                 </div>
               )}

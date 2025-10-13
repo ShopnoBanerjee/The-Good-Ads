@@ -86,8 +86,8 @@ export default function TaskTracker({ milestones, projectStatus }: TaskTrackerPr
         <CardContent>
           <div className="text-gray-500 dark:text-gray-400">
             <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium">No milestones available</p>
-            <p className="text-sm">The business team will create milestones for this project</p>
+            <p className="text-lg font-medium">No milestones set up</p>
+            <p className="text-sm">The business has not set up milestones for this project yet</p>
           </div>
         </CardContent>
       </Card>

@@ -185,11 +185,11 @@ async def accept_proposal(request: Request, authorization: str = Header(...)):
     if existing_accepted.data and len(existing_accepted.data) > 0:
         raise HTTPException(status_code=400, detail="A proposal has already been accepted for this project")
 
-    update = supabase.table("proposals").update({"status": "accepted"}).eq("id", proposal_id).execute()
+    supabase.table("proposals").update({"status": "accepted"}).eq("id", proposal_id).execute()
 
-    # Update project with society_id
+    # Update project with society_id and set status to 'accepted'
     society_id = proposal.data["society_id"]
-    supabase.table("projects").update({"society_id": society_id}).eq("id", project_id).execute()
+    supabase.table("projects").update({"society_id": society_id, "status": "accepted"}).eq("id", project_id).execute()
 
     business_id = user_id
 
@@ -286,9 +286,46 @@ async def get_society_projects(authorization: str = Header(...)):
     if not profile.data or profile.data["user_type"] != "college_society":
         raise HTTPException(status_code=403, detail="Only societies can view")
 
+    # Get projects where society_id matches and has an accepted proposal
     projects = supabase.table("projects").select("*").eq("society_id", user_id).execute()
 
-    return projects.data
+    # Filter projects to only include those with accepted proposals
+    filtered_projects = []
+    for project in projects.data:
+        accepted_proposal = supabase.table("proposals").select("id").eq("project_id", project["id"]).eq("society_id", user_id).eq("status", "accepted").execute()
+        if accepted_proposal.data and len(accepted_proposal.data) > 0:
+            filtered_projects.append(project)
+
+    return filtered_projects
+
+
+@router.get("/api/society-project/{project_id}")
+async def get_society_project(project_id: str, authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401)
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    profile = supabase.table("profiles").select("user_type").eq("id", user_id).single().execute()
+    if not profile.data or profile.data["user_type"] != "college_society":
+        raise HTTPException(status_code=403, detail="Only societies can view")
+
+    # Check if the society has access to this project (either assigned or has accepted proposal)
+    project = supabase.table("projects").select("*").eq("id", project_id).eq("society_id", user_id).single().execute()
+
+    if not project.data:
+        # Check if society has an accepted proposal for this project
+        accepted_proposal = supabase.table("proposals").select("id").eq("project_id", project_id).eq("society_id", user_id).eq("status", "accepted").execute()
+        if not accepted_proposal.data or len(accepted_proposal.data) == 0:
+            raise HTTPException(status_code=403, detail="You don't have access to this project")
+
+        # If they have an accepted proposal, get the project
+        project = supabase.table("projects").select("*").eq("id", project_id).single().execute()
+        if not project.data:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+    return project.data
 
 
 @router.get("/api/check-proposal-status/{project_id}")
