@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Building2, CheckCircle, FileText, Plus, Globe, Settings, DollarSign } from "lucide-react"
+import { ArrowLeft, Building2, CheckCircle, FileText, Plus, Globe, Settings, IndianRupee } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -400,7 +400,7 @@ function AddProjectForm() {
 
                 <div className="space-y-2">
                   <Label htmlFor="budget" className="text-sm font-medium text-text flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-accent" />
+                    <IndianRupee className="w-4 h-4 text-accent" />
                     Project Budget *
                   </Label>
                   <Input
