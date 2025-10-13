@@ -108,6 +108,9 @@ async def express_interest(request: Request, authorization: str = Header(...)):
     count = current.data["proposal_count"] if current.data else 0
     supabase.table("projects").update({"proposal_count": count + 1}).eq("id", project_id).execute()
 
+    # Update project with society_id
+    supabase.table("projects").update({"society_id": user_id}).eq("id", project_id).execute()
+
     return {"message": "Interest expressed successfully", "proposal_id": resp.data[0]["id"]}
 
 @router.get("/api/business-proposals")

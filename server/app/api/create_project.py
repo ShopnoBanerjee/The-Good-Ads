@@ -288,8 +288,6 @@ async def get_business_projects(authorization: str = Header(...)):
 
     return resp.data or []
 
-@router.get("/api/society-projects")
-async def get_society_projects(authorization: str = Header(...)):
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing token")
 

@@ -154,14 +154,13 @@ export default function MarketplacePage() {
     // Extract project name from description (first line or before dash)
     const firstLine = description.split('\n')[0];
     const name = firstLine.includes('—') ? firstLine.split('—')[0].replace('Project:', '').trim() : firstLine.trim();
-    return (
-      name
-        ?.split(" ")
-        .map((word) => word[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2) || "B"
-    );
+    const initials = name
+      ?.split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+    return initials || "B";
   };
 
   const getProjectName = (description?: string): string => {
@@ -577,15 +576,24 @@ export default function MarketplacePage() {
                       {!selectedProject.proposalStatus?.has_proposal ? (
                         <Button
                           onClick={async () => {
-                            const supabase = getSupabaseClient();
-                            const { data: { session } } = await supabase.auth.getSession();
-
-                            if (!session) {
-                              alert('Not authenticated. Please log in again.');
-                              return;
-                            }
-
                             try {
+                              const supabase = getSupabaseClient();
+                              const { data: { session } } = await supabase.auth.getSession();
+                              if (!session) {
+                                alert('Not authenticated. Please log in again.');
+                                return;
+                              }
+                              // Fetch the society_id from the profile API
+                              const profileRes = await fetch(`${API_URL}/api/society-profile`, {
+                                headers: { 'Authorization': `Bearer ${session.access_token}` }
+                              });
+                              if (!profileRes.ok) {
+                                alert('Could not fetch society profile.');
+                                return;
+                              }
+                              const profile = await profileRes.json();
+                              const society_id = profile.id;
+
                               const response = await fetch(`${API_URL}/api/express-interest`, {
                                 method: 'POST',
                                 headers: {
@@ -594,6 +602,7 @@ export default function MarketplacePage() {
                                 },
                                 body: JSON.stringify({
                                   project_id: selectedProject.id,
+                                  society_id,
                                 }),
                               });
 
