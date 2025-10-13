@@ -132,12 +132,12 @@ const Intro: FC = () => {
             <p className="text-[#1a5173] dark:text-gray-200 text-base sm:text-lg max-w-2xl mx-auto mb-6 font-medium leading-relaxed transition-colors duration-200 ease-in-out">
               Join inHalt today and connect with talented college societies or find the perfect business partner for your projects.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/auth" className="bg-[#11aad4] hover:bg-[#0d8bb8] text-white px-6 py-3 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center transform hover:scale-105">
-                Join as a Business
-              </Link>
-              <Link href="/auth" className="bg-white hover:bg-gray-50 text-[#11aad4] border-2 border-[#11aad4] hover:border-[#0d8bb8] px-6 py-3 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center transform hover:scale-105">
-                Join as a Society
+            <div className="flex justify-center">
+              <Link
+                href="/auth"
+                className="bg-[#0b7f91] hover:bg-[#096270] text-white px-8 py-3 rounded-xl font-outfit font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-center transform hover:scale-105 dark:bg-[#11aad4] dark:hover:bg-[#0d8bb8]"
+              >
+                Join inHalt
               </Link>
             </div>
           </div>
