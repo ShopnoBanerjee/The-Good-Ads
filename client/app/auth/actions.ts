@@ -40,7 +40,10 @@ export async function signUpWithOtpAction(formData: FormData) {
     email,
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/register?userType=${userType ?? ''}`,
+      data: {
+        userType: userType,
+      },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/check`,
     },
   })
 
