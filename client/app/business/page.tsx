@@ -140,7 +140,7 @@ export default function BusinessDashboard() {
           // Calculate stats
           const totalProjects = data.length
           const activeProjects = data.filter((p) => p.status === "published").length
-          const completedProjects = data.filter((p) => p.status === "published").length
+          const completedProjects = data.filter((p) => p.status === "completed").length
           const totalProposals = data.reduce((sum, p) => sum + (p.proposal_count || 0), 0)
 
           setStats({
