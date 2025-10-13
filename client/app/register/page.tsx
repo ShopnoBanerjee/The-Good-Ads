@@ -7,11 +7,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building2, Users, Phone, Globe, Briefcase, CheckCircle, AlertCircle, Loader2, LucideIcon } from "lucide-react";
+import { Calendar, Building2, Users, Phone, Globe, Briefcase, CheckCircle, AlertCircle, Loader2, LucideIcon, Plus, MapPin } from "lucide-react";
 import { z } from "zod";
 import { useAuth } from "@/app/providers";
 import Image from "next/image";
-import CompanyLogo from "@/public/logo/our-logo.png"; 
+import CompanyLogo from "@/public/logo/our-logo.png";
+import { DOMAINS, INDIAN_STATES, INDIAN_CITIES } from "../../lib/constants";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox"; 
 
 interface FormData {
   businessName: string;
@@ -19,7 +29,19 @@ interface FormData {
   phoneNumber: string;
   domain: string;
   societyName: string;
-  servicesOffered: string;
+  collegeName?: string;
+  establishmentDate: string;
+  domains: string[];
+  servicesOffered: string[];
+  state: string;
+  city: string;
+  industrySector: string;
+  companyType: string;
+  pocRole: string;
+  objectives: string[];
+  totalMemberCount: number;
+  confirmBusiness: boolean;
+  confirmSociety: boolean;
 }
 
 interface FieldErrors {
@@ -59,7 +81,7 @@ const FormField = ({ label, name, type = "text", icon: Icon, placeholder, requir
         }`}
       />
       {Icon && (
-        <Icon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Icon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" aria-hidden="true" />
       )}
     </div>
     {error && (
@@ -97,28 +119,59 @@ function RegisterPageContent() {
     phoneNumber: "",
     domain: "",
     societyName: "",
-    servicesOffered: "",
+    collegeName: "",
+    establishmentDate: "",
+    domains: [],
+    servicesOffered: [],
+    state: "",
+    city: "",
+    industrySector: "",
+    companyType: "",
+    pocRole: "",
+    objectives: [],
+    totalMemberCount: 0,
+    confirmBusiness: false,
+    confirmSociety: false,
   });
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<boolean>(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [customService, setCustomService] = useState<string>("");
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
 
   // Define Zod schemas
+  const indianPhone = z.string().regex(/^\+91\s?[6-9]\d{9}$/, "Please enter a valid Indian phone number starting with +91 followed by 10 digits");
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
   const businessSchema = z.object({
     businessName: z.string().min(2, "Business name is required"),
     pocName: z.string().min(2, "POC name is required"),
-    phoneNumber: z.string().min(5, "Phone number is required"),
-    domain: z.string().min(2, "Domain is required"),
+    phoneNumber: indianPhone,
+    establishmentDate: z.string().regex(dateRegex, "Please provide a valid establishment date (YYYY-MM-DD)"),
+    state: z.string().min(1, "State is required"),
+    city: z.string().min(1, "City is required"),
+    industrySector: z.string().min(1, "Industry/Sector is required"),
+    companyType: z.string().min(1, "Company type is required"),
+    pocRole: z.string().min(1, "POC role is required"),
+    domains: z.array(z.string()).min(1, "At least one domain is required"),
+    objectives: z.array(z.string()).min(1, "At least one objective is required"),
+    confirmBusiness: z.boolean().refine(val => val === true, "You must confirm that the details are accurate"),
   });
 
   const societySchema = z.object({
     societyName: z.string().min(2, "Society name is required"),
     pocName: z.string().min(2, "POC name is required"),
-    phoneNumber: z.string().min(5, "Phone number is required"),
-    domain: z.string().min(2, "Domain is required"),
-    servicesOffered: z.string().min(2, "Services offered is required"),
+    phoneNumber: indianPhone,
+    establishmentDate: z.string().regex(dateRegex, "Please provide a valid establishment date (YYYY-MM-DD)"),
+    state: z.string().min(1, "State is required"),
+    city: z.string().min(1, "City is required"),
+    domains: z.array(z.string()).min(1, "At least one domain is required"),
+    servicesOffered: z.array(z.string()).min(1, "At least one service is required"),
+    totalMemberCount: z.number().min(1, "Total member count must be at least 1"),
+    collegeName: z.string().optional(),
+    confirmSociety: z.boolean().refine(val => val === true, "You must confirm that the details are accurate"),
   });
 
   // Use useCallback to prevent function recreation on every render
@@ -136,6 +189,124 @@ function RegisterPageContent() {
       return prevErrors;
     });
   }, []);
+
+  const handleDomainChange = (domain: string, checked: boolean) => {
+    setForm(prev => ({
+      ...prev,
+      domains: checked ? [...prev.domains, domain] : prev.domains.filter(d => d !== domain)
+    }));
+    setFieldErrors(prev => {
+      if (prev.domains) {
+        const newErrors = { ...prev };
+        delete newErrors.domains;
+        return newErrors;
+      }
+      return prev;
+    });
+  };
+
+  const handleServiceChange = (service: string, checked: boolean) => {
+    setForm(prev => ({
+      ...prev,
+      servicesOffered: checked ? [...prev.servicesOffered, service] : prev.servicesOffered.filter(s => s !== service)
+    }));
+    setFieldErrors(prev => {
+      if (prev.servicesOffered) {
+        const newErrors = { ...prev };
+        delete newErrors.servicesOffered;
+        return newErrors;
+      }
+      return prev;
+    });
+  };
+
+  const addCustomService = () => {
+    if (customService.trim() && !form.servicesOffered.includes(customService.trim())) {
+      setForm(prev => ({
+        ...prev,
+        servicesOffered: [...prev.servicesOffered, customService.trim()]
+      }));
+      setCustomService("");
+    }
+  };
+
+  const handleStateChange = (state: string) => {
+    setForm(prev => ({
+      ...prev,
+      state,
+      city: "" // Reset city when state changes
+    }));
+    setAvailableCities(INDIAN_CITIES[state] || []);
+    setFieldErrors(prev => {
+      if (prev.state) {
+        const newErrors = { ...prev };
+        delete newErrors.state;
+        return newErrors;
+      }
+      return prev;
+    });
+  };
+
+  const handleCityChange = (city: string) => {
+    setForm(prev => ({
+      ...prev,
+      city
+    }));
+    setFieldErrors(prev => {
+      if (prev.city) {
+        const newErrors = { ...prev };
+        delete newErrors.city;
+        return newErrors;
+      }
+      return prev;
+    });
+  };
+
+  const handleCompanyTypeChange = (companyType: string) => {
+    setForm(prev => ({
+      ...prev,
+      companyType
+    }));
+    setFieldErrors(prev => {
+      if (prev.companyType) {
+        const newErrors = { ...prev };
+        delete newErrors.companyType;
+        return newErrors;
+      }
+      return prev;
+    });
+  };
+
+  const handleObjectiveChange = (objective: string, checked: boolean) => {
+    setForm(prev => ({
+      ...prev,
+      objectives: checked ? [...prev.objectives, objective] : prev.objectives.filter(obj => obj !== objective)
+    }));
+    setFieldErrors(prev => {
+      if (prev.objectives) {
+        const newErrors = { ...prev };
+        delete newErrors.objectives;
+        return newErrors;
+      }
+      return prev;
+    });
+  };
+
+  const handleTotalMemberCountChange = (value: string) => {
+    const count = parseInt(value) || 0;
+    setForm(prev => ({
+      ...prev,
+      totalMemberCount: count
+    }));
+    setFieldErrors(prev => {
+      if (prev.totalMemberCount !== undefined) {
+        const newErrors = { ...prev };
+        delete newErrors.totalMemberCount;
+        return newErrors;
+      }
+      return prev;
+    });
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -170,17 +341,29 @@ function RegisterPageContent() {
           ? {
               userType,
               business_name: form.businessName,
-              poc_name: form.pocName,
-              phone_number: form.phoneNumber,
-              domain: form.domain,
+                poc_name: form.pocName,
+                phone_number: form.phoneNumber,
+                establishment_date: form.establishmentDate,
+                state: form.state,
+                city: form.city,
+                industry_sector: form.industrySector,
+                company_type: form.companyType,
+                poc_role: form.pocRole,
+                domains: form.domains,
+                objectives: form.objectives,
             }
           : {
               userType,
               society_name: form.societyName,
-              poc_name: form.pocName,
-              phone_number: form.phoneNumber,
-              domain: form.domain,
+                poc_name: form.pocName,
+                phone_number: form.phoneNumber,
+                establishment_date: form.establishmentDate,
+                state: form.state,
+                city: form.city,
+                domains: form.domains,
               services_offered: form.servicesOffered,
+              total_member_count: form.totalMemberCount,
+              ...(form.collegeName ? { college_name: form.collegeName } : {}),
             };
 
       const res = await fetch(`${API_URL}/api/complete-registration`, {
@@ -297,6 +480,51 @@ function RegisterPageContent() {
                   error={fieldErrors.businessName}
                 />
                 <FormField
+                  label="Industry / Sector"
+                  name="industrySector"
+                  icon={Briefcase}
+                  placeholder="e.g., Information Technology, Healthcare, Finance..."
+                  value={form.industrySector}
+                  onChange={handleChange}
+                  error={fieldErrors.industrySector}
+                />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                    Company Type
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                      >
+                        {form.companyType || "Select Company Type"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                      <DropdownMenuLabel className="text-gray-300">Choose Company Type</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      {["Startup", "SME", "Corporate", "Agency", "NGO", "VC", "Research Org"].map(type => (
+                        <DropdownMenuCheckboxItem
+                          key={type}
+                          checked={form.companyType === type}
+                          onCheckedChange={() => handleCompanyTypeChange(type)}
+                          className="text-white focus:bg-[#11aad4] focus:text-white"
+                        >
+                          {type}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {fieldErrors.companyType && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <AlertCircle className="w-3 h-3" />
+                      {fieldErrors.companyType}
+                    </div>
+                  )}
+                </div>
+                <FormField
                   label="Point of Contact Name"
                   name="pocName"
                   icon={Users}
@@ -304,6 +532,15 @@ function RegisterPageContent() {
                   value={form.pocName}
                   onChange={handleChange}
                   error={fieldErrors.pocName}
+                />
+                <FormField
+                  label="POC Role"
+                  name="pocRole"
+                  icon={Users}
+                  placeholder="e.g., CEO, Manager, HR Head..."
+                  value={form.pocRole}
+                  onChange={handleChange}
+                  error={fieldErrors.pocRole}
                 />
                 <FormField
                   label="Phone Number"
@@ -315,15 +552,170 @@ function RegisterPageContent() {
                   onChange={handleChange}
                   error={fieldErrors.phoneNumber}
                 />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                    State
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                      >
+                        {form.state || "Select State"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                      <DropdownMenuLabel className="text-gray-300">Choose State</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      {INDIAN_STATES.map(state => (
+                        <DropdownMenuCheckboxItem
+                          key={state}
+                          checked={form.state === state}
+                          onCheckedChange={() => handleStateChange(state)}
+                          className="text-white focus:bg-[#11aad4] focus:text-white"
+                        >
+                          {state}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {fieldErrors.state && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <AlertCircle className="w-3 h-3" />
+                      {fieldErrors.state}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                    City
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                        disabled={!form.state}
+                      >
+                        {form.city || "Select City"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                      <DropdownMenuLabel className="text-gray-300">Choose City</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      {availableCities.map(city => (
+                        <DropdownMenuCheckboxItem
+                          key={city}
+                          checked={form.city === city}
+                          onCheckedChange={() => handleCityChange(city)}
+                          className="text-white focus:bg-[#11aad4] focus:text-white"
+                        >
+                          {city}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {fieldErrors.city && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <AlertCircle className="w-3 h-3" />
+                      {fieldErrors.city}
+                    </div>
+                  )}
+                </div>
                 <FormField
-                  label="Domain"
-                  name="domain"
-                  icon={Globe}
-                  placeholder="e.g., Technology, Healthcare, Finance..."
-                  value={form.domain}
+                  label="Establishment Date"
+                  name="establishmentDate"
+                  type="date"
+                  placeholder=""
+                  value={form.establishmentDate}
                   onChange={handleChange}
-                  error={fieldErrors.domain}
+                  error={fieldErrors.establishmentDate}
                 />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                    Domains
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                      >
+                        {form.domains.length > 0 ? `${form.domains.length} selected` : "Select Domains"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                      <DropdownMenuLabel className="text-gray-300">Choose Domains</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      {Object.keys(DOMAINS).map(domain => (
+                        <DropdownMenuCheckboxItem
+                          key={domain}
+                          checked={form.domains.includes(domain)}
+                          onCheckedChange={(checked) => handleDomainChange(domain, checked as boolean)}
+                          className="text-white focus:bg-[#11aad4] focus:text-white"
+                        >
+                          {domain}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                      <DropdownMenuCheckboxItem
+                        key="Other"
+                        checked={form.domains.includes("Other")}
+                        onCheckedChange={(checked) => handleDomainChange("Other", checked as boolean)}
+                        className="text-white focus:bg-[#11aad4] focus:text-white"
+                      >
+                        Other
+                      </DropdownMenuCheckboxItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {form.domains.length > 0 && (
+                    <p className="text-xs text-gray-400 font-outfit">
+                      Selected: {form.domains.join(", ")}
+                    </p>
+                  )}
+                  {fieldErrors.domains && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <AlertCircle className="w-3 h-3" />
+                      {fieldErrors.domains}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                    What are you looking to achieve through inHalt?
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <div className="space-y-2">
+                    {[
+                      "Execute short-term live projects",
+                      "Hire student talent for internships or full-time",
+                      "Conduct campus-based research",
+                      "Collaborate for CSR / social impact initiatives",
+                      "Promote brand visibility among college students"
+                    ].map(objective => (
+                      <div key={objective} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={objective}
+                          checked={form.objectives.includes(objective)}
+                          onCheckedChange={(checked) => handleObjectiveChange(objective, checked as boolean)}
+                          className="text-[#11aad4]"
+                        />
+                        <Label htmlFor={objective} className="text-sm text-gray-300 font-outfit cursor-pointer">
+                          {objective}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  {fieldErrors.objectives && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <AlertCircle className="w-3 h-3" />
+                      {fieldErrors.objectives}
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -336,6 +728,17 @@ function RegisterPageContent() {
                   onChange={handleChange}
                   error={fieldErrors.societyName}
                 />
+                {/* Optional College Name */}
+                <FormField
+                  label="College Name (optional)"
+                  name="collegeName"
+                  icon={Building2}
+                  placeholder="Enter your college/university name"
+                  value={form.collegeName || ''}
+                  onChange={handleChange}
+                  error={fieldErrors.collegeName}
+                  required={false}
+                />
                 <FormField
                   label="Point of Contact Name"
                   name="pocName"
@@ -355,25 +758,241 @@ function RegisterPageContent() {
                   onChange={handleChange}
                   error={fieldErrors.phoneNumber}
                 />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                    State
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                      >
+                        {form.state || "Select State"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                      <DropdownMenuLabel className="text-gray-300">Choose State</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      {INDIAN_STATES.map(state => (
+                        <DropdownMenuCheckboxItem
+                          key={state}
+                          checked={form.state === state}
+                          onCheckedChange={() => handleStateChange(state)}
+                          className="text-white focus:bg-[#11aad4] focus:text-white"
+                        >
+                          {state}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {fieldErrors.state && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <AlertCircle className="w-3 h-3" />
+                      {fieldErrors.state}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                    City
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                        disabled={!form.state}
+                      >
+                        {form.city || "Select City"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                      <DropdownMenuLabel className="text-gray-300">Choose City</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      {availableCities.map(city => (
+                        <DropdownMenuCheckboxItem
+                          key={city}
+                          checked={form.city === city}
+                          onCheckedChange={() => handleCityChange(city)}
+                          className="text-white focus:bg-[#11aad4] focus:text-white"
+                        >
+                          {city}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {fieldErrors.city && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <AlertCircle className="w-3 h-3" />
+                      {fieldErrors.city}
+                    </div>
+                  )}
+                </div>
                 <FormField
-                  label="Domain"
-                  name="domain"
-                  icon={Globe}
-                  placeholder="e.g., Technical, Cultural, Sports..."
-                  value={form.domain}
+                  label="Establishment Date"
+                  name="establishmentDate"
+                  type="date"
+                  icon={Calendar}
+                  placeholder=""
+                  value={form.establishmentDate}
                   onChange={handleChange}
-                  error={fieldErrors.domain}
+                  error={fieldErrors.establishmentDate}
                 />
                 <FormField
-                  label="Services Offered"
-                  name="servicesOffered"
-                  icon={Briefcase}
-                  placeholder="Describe the services you offer..."
-                  value={form.servicesOffered}
-                  onChange={handleChange}
-                  error={fieldErrors.servicesOffered}
+                  label="Total Member Count"
+                  name="totalMemberCount"
+                  type="number"
+                  icon={Users}
+                  placeholder="Enter total number of members..."
+                  value={form.totalMemberCount.toString()}
+                  onChange={(e) => handleTotalMemberCountChange(e.target.value)}
+                  error={fieldErrors.totalMemberCount}
                 />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                    Domains
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                      >
+                        {form.domains.length > 0 ? `${form.domains.length} selected` : "Select Domains"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                      <DropdownMenuLabel className="text-gray-300">Choose Domains</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      {Object.keys(DOMAINS).map(domain => (
+                        <DropdownMenuCheckboxItem
+                          key={domain}
+                          checked={form.domains.includes(domain)}
+                          onCheckedChange={(checked) => handleDomainChange(domain, checked as boolean)}
+                          className="text-white focus:bg-[#11aad4] focus:text-white"
+                        >
+                          {domain}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {form.domains.length > 0 && (
+                    <p className="text-xs text-gray-400 font-outfit">
+                      Selected: {form.domains.join(", ")}
+                    </p>
+                  )}
+                  {fieldErrors.domains && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <AlertCircle className="w-3 h-3" />
+                      {fieldErrors.domains}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-6">
+                  <Label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                    Services Offered
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  {form.domains.map(domain => {
+                    const domainServices = DOMAINS[domain] || [];
+                    const selectedForDomain = form.servicesOffered.filter(service => domainServices.includes(service));
+                    return (
+                      <div key={domain} className="space-y-2">
+                        <h3 className="text-sm font-medium text-gray-300 font-outfit">{domain}</h3>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                            >
+                              {selectedForDomain.length > 0 ? `${selectedForDomain.length} selected` : "Select Services"}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-64 bg-[#15325a] border-gray-700 max-h-64 overflow-auto">
+                            <DropdownMenuLabel className="text-gray-300">Choose Services</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-700" />
+                            {domainServices.map(service => (
+                              <DropdownMenuCheckboxItem
+                                key={service}
+                                checked={form.servicesOffered.includes(service)}
+                                onCheckedChange={(checked) => handleServiceChange(service, checked as boolean)}
+                                className="text-white focus:bg-[#11aad4] focus:text-white"
+                              >
+                                {service}
+                              </DropdownMenuCheckboxItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        {selectedForDomain.length > 0 && (
+                          <p className="text-xs text-gray-400 font-outfit">
+                            Selected: {selectedForDomain.join(", ")}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-gray-300 font-outfit">Other Services</h3>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        value={customService}
+                        onChange={(e) => setCustomService(e.target.value)}
+                        placeholder="Add custom service..."
+                        className="flex-1 h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#11aad4] focus:ring-offset-0 placeholder:text-gray-400 transition-all duration-300"
+                        onKeyPress={(e) => e.key === 'Enter' && addCustomService()}
+                      />
+                      <Button
+                        type="button"
+                        onClick={addCustomService}
+                        className="h-11 px-4 bg-[#11aad4] hover:bg-[#0d8bb3] text-white rounded-xl transition-all duration-300"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {form.servicesOffered.filter(service => !Object.values(DOMAINS).flat().includes(service)).length > 0 && (
+                      <p className="text-xs text-gray-400 font-outfit">
+                        Added: {form.servicesOffered.filter(service => !Object.values(DOMAINS).flat().includes(service)).join(", ")}
+                      </p>
+                    )}
+                  </div>
+                  {fieldErrors.servicesOffered && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <AlertCircle className="w-3 h-3" />
+                      {fieldErrors.servicesOffered}
+                    </div>
+                  )}
+                </div>
               </>
+            )}
+
+            {/* Confirmation Checkbox */}
+            <div className="flex items-start space-x-2">
+              <Checkbox
+                id="confirmation"
+                checked={userType === "business" ? form.confirmBusiness : form.confirmSociety}
+                onCheckedChange={(checked) => {
+                  setForm(prev => ({
+                    ...prev,
+                    [userType === "business" ? "confirmBusiness" : "confirmSociety"]: checked as boolean
+                  }));
+                }}
+                className="mt-1"
+              />
+              <Label htmlFor="confirmation" className="text-sm text-gray-300 font-outfit leading-relaxed cursor-pointer">
+                I confirm that the above details are accurate and represent our official{" "}
+                {userType === "business" ? "business" : "student organization"}.
+              </Label>
+            </div>
+            {((userType === "business" && fieldErrors.confirmBusiness) || (userType === "society" && fieldErrors.confirmSociety)) && (
+              <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                <AlertCircle className="w-3 h-3" />
+                {userType === "business" ? fieldErrors.confirmBusiness : fieldErrors.confirmSociety}
+              </div>
             )}
 
             <Button 

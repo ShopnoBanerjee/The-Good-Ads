@@ -41,7 +41,14 @@ async def complete_registration(request: Request, authorization: str = Header(..
             "business_name": body.get("business_name"),
             "poc_name": body.get("poc_name"),
             "phone_number": body.get("phone_number"),
-            "domain": body.get("domain"),
+            "establishment_date": body.get("establishment_date"),
+            "state": body.get("state"),
+            "city": body.get("city"),
+            "industry_sector": body.get("industry_sector"),
+            "company_type": body.get("company_type"),
+            "poc_role": body.get("poc_role"),
+            "domains": body.get("domains", []),
+            "objectives": body.get("objectives", []),
         }
         resp = supabase.table("business_profiles").upsert(profile_data).execute()
 
@@ -51,8 +58,14 @@ async def complete_registration(request: Request, authorization: str = Header(..
             "society_name": body.get("society_name"),
             "poc_name": body.get("poc_name"),
             "phone_number": body.get("phone_number"),
-            "domain": body.get("domain"),
-            "services_offered": body.get("services_offered"),
+            "establishment_date": body.get("establishment_date"),
+            "state": body.get("state"),
+            "city": body.get("city"),
+            "domains": body.get("domains", []),
+            "services_offered": body.get("services_offered", []),
+            "total_member_count": body.get("total_member_count"),
+            # optional college/university name
+            "college_name": body.get("college_name"),
         }
         resp = supabase.table("college_society_profiles").upsert(profile_data).execute()
 
