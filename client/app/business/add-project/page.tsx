@@ -4,37 +4,43 @@ import { useState, ChangeEvent, FormEvent, useEffect, Suspense, useCallback } fr
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabaseClient"
 import { API_URL } from "@/lib/constants"
+import { DOMAINS } from "@/lib/constants"
 import { z } from "zod"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, Building2, CheckCircle, Plus, FileText, Shield } from "lucide-react"
+import { ArrowLeft, Building2, CheckCircle, FileText, Plus, Globe, Settings } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // Form shape
 interface ProjectForm {
-  name: string
-  services: string
   description: string
-  hideDetails: boolean
+  domains: string[]
+  servicesOffered: string[]
 }
 
 // Error shape
 interface ProjectFormErrors {
-  name?: string
-  services?: string
   description?: string
+  domains?: string
+  servicesOffered?: string
 }
 
 // Project interface for edit mode
 interface Project {
   id: string
-  raw_name: string
-  raw_description: string
-  services_required: string
+  description: string
+  domains: string[]
+  services_offered: string[]
 }
 
 // Loading fallback component
@@ -86,22 +92,22 @@ function AddProjectForm() {
   const projectId = searchParams?.get("project_id")
 
   const [form, setForm] = useState<ProjectForm>({
-    name: "",
-    services: "",
     description: "",
-    hideDetails: false,
+    domains: [],
+    servicesOffered: [],
   })
   const [errors, setErrors] = useState<ProjectFormErrors>({})
   const [loading, setLoading] = useState<boolean>(false)
   const [apiError, setApiError] = useState<string>("")
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
   const [currentProject, setCurrentProject] = useState<Project | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<ProjectFormErrors>({})
 
   // ✅ Zod schema for validation
   const schema = z.object({
-    name: z.string().min(2, "Project name is required"),
-    services: z.string().min(2, "Services required is required"),
     description: z.string().min(10, "Description must be at least 10 characters"),
+    domains: z.array(z.string()).min(1, "At least one domain is required"),
+    servicesOffered: z.array(z.string()).min(1, "At least one service is required"),
   })
 
   // ✅ Fetch project data if in edit mode
@@ -134,10 +140,9 @@ function AddProjectForm() {
 
       // Populate form with existing data
       setForm({
-        name: project.raw_name,
-        services: project.services_required,
-        description: project.raw_description,
-        hideDetails: false, // Default to false for existing projects
+        description: project.description,
+        domains: project.domains,
+        servicesOffered: project.services_offered,
       })
     } catch (err: unknown) {
       setApiError(err instanceof Error ? err.message : "Failed to load project for editing")
@@ -155,6 +160,36 @@ function AddProjectForm() {
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handleDomainChange = (domain: string, checked: boolean) => {
+    setForm(prev => ({
+      ...prev,
+      domains: checked ? [...prev.domains, domain] : prev.domains.filter(d => d !== domain)
+    }))
+    setFieldErrors(prev => {
+      if (prev.domains) {
+        const newErrors = { ...prev }
+        delete newErrors.domains
+        return newErrors
+      }
+      return prev
+    })
+  }
+
+  const handleServiceChange = (service: string, checked: boolean) => {
+    setForm(prev => ({
+      ...prev,
+      servicesOffered: checked ? [...prev.servicesOffered, service] : prev.servicesOffered.filter(s => s !== service)
+    }))
+    setFieldErrors(prev => {
+      if (prev.servicesOffered) {
+        const newErrors = { ...prev }
+        delete newErrors.servicesOffered
+        return newErrors
+      }
+      return prev
+    })
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -202,10 +237,9 @@ function AddProjectForm() {
           },
           body: JSON.stringify({
             project_id: currentProject.id,
-            name: form.name,
-            services_required: form.services,
             description: form.description,
-            hide_details: form.hideDetails,
+            domains: form.domains,
+            services_offered: form.servicesOffered,
           }),
         })
       } else {
@@ -217,10 +251,9 @@ function AddProjectForm() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            name: form.name,
-            services_required: form.services,
             description: form.description,
-            hide_details: form.hideDetails,
+            domains: form.domains,
+            services_offered: form.servicesOffered,
           }),
         })
       }
@@ -235,12 +268,12 @@ function AddProjectForm() {
       if (isEditMode) {
         // For edit, redirect back to preview with updated data
         router.push(
-          `/business/preview?project_id=${currentProject!.id}&compliant=${encodeURIComponent(responseData.compliant_description)}`,
+          `/business/preview?project_id=${currentProject!.id}`,
         )
       } else {
         // For create, redirect to preview with new project data
         router.push(
-          `/business/preview?project_id=${responseData.project_id}&compliant=${encodeURIComponent(responseData.compliant_description)}`,
+          `/business/preview?project_id=${responseData.project_id}`,
         )
       }
     } catch (err: unknown) {
@@ -251,9 +284,9 @@ function AddProjectForm() {
   }
 
   const isFormValid =
-    !!form.name &&
-    !!form.services &&
-    !!form.description
+    !!form.description &&
+    form.domains.length > 0 &&
+    form.servicesOffered.length > 0
 
   return (
     <main className="min-h-screen bg-primary">
@@ -311,36 +344,113 @@ function AddProjectForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm font-medium text-text">
-                    Project Name *
+                  <Label className="text-sm font-medium text-text flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-accent" />
+                    Domains *
                   </Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    placeholder="e.g., Social Media Marketing Campaign"
-                    className="input h-12"
-                    required
-                  />
-                  {errors.name && <p className="text-xs text-error font-medium">{errors.name}</p>}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full h-12 font-outfit text-text bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                      >
+                        {form.domains.length > 0 ? `${form.domains.length} selected` : "Select Domains"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-full bg-[#15325a] border-gray-700 max-h-48 overflow-auto">
+                      <DropdownMenuLabel className="text-gray-300">Choose Domains</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      {Object.keys(DOMAINS).map(domain => (
+                        <DropdownMenuCheckboxItem
+                          key={domain}
+                          checked={form.domains.includes(domain)}
+                          onCheckedChange={(checked) => handleDomainChange(domain, checked as boolean)}
+                          className="text-white focus:bg-[#11aad4] focus:text-white"
+                        >
+                          {domain}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {form.domains.length > 0 && (
+                    <p className="text-xs text-gray-400 font-outfit">
+                      Selected: {form.domains.join(", ")}
+                    </p>
+                  )}
+                  {fieldErrors.domains && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <div className="w-3 h-3 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">!</div>
+                      {fieldErrors.domains}
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="services" className="text-sm font-medium text-text">
+                <div className="space-y-6">
+                  <Label className="text-sm font-medium text-text flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-accent" />
                     Services Required *
                   </Label>
-                  <Input
-                    id="services"
-                    name="services"
-                    value={form.services}
-                    onChange={handleChange}
-                    placeholder="e.g., Social Media Management, Event Planning, Content Creation"
-                    className="input h-12"
-                    required
-                  />
-                  {errors.services && <p className="text-xs text-error font-medium">{errors.services}</p>}
+                  {form.domains.map(domain => {
+                    const domainServices = DOMAINS[domain] || []
+                    const selectedForDomain = form.servicesOffered.filter(service => domainServices.includes(service))
+                    return (
+                      <div key={domain} className="space-y-2">
+                        <h3 className="text-sm font-medium text-gray-300 font-outfit">{domain}</h3>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full h-11 font-outfit text-white bg-gray-700 border border-gray-700 rounded-xl px-4 py-3 justify-start hover:bg-gray-600 transition-all duration-300"
+                            >
+                              {selectedForDomain.length > 0 ? `${selectedForDomain.length} selected` : "Select Services"}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-full bg-[#15325a] border-gray-700 max-h-64 overflow-auto">
+                            <DropdownMenuLabel className="text-gray-300">Choose Services</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-700" />
+                            {domainServices.map(service => (
+                              <DropdownMenuCheckboxItem
+                                key={service}
+                                checked={form.servicesOffered.includes(service)}
+                                onCheckedChange={(checked) => handleServiceChange(service, checked as boolean)}
+                                className="text-white focus:bg-[#11aad4] focus:text-white"
+                              >
+                                {service}
+                              </DropdownMenuCheckboxItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        {selectedForDomain.length > 0 && (
+                          <p className="text-xs text-gray-400 font-outfit">
+                            Selected: {selectedForDomain.join(", ")}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
+                  {fieldErrors.servicesOffered && (
+                    <div className="flex items-center gap-1 text-xs text-red-400 animate-in slide-in-from-top-1 duration-200 font-outfit">
+                      <div className="w-3 h-3 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">!</div>
+                      {fieldErrors.servicesOffered}
+                    </div>
+                  )}
                 </div>
+
+                {form.domains.length === 0 && (
+                  <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+                      <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                        Select domains first
+                      </p>
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        Choose your project domains above to see available services
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <Separator className="bg-border" />
@@ -373,24 +483,6 @@ function AddProjectForm() {
                     Minimum 10 characters. Be specific about your needs to attract the right societies.
                   </p>
                 </div>
-
-                <div className="flex items-center space-x-3 p-4 bg-accent/5 rounded-lg border border-accent/20">
-                  <Checkbox
-                    id="hideDetails"
-                    checked={form.hideDetails}
-                    onCheckedChange={(checked) => setForm({ ...form, hideDetails: checked as boolean })}
-                    className="data-[state=checked]:bg-accent data-[state=checked]:border-accent"
-                  />
-                  <div className="flex items-center space-x-2">
-                    <Shield className="w-4 h-4 text-accent" />
-                    <Label htmlFor="hideDetails" className="text-sm font-medium text-text cursor-pointer">
-                      Hide sensitive details for privacy compliance
-                    </Label>
-                  </div>
-                </div>
-                <p className="text-xs text-text-muted ml-7">
-                  When enabled, our AI will automatically redact company names, emails, phone numbers, and personal information from your project before publishing.
-                </p>
               </div>
 
               {/* Submit Button */}

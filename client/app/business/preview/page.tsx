@@ -11,9 +11,9 @@ import { ArrowLeft, CheckCircle, Eye, FileText } from "lucide-react";
 
 // ✅ Define Project type
 interface Project {
-  compliant_name: string;
-  compliant_description: string;
-  services_required: string;
+  description: string;
+  domains: string[];
+  services_offered: string[];
 }
 
 // Separate component that uses useSearchParams
@@ -179,20 +179,20 @@ function ProjectPreviewContent() {
                   <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                       <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3" />
-                      Project Name
+                      Domains
                     </h3>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed pl-5">
-                      {project.compliant_name}
+                      {project.domains.join(", ")}
                     </p>
                   </div>
 
                   <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                       <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3" />
-                      Services Required
+                      Services Offered
                     </h3>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed pl-5">
-                      {project.services_required}
+                      {project.services_offered.join(", ")}
                     </p>
                   </div>
 
@@ -202,7 +202,7 @@ function ProjectPreviewContent() {
                       Project Description
                     </h3>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed pl-5 whitespace-pre-line">
-                      {project.compliant_description}
+                      {project.description}
                     </p>
                   </div>
                 </div>

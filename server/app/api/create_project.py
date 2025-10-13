@@ -2,49 +2,10 @@ from fastapi import APIRouter, Request, Header, HTTPException, status
 from app.core.config import settings
 from app.core.security import verify_jwt
 from supabase import create_client
-from groq import AsyncGroq
 
 router = APIRouter()
 
 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
-
-
-async def run_ai_moderation(raw_name, raw_description):
-    print("[run_ai_moderation] Called with:", raw_name, raw_description)
-    api_key = getattr(settings, "GROQ_API_KEY", None)
-    print("[run_ai_moderation] Using API key:", "SET" if api_key else "NOT SET")
-    if not api_key:
-        print("[run_ai_moderation] No API key found, returning raw values")
-        return raw_name, raw_description
-    client = AsyncGroq(api_key=api_key)
-    prompt = (
-        "Redact all sensitive information (company names, emails, phone numbers, personal names) from the following text. "
-        "Replace each with [REDACTED].\nName: " + raw_name + "\nDescription: " + raw_description
-    )
-    print("[run_ai_moderation] Prompt:", prompt)
-    response = await client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": "You are a compliance assistant."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.2,
-        stream=False
-    )
-    print("[run_ai_moderation] AI response:", response)
-    ai_text = response.choices[0].message.content
-    print("[run_ai_moderation] AI text:", ai_text)
-    safe_name = raw_name
-    safe_description = raw_description
-    for line in ai_text.splitlines():
-        if line.lower().startswith("name:"):
-            safe_name = line.split(":",1)[1].strip()
-            print("[run_ai_moderation] Parsed safe_name:", safe_name)
-        elif line.lower().startswith("description:"):
-            safe_description = line.split(":",1)[1].strip()
-            print("[run_ai_moderation] Parsed safe_description:", safe_description)
-    print("[run_ai_moderation] Returning:", safe_name, safe_description)
-    return safe_name, safe_description
 
 
 @router.post("/api/create-project")
@@ -52,12 +13,12 @@ async def create_project(request: Request, authorization: str = Header(...)):
     body = await request.json()
 
     # ✅ Validate fields exist
-    raw_name = body.get("name")
-    services_required = body.get("services_required")
-    raw_description = body.get("description")
+    description = body.get("description")
+    domains = body.get("domains", [])
+    services_offered = body.get("services_offered", [])
     hide_details = body.get("hide_details", False)
 
-    if not raw_name or not services_required or not raw_description:
+    if not description or not domains or not services_offered:
         raise HTTPException(status_code=400, detail="Missing fields")
 
     # ✅ Check JWT
@@ -71,20 +32,12 @@ async def create_project(request: Request, authorization: str = Header(...)):
     if profile.data is None or profile.data["user_type"] != "business":
         raise HTTPException(status_code=403, detail="Only business users can create projects")
 
-    # ✅ Call AI agent for compliance if hide_details is True
-    if hide_details:
-        compliant_name, compliant_description = await run_ai_moderation(raw_name, raw_description)
-    else:
-        compliant_name, compliant_description = raw_name, raw_description
-
     insert_resp = supabase.table("projects").insert({
         "business_id": user_id,
-        "raw_name": raw_name,
-        "raw_description": raw_description,
-        "services_required": services_required,
-        "compliant_name": compliant_name,
-        "compliant_description": compliant_description,
-        "status": "pending_review"
+        "description": description,
+        "domains": domains,
+        "services_offered": services_offered,
+        "status": "draft"
     }).execute()
 
     print("INSERT RESPONSE:", insert_resp)
@@ -95,8 +48,7 @@ async def create_project(request: Request, authorization: str = Header(...)):
     project_id = insert_resp.data[0]["id"]
 
     return {
-        "project_id": project_id,
-        "compliant_description": compliant_description
+        "project_id": project_id
     }
 
 
@@ -194,7 +146,7 @@ async def confirm_project(request: Request, authorization: str = Header(...)):
         print(f"[confirm-project] ERROR: User {user_id} not authorized for project owned by {project['business_id']}")
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    if project["status"] not in ["approved", "pending_review", "published"]:
+    if project["status"] not in ["draft", "published"]:
         print(f"[confirm-project] ERROR: Invalid project status '{project['status']}' for confirmation")
         raise HTTPException(status_code=400, detail="Project cannot be confirmed in current state")
 
@@ -264,13 +216,13 @@ async def delete_project(request: Request, authorization: str = Header(...)):
 async def edit_project(request: Request, authorization: str = Header(...)):
     body = await request.json()
     project_id = body.get("project_id")
-    raw_name = body.get("name")
-    raw_description = body.get("description")
-    services_required = body.get("services_required")
+    description = body.get("description")
+    domains = body.get("domains", [])
+    services_offered = body.get("services_offered", [])
     hide_details = body.get("hide_details", False)
     status = body.get("status")
 
-    if not project_id or not raw_name or not raw_description or not services_required:
+    if not project_id or not description or not domains or not services_offered:
         raise HTTPException(status_code=400, detail="Missing fields")
 
     if not authorization.startswith("Bearer "):
@@ -286,29 +238,17 @@ async def edit_project(request: Request, authorization: str = Header(...)):
     if resp.data["business_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    # Call AI agent for compliance if hide_details is True
-    if hide_details:
-        compliant_name, compliant_description = await run_ai_moderation(raw_name, raw_description)
-    else:
-        compliant_name, compliant_description = raw_name, raw_description
-
     update_resp = supabase.table("projects").update({
-        "raw_name": raw_name,
-        "raw_description": raw_description,
-        "services_required": services_required,
-        "compliant_name": compliant_name,
-        "compliant_description": compliant_description,
+        "description": description,
+        "domains": domains,
+        "services_offered": services_offered,
         **({"status": status} if status else {})
     }).eq("id", project_id).execute()
 
     if not update_resp.data:
         raise HTTPException(status_code=500, detail="Failed to update project.")
 
-    return {
-        "message": "Project updated successfully",
-        "compliant_name": compliant_name,
-        "compliant_description": compliant_description
-    }
+    return {"message": "Project updated successfully"}
 
 @router.get("/api/business-projects")
 async def get_business_projects(authorization: str = Header(...)):
