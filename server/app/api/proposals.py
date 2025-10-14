@@ -235,6 +235,32 @@ async def get_business_projects(authorization: str = Header(...)):
 
     return enhanced_projects
 
+@router.get("/api/business-projects/{project_id}")
+async def get_business_project(project_id: str, authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401)
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    profile = supabase.table("profiles").select("user_type").eq("id", user_id).single().execute()
+    if not profile.data or profile.data["user_type"] != "business":
+        raise HTTPException(status_code=403, detail="Only businesses can view")
+
+    # Get the specific project for this business
+    project = supabase.table("projects").select("*").eq("id", project_id).eq("business_id", user_id).single().execute()
+
+    if not project.data:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Check if project has an accepted proposal
+    accepted_proposal = supabase.table("proposals").select("id, society_id").eq("project_id", project_id).eq("status", "accepted").execute()
+    has_accepted_proposal = len(accepted_proposal.data) > 0 if accepted_proposal.data else False
+
+    enhanced_project = {**project.data, "has_accepted_proposal": has_accepted_proposal}
+
+    return enhanced_project
+
 @router.get("/api/project-proposals")
 async def get_project_proposals(project_id: str, authorization: str = Header(...)):
     if not project_id:
