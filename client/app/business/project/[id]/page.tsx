@@ -351,10 +351,20 @@ export default function Page() {
         </div>
 
         {/* Content */}
-        <Tabs defaultValue="milestones" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="milestones">Milestones & Tasks</TabsTrigger>
-            <TabsTrigger value="ratings">Ratings & Reviews</TabsTrigger>
+        <Tabs defaultValue="milestones" className="space-y-6 mt-4">
+          <TabsList className="grid w-full grid-cols-2 bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 p-1">
+            <TabsTrigger
+              value="milestones"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+            >
+              Milestones & Tasks
+            </TabsTrigger>
+            <TabsTrigger
+              value="ratings"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+            >
+              Ratings & Reviews
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="milestones" className="space-y-6">
@@ -451,9 +461,6 @@ export default function Page() {
                                   month: 'long',
                                   day: 'numeric'
                                 })}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                Rater ID: {rating.rater_id}
                               </p>
                             </div>
                           </div>

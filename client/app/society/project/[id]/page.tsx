@@ -288,10 +288,20 @@ export default function SocietyProjectDetailPage() {
         </div>
 
         {/* Content */}
-        <Tabs defaultValue="tasks" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="tasks">Tasks & Progress</TabsTrigger>
-            <TabsTrigger value="ratings">Ratings & Reviews</TabsTrigger>
+        <Tabs defaultValue="tasks" className="space-y-6 mt-4">
+          <TabsList className="grid w-full grid-cols-2 bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 p-1">
+            <TabsTrigger
+              value="tasks"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+            >
+              Tasks & Progress
+            </TabsTrigger>
+            <TabsTrigger
+              value="ratings"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+            >
+              Ratings & Reviews
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="tasks" className="space-y-6">
@@ -362,9 +372,6 @@ export default function SocietyProjectDetailPage() {
                                   month: 'long',
                                   day: 'numeric'
                                 })}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                Rater ID: {rating.rater_id}
                               </p>
                             </div>
                           </div>
