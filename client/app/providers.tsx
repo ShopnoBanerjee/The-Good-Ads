@@ -27,7 +27,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         data: { session },
         error,
       } = await supabase.auth.getSession();
-      console.log("[AuthProvider] getSession result:", session, error);
       setSession(session);
 
       if (session) {
@@ -42,7 +41,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUserType(profile.user_type); // "business" or "college_society"
         } else {
           setUserType(undefined);
-          if (profileError) console.error("Profile fetch error:", profileError);
         }
       } else {
         setUserType(undefined);
@@ -54,7 +52,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("[AuthProvider] onAuthStateChange event:", event, session);
       getSessionAndType();
     });
 
@@ -62,7 +59,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [supabase]);
 
   useEffect(() => {
-    console.log("[AuthProvider] session state changed:", session);
   }, [session]);
 
   return (

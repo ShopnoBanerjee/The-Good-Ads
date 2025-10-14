@@ -92,7 +92,6 @@ export const useRatings = (projectId: string) => {
           filter: `project_id=eq.${projectId}`,
         },
         (payload) => {
-          console.log('Rating change:', payload);
           fetchRatings(); // Refetch ratings when any change occurs
         }
       )

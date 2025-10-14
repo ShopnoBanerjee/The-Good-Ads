@@ -97,20 +97,13 @@ const FormField = ({ label, name, type = "text", icon: Icon, placeholder, requir
 function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userType = searchParams.get("userType") || "business";
   const { session } = useAuth();
+  const userTypeFromParams = searchParams.get("userType");
+  const userTypeFromMetadata = session?.user?.user_metadata?.userType;
+  const initialUserType = userTypeFromParams || userTypeFromMetadata;
+  const [selectedUserType, setSelectedUserType] = useState<string | null>(initialUserType);
 
   useEffect(() => {
-    console.log("[RegisterPage] session from useAuth:", session);
-    if (typeof window !== "undefined") {
-      console.log("[RegisterPage] document.cookie:", document.cookie);
-      console.log("[RegisterPage] localStorage keys:", Object.keys(localStorage));
-      const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.split("https://")[1]?.split(".");
-      if (projectRef) {
-        const key = `sb-${projectRef}-auth-token`;
-        console.log(`[RegisterPage] localStorage[${key}]:`, localStorage.getItem(key));
-      }
-    }
   }, [session]);
 
   const [form, setForm] = useState<FormData>({
@@ -419,6 +412,54 @@ function RegisterPageContent() {
       </main>
     );
   }
+
+  // If no userType determined, show selection
+  if (!selectedUserType) {
+    return (
+      <main className="min-h-screen bg-blue-900 flex items-center justify-center p-4 font-outfit">
+        <Card className="w-full max-w-lg shadow-2xl border-0 bg-[#15325a] relative z-10">
+          <CardContent className="p-8">
+            <div className="text-center mb-8">
+              <div className="relative mx-auto mb-4 w-40 h-40 rounded-full overflow-hidden">
+                <Image 
+                  src={CompanyLogo}
+                  alt="Company Logo" 
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <h1 className="text-2xl font-bold text-white mb-2 font-outfit">
+                Choose Account Type
+              </h1>
+              <p className="text-gray-400 text-sm font-outfit">
+                Select the type of account you want to create
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Button 
+                onClick={() => setSelectedUserType('business')} 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Building2 className="mr-2 h-4 w-4" />
+                Business
+              </Button>
+              <Button 
+                onClick={() => setSelectedUserType('college_society')} 
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Users className="mr-2 h-4 w-4" />
+                College Society
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
+  // Now selectedUserType is set, use it as userType
+  const userType = selectedUserType;
 
   return (
     <main className="min-h-screen bg-blue-900 flex items-center justify-center p-4 font-outfit">

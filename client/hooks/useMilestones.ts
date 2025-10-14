@@ -58,8 +58,6 @@ export const useMilestones = (projectId: string) => {
   const createMilestone = async (data: CreateMilestoneData) => {
     setLoading(true);
     try {
-      console.log('Creating milestone with data:', data);
-
       // Get the current session from Supabase
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !sessionData.session) {
@@ -83,7 +81,6 @@ export const useMilestones = (projectId: string) => {
       }
 
       const newMilestone = await response.json();
-      console.log('Milestone created:', newMilestone);
 
       addMilestone(newMilestone);
       addNotification({
@@ -169,7 +166,6 @@ export const useMilestones = (projectId: string) => {
           filter: `project_id=eq.${projectId}`,
         },
         (payload) => {
-          console.log('Milestone change:', payload);
           fetchMilestones(); // Refetch all milestones when any change occurs
         }
       )
@@ -186,7 +182,6 @@ export const useMilestones = (projectId: string) => {
           table: 'tasks',
         },
         (payload) => {
-          console.log('Task change:', payload);
           // Check if this task belongs to our project
           if (payload.new && milestones.some(m => m.tasks.some(t => t.id === payload.new.id))) {
             fetchMilestones(); // Refetch milestones when tasks in our project change
