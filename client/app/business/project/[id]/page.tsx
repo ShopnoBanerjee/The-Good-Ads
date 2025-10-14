@@ -547,7 +547,7 @@ export default function Page() {
                               Review Comments
                             </h4>
                             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                              "{rating.review_text}"
+                              &ldquo;{rating.review_text}&rdquo;
                             </p>
                           </div>
                         )}

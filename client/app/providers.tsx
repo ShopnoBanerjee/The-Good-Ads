@@ -25,13 +25,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const getSessionAndType = async (): Promise<void> => {
       const {
         data: { session },
-        error,
+        error: _error,
       } = await supabase.auth.getSession();
       setSession(session);
 
       if (session) {
         // Fetch user_type from the profiles table
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: _profileError } = await supabase
           .from("profiles")
           .select("user_type")
           .eq("id", session.user.id)
@@ -51,7 +51,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Listen for changes and re-check session
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, _session) => {
       getSessionAndType();
     });
 
