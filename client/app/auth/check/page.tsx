@@ -2,17 +2,22 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 
 export default async function CheckPage() {
+
   const supabase = await createClient()
 
   // Get user session
   const { data: { user }, error: userError } = await supabase.auth.getUser()
+
   if (userError || !user) {
     redirect('/auth')
   }
 
-  // Check if email is confirmed (optional but recommended)
-  if (!user.email_confirmed_at) {
-    redirect('/auth/confirm')
+  // Get user session for API calls
+  const { data: sessionData } = await supabase.auth.getSession()
+  const accessToken = sessionData.session?.access_token
+
+  if (!accessToken) {
+    redirect('/auth')
   }
 
   // Fetch user profile
@@ -25,17 +30,16 @@ export default async function CheckPage() {
   if (profileError) {
     // If profile doesn't exist, check metadata for userType
     const userType = user.user_metadata?.userType
+
     if (userType && (userType === 'business' || userType === 'college_society')) {
       redirect(`/register?userType=${userType}`)
     } else {
-      // No profile and no valid metadata, redirect to auth
       redirect('/auth')
     }
   }
 
   // Profile exists
   if (!profile.user_type) {
-    // Profile exists but user_type is null, redirect to register to complete
     redirect('/register')
   }
 
@@ -46,29 +50,45 @@ export default async function CheckPage() {
 
   // Check if corresponding profile exists
   if (profile.user_type === 'business') {
-    const { data: businessProfile, error: bpError } = await supabase
-      .from('business_profiles')
-      .select('id')
-      .eq('id', user.id)
-      .single()
+    let businessProfile = null
+    let apiError = false
 
-    if (bpError || !businessProfile) {
-      // Business profile not complete, redirect to register
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/business-profile`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      })
+      businessProfile = response.ok ? await response.json() : null
+    } catch (error) {
+      apiError = true
+    }
+
+    if (apiError || !businessProfile) {
       redirect('/register?userType=business')
     }
+
     redirect('/business')
   } else if (profile.user_type === 'college_society') {
-    const { data: societyProfile, error: spError } = await supabase
-      .from('college_society_profiles')
-      .select('id')
-      .eq('id', user.id)
-      .single()
+    let societyProfile = null
+    let apiError = false
 
-    if (spError || !societyProfile) {
-      // Society profile not complete, redirect to register
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/society-profile`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      })
+      societyProfile = response.ok ? await response.json() : null
+    } catch (error) {
+      apiError = true
+    }
+
+    if (apiError || !societyProfile) {
       redirect('/register?userType=college_society')
     }
-    redirect('/society/marketplace')
+
+    redirect('/society')
   }
 
   // Fallback (should never render)
