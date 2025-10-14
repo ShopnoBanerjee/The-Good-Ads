@@ -29,6 +29,7 @@ import {
   ExternalLink,
   Lock,
   Award,
+  Star,
 } from "lucide-react"
 
 // Type definitions
@@ -47,6 +48,8 @@ interface Proposal {
   status?: "pending" | "accepted" | "rejected" | "submitted"
   created_at?: string
   project_id?: string
+  average_rating?: number
+  total_ratings?: number
 }
 
 interface ProjectDetails {
@@ -476,7 +479,7 @@ export default function ProjectProposalsPage() {
                           </div>
 
                           {/* Key Stats */}
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                             {proposal.establishment_date && (
                               <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 text-center">
                                 <Calendar className="w-3 h-3 text-blue-600 mx-auto mb-1" />
@@ -491,6 +494,15 @@ export default function ProjectProposalsPage() {
                                 <Users className="w-3 h-3 text-green-600 mx-auto mb-1" />
                                 <p className="text-xs text-text-muted">Members</p>
                                 <p className="font-semibold text-text text-sm">{proposal.total_member_count}</p>
+                              </div>
+                            )}
+                            {proposal.average_rating !== undefined && proposal.average_rating > 0 && (
+                              <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 text-center">
+                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 mx-auto mb-1" />
+                                <p className="text-xs text-text-muted">Rating</p>
+                                <p className="font-semibold text-text text-sm">
+                                  {proposal.average_rating.toFixed(1)} ({proposal.total_ratings || 0})
+                                </p>
                               </div>
                             )}
                             <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 text-center">

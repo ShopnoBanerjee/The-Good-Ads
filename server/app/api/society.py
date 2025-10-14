@@ -78,12 +78,17 @@ async def update_society_profile(request: Request, authorization: str = Header(.
         array_fields = ['domains', 'services_offered']
         for field in array_fields:
             if field in body:
-                if not isinstance(body[field], list):
-                    raise HTTPException(status_code=400, detail=f"{field} must be an array")
-                # Ensure all items are strings
-                if not all(isinstance(item, str) for item in body[field]):
-                    raise HTTPException(status_code=400, detail=f"All items in {field} must be strings")
-                update_data[field] = [item.strip() for item in body[field] if item.strip()]
+                if body[field] is None:
+                    update_data[field] = None
+                elif not isinstance(body[field], list):
+                    raise HTTPException(status_code=400, detail=f"{field} must be an array or null")
+                else:
+                    # Ensure all items are strings
+                    if not all(isinstance(item, str) for item in body[field]):
+                        raise HTTPException(status_code=400, detail=f"All items in {field} must be strings")
+                    # Process the array, filtering out empty strings
+                    processed_array = [item.strip() for item in body[field] if item.strip()]
+                    update_data[field] = processed_array
 
         # Integer field
         if 'total_member_count' in body:
@@ -91,8 +96,8 @@ async def update_society_profile(request: Request, authorization: str = Header(.
                 raise HTTPException(status_code=400, detail="total_member_count must be a non-negative integer")
             update_data['total_member_count'] = body['total_member_count']
 
-        # Remove any fields that are None or empty
-        update_data = {k: v for k, v in update_data.items() if v is not None and (not isinstance(v, list) or v)}
+        # Only remove fields that are not present in the update (but keep None values as they are explicit updates)
+        # We don't filter out None or empty arrays here since they are valid update values
 
         if not update_data:
             raise HTTPException(status_code=400, detail="No valid fields to update")

@@ -280,10 +280,21 @@ async def get_project_proposals(project_id: str, authorization: str = Header(...
     # Get proposals for this project
     proposals = supabase.table("proposals").select("*").eq("project_id", project_id).execute()
 
-    # Enhance proposals with society details from the stored society_details field
+    # Enhance proposals with society details from the stored society_details field and fresh rating data
     enhanced_proposals = []
     for proposal in proposals.data:
         society_details = proposal.get("society_details", {})
+        
+        # Fetch fresh rating data from college_society_profiles
+        society_profile = supabase.table("college_society_profiles").select("average_rating, total_ratings").eq("id", proposal["society_id"]).single().execute()
+        
+        # Get rating data with null handling
+        average_rating = None
+        total_ratings = 0
+        if society_profile.data:
+            average_rating = society_profile.data.get("average_rating")
+            total_ratings = society_profile.data.get("total_ratings", 0)
+        
         enhanced_proposal = {
             **proposal,
             "society_name": society_details.get("society_name", f"Society {proposal['society_id']}"),
@@ -294,7 +305,9 @@ async def get_project_proposals(project_id: str, authorization: str = Header(...
             "society_domains": society_details.get("domains", []),
             "society_services_offered": society_details.get("services_offered", []),
             "total_member_count": society_details.get("total_member_count"),
-            "college_name": society_details.get("college_name")
+            "college_name": society_details.get("college_name"),
+            "average_rating": average_rating,
+            "total_ratings": total_ratings
         }
         enhanced_proposals.append(enhanced_proposal)
 
