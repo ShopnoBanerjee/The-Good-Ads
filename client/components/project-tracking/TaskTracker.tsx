@@ -5,11 +5,10 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Clock, AlertCircle, Calendar, TrendingUp } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle, Calendar } from 'lucide-react';
 import { MilestoneWithTasks } from '@/types/project-tracking';
 import { useTasks } from '@/hooks/useTasks';
 import { useProjectStore } from '@/stores/useProjectStore';
-import { CircularProgress } from '@/components/ui/circular-progress';
 
 interface TaskTrackerProps {
   milestones: MilestoneWithTasks[];
@@ -47,19 +46,6 @@ export default function TaskTracker({ milestones, projectStatus }: TaskTrackerPr
     }
   };
 
-  const calculateOverallProgress = () => {
-    if (milestones.length === 0) return 0;
-
-    const totalTasks = milestones.reduce((sum, m) => sum + m.tasks.length, 0);
-    const completedTasks = milestones.reduce((sum, m) =>
-      sum + m.tasks.filter(t => t.is_completed).length, 0
-    );
-
-    return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  };
-
-  const overallProgress = calculateOverallProgress();
-
   if (loading && milestones.length === 0) {
     return (
       <div className="space-y-6">
@@ -96,36 +82,6 @@ export default function TaskTracker({ milestones, projectStatus }: TaskTrackerPr
 
   return (
     <div className="space-y-6">
-      {/* Overall Progress */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800" role="region" aria-labelledby="project-progress">
-        <CardHeader>
-          <CardTitle id="project-progress" className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
-            <TrendingUp className="w-5 h-5" aria-hidden="true" />
-            Project Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <CircularProgress
-                value={overallProgress}
-                size={100}
-                color={overallProgress === 100 ? 'green' : overallProgress > 50 ? 'blue' : 'amber'}
-              />
-              <div>
-                <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-1">
-                  Project Progress
-                </div>
-                <div className="text-sm text-blue-700 dark:text-blue-300">
-                  {milestones.reduce((sum, m) => sum + m.tasks.filter(t => t.is_completed).length, 0)} of{' '}
-                  {milestones.reduce((sum, m) => sum + m.tasks.length, 0)} tasks completed
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Milestones */}
       <div className="space-y-4">
         {milestones.map((milestone) => {

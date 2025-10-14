@@ -39,6 +39,7 @@ import {
   AlertCircle,
   LucideIcon,
   MapPin,
+  Star
 } from "lucide-react"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -68,6 +69,7 @@ interface Profile {
   description?: string
   logo_url?: string
   average_rating?: number
+  total_ratings?: number
 }
 
 interface PortfolioItem {
@@ -949,7 +951,7 @@ export default function SocietyPortfolioPage() {
 
               {/* Stats Section */}
               {!isEditingProfile && (
-                <div className="grid grid-cols-2 gap-3 sm:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6">
                   <div className="bg-white/10 dark:bg-white/20 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center transition-colors duration-200 ease-in-out">
                     <div className="flex items-center justify-center mb-2">
                       <Camera className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -964,6 +966,17 @@ export default function SocietyPortfolioPage() {
                     </div>
                     <p className="text-white/70 text-xs sm:text-sm font-outfit">Members</p>
                   </div>
+                  {profile.average_rating !== undefined && profile.average_rating > 0 && (
+                    <div className="bg-white/10 dark:bg-white/20 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center transition-colors duration-200 ease-in-out">
+                      <div className="flex items-center justify-center mb-2">
+                        <Star className="w-4 h-4 sm:w-5 sm:h-5 mr-2 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xl sm:text-2xl font-bold font-outfit">{profile.average_rating.toFixed(1)}</span>
+                      </div>
+                      <p className="text-white/70 text-xs sm:text-sm font-outfit">
+                        Rating ({profile.total_ratings || 0})
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

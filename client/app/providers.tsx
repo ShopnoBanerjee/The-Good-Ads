@@ -25,14 +25,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const getSessionAndType = async (): Promise<void> => {
       const {
         data: { session },
-        error,
+        error: _error, // eslint-disable-line @typescript-eslint/no-unused-vars
       } = await supabase.auth.getSession();
-      console.log("[AuthProvider] getSession result:", session, error);
       setSession(session);
 
       if (session) {
         // Fetch user_type from the profiles table
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: _profileError } = await supabase // eslint-disable-line @typescript-eslint/no-unused-vars
           .from("profiles")
           .select("user_type")
           .eq("id", session.user.id)
@@ -42,7 +41,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUserType(profile.user_type); // "business" or "college_society"
         } else {
           setUserType(undefined);
-          if (profileError) console.error("Profile fetch error:", profileError);
         }
       } else {
         setUserType(undefined);
@@ -53,8 +51,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Listen for changes and re-check session
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("[AuthProvider] onAuthStateChange event:", event, session);
+    } = supabase.auth.onAuthStateChange((_event, _session) => { // eslint-disable-line @typescript-eslint/no-unused-vars
       getSessionAndType();
     });
 
@@ -62,7 +59,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [supabase]);
 
   useEffect(() => {
-    console.log("[AuthProvider] session state changed:", session);
   }, [session]);
 
   return (

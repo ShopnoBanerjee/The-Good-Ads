@@ -29,6 +29,7 @@ import {
   ExternalLink,
   Lock,
   Award,
+  Star,
 } from "lucide-react"
 
 // Type definitions
@@ -47,6 +48,8 @@ interface Proposal {
   status?: "pending" | "accepted" | "rejected" | "submitted"
   created_at?: string
   project_id?: string
+  average_rating?: number
+  total_ratings?: number
 }
 
 interface ProjectDetails {
@@ -385,9 +388,11 @@ export default function ProjectProposalsPage() {
           <div className={projectDetails ? "lg:col-span-3" : "lg:col-span-4"}>
             {/* Accepted Proposal Notification */}
             {hasAcceptedProposal && (
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 mb-6">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 border border-green-200 dark:border-green-800 rounded-xl p-4 mb-6 shadow-lg">
                 <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-5 h-5 text-white" />
+                  </div>
                   <div>
                     <h4 className="font-semibold text-green-800 dark:text-green-300">Proposal Accepted</h4>
                     <p className="text-sm text-green-700 dark:text-green-400">
@@ -474,7 +479,7 @@ export default function ProjectProposalsPage() {
                           </div>
 
                           {/* Key Stats */}
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                             {proposal.establishment_date && (
                               <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 text-center">
                                 <Calendar className="w-3 h-3 text-blue-600 mx-auto mb-1" />
@@ -489,6 +494,15 @@ export default function ProjectProposalsPage() {
                                 <Users className="w-3 h-3 text-green-600 mx-auto mb-1" />
                                 <p className="text-xs text-text-muted">Members</p>
                                 <p className="font-semibold text-text text-sm">{proposal.total_member_count}</p>
+                              </div>
+                            )}
+                            {proposal.average_rating !== undefined && proposal.average_rating > 0 && (
+                              <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 text-center">
+                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 mx-auto mb-1" />
+                                <p className="text-xs text-text-muted">Rating</p>
+                                <p className="font-semibold text-text text-sm">
+                                  {proposal.average_rating.toFixed(1)} ({proposal.total_ratings || 0})
+                                </p>
                               </div>
                             )}
                             <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 text-center">
@@ -536,23 +550,16 @@ export default function ProjectProposalsPage() {
                               </div>
                               <h4 className="font-semibold text-text">Services Offered</h4>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div className="flex flex-wrap gap-2">
                               {proposal.society_services_offered.slice(0, 6).map((service, index) => (
-                                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm border border-green-100 dark:border-green-900/50">
-                                  <div className="flex items-center space-x-2">
-                                    <div className="w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-md flex items-center justify-center">
-                                      <span className="text-green-600 dark:text-green-400 font-bold text-xs">{index + 1}</span>
-                                    </div>
-                                    <span className="text-sm font-medium text-text">{service}</span>
-                                  </div>
-                                </div>
+                                <Badge key={index} variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200 text-sm">
+                                  {service}
+                                </Badge>
                               ))}
                               {proposal.society_services_offered.length > 6 && (
-                                <div className="bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm border border-green-100 dark:border-green-900/50 flex items-center justify-center">
-                                  <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                                    +{proposal.society_services_offered.length - 6} more services
-                                  </span>
-                                </div>
+                                <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200 text-sm">
+                                  +{proposal.society_services_offered.length - 6} more
+                                </Badge>
                               )}
                             </div>
                           </div>

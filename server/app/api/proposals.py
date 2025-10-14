@@ -187,9 +187,9 @@ async def accept_proposal(request: Request, authorization: str = Header(...)):
 
     supabase.table("proposals").update({"status": "accepted"}).eq("id", proposal_id).execute()
 
-    # Update project with society_id and set status to 'accepted'
+    # Update project with society_id and set status to 'active'
     society_id = proposal.data["society_id"]
-    supabase.table("projects").update({"society_id": society_id, "status": "accepted"}).eq("id", project_id).execute()
+    supabase.table("projects").update({"society_id": society_id, "status": "active"}).eq("id", project_id).execute()
 
     business_id = user_id
 
@@ -235,6 +235,32 @@ async def get_business_projects(authorization: str = Header(...)):
 
     return enhanced_projects
 
+@router.get("/api/business-projects/{project_id}")
+async def get_business_project(project_id: str, authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401)
+
+    token = authorization.split(" ")[1]
+    user_id = verify_jwt(token, settings.SUPABASE_JWT_SECRET)
+
+    profile = supabase.table("profiles").select("user_type").eq("id", user_id).single().execute()
+    if not profile.data or profile.data["user_type"] != "business":
+        raise HTTPException(status_code=403, detail="Only businesses can view")
+
+    # Get the specific project for this business
+    project = supabase.table("projects").select("*").eq("id", project_id).eq("business_id", user_id).single().execute()
+
+    if not project.data:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Check if project has an accepted proposal
+    accepted_proposal = supabase.table("proposals").select("id, society_id").eq("project_id", project_id).eq("status", "accepted").execute()
+    has_accepted_proposal = len(accepted_proposal.data) > 0 if accepted_proposal.data else False
+
+    enhanced_project = {**project.data, "has_accepted_proposal": has_accepted_proposal}
+
+    return enhanced_project
+
 @router.get("/api/project-proposals")
 async def get_project_proposals(project_id: str, authorization: str = Header(...)):
     if not project_id:
@@ -254,10 +280,21 @@ async def get_project_proposals(project_id: str, authorization: str = Header(...
     # Get proposals for this project
     proposals = supabase.table("proposals").select("*").eq("project_id", project_id).execute()
 
-    # Enhance proposals with society details from the stored society_details field
+    # Enhance proposals with society details from the stored society_details field and fresh rating data
     enhanced_proposals = []
     for proposal in proposals.data:
         society_details = proposal.get("society_details", {})
+        
+        # Fetch fresh rating data from college_society_profiles
+        society_profile = supabase.table("college_society_profiles").select("average_rating, total_ratings").eq("id", proposal["society_id"]).single().execute()
+        
+        # Get rating data with null handling
+        average_rating = None
+        total_ratings = 0
+        if society_profile.data:
+            average_rating = society_profile.data.get("average_rating")
+            total_ratings = society_profile.data.get("total_ratings", 0)
+        
         enhanced_proposal = {
             **proposal,
             "society_name": society_details.get("society_name", f"Society {proposal['society_id']}"),
@@ -268,7 +305,9 @@ async def get_project_proposals(project_id: str, authorization: str = Header(...
             "society_domains": society_details.get("domains", []),
             "society_services_offered": society_details.get("services_offered", []),
             "total_member_count": society_details.get("total_member_count"),
-            "college_name": society_details.get("college_name")
+            "college_name": society_details.get("college_name"),
+            "average_rating": average_rating,
+            "total_ratings": total_ratings
         }
         enhanced_proposals.append(enhanced_proposal)
 
