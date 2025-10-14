@@ -60,7 +60,7 @@ export default async function CheckPage() {
         },
       })
       businessProfile = response.ok ? await response.json() : null
-    } catch (error) {
+    } catch {
       apiError = true
     }
 
@@ -80,7 +80,7 @@ export default async function CheckPage() {
         },
       })
       societyProfile = response.ok ? await response.json() : null
-    } catch (error) {
+    } catch {
       apiError = true
     }
 
