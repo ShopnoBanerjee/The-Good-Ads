@@ -7,10 +7,11 @@ import Link from 'next/link';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { API_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Calendar, Star } from 'lucide-react';
+import { ArrowLeft, Calendar, Star, TrendingUp } from 'lucide-react';
+import { CircularProgress } from '@/components/ui/circular-progress';
 import { toast } from 'sonner';
 import TaskTracker from '@/components/project-tracking/TaskTracker';
 import RatingModal from '@/components/project-tracking/RatingModal';
@@ -167,42 +168,88 @@ export default function SocietyProjectDetailPage() {
 
               {/* Additional metadata */}
               <div className="bg-white/50 dark:bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 p-6">
-                <div className="space-y-4">
-                  {project.domains && project.domains.length > 0 && (
-                    <div className="space-y-3">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Domains
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {project.domains.map((domain, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700"
-                          >
-                            {domain}
-                          </span>
-                        ))}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left side - Domains and Services */}
+                  <div className="space-y-4">
+                    {project.domains && project.domains.length > 0 && (
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                          Domains
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {project.domains.map((domain, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700"
+                            >
+                              {domain}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {project.services_offered && project.services_offered.length > 0 && (
-                    <div className="space-y-3">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Technologies & Services
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {project.services_offered.map((service, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700"
-                          >
-                            {service}
-                          </span>
-                        ))}
+                    {project.services_offered && project.services_offered.length > 0 && (
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                          Technologies & Services
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {project.services_offered.map((service, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700"
+                            >
+                              {service}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
+                  {/* Right side - Project Progress */}
+                  <div className="flex items-center justify-center lg:justify-end">
+                    <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800 w-full max-w-sm">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100 text-sm">
+                          <TrendingUp className="w-4 h-4" />
+                          Project Progress
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="flex items-center gap-4">
+                          <CircularProgress
+                            value={milestones.length > 0 ? Math.round(
+                              (milestones.reduce((sum, m) => sum + m.tasks.filter(t => t.is_completed).length, 0) /
+                               milestones.reduce((sum, m) => sum + m.tasks.length, 0)) * 100
+                            ) : 0}
+                            size={60}
+                            color={
+                              milestones.length > 0 && milestones.every(m => m.tasks.every(t => t.is_completed))
+                                ? 'green'
+                                : milestones.reduce((sum, m) => sum + m.tasks.filter(t => t.is_completed).length, 0) /
+                                  Math.max(milestones.reduce((sum, m) => sum + m.tasks.length, 0), 1) > 0.5
+                                ? 'blue'
+                                : 'amber'
+                            }
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+                              {milestones.length > 0 ? Math.round(
+                                (milestones.reduce((sum, m) => sum + m.tasks.filter(t => t.is_completed).length, 0) /
+                                 Math.max(milestones.reduce((sum, m) => sum + m.tasks.length, 0), 1)) * 100
+                              ) : 0}%
+                            </div>
+                            <div className="text-xs text-blue-700 dark:text-blue-300">
+                              {milestones.reduce((sum, m) => sum + m.tasks.filter(t => t.is_completed).length, 0)} of{' '}
+                              {milestones.reduce((sum, m) => sum + m.tasks.length, 0)} tasks
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
               </div>
             </div>

@@ -36,11 +36,31 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   setCurrentProject: (project) => set({ currentProject: project }),
 
-  setMilestones: (milestones) => set({ milestones }),
+  setMilestones: (milestones) => set({
+    milestones: [...milestones].sort((a, b) => {
+      // Handle cases where due_date might be null/undefined
+      if (!a.due_date && !b.due_date) return 0;
+      if (!a.due_date) return 1; // Milestones without due dates go to the end
+      if (!b.due_date) return -1; // Milestones without due dates go to the end
+
+      const dateA = new Date(a.due_date);
+      const dateB = new Date(b.due_date);
+      return dateA.getTime() - dateB.getTime(); // Ascending order
+    })
+  }),
 
   addMilestone: (milestone) =>
     set((state) => ({
-      milestones: [...state.milestones, milestone],
+      milestones: [...state.milestones, milestone].sort((a, b) => {
+        // Handle cases where due_date might be null/undefined
+        if (!a.due_date && !b.due_date) return 0;
+        if (!a.due_date) return 1; // Milestones without due dates go to the end
+        if (!b.due_date) return -1; // Milestones without due dates go to the end
+
+        const dateA = new Date(a.due_date);
+        const dateB = new Date(b.due_date);
+        return dateA.getTime() - dateB.getTime(); // Ascending order
+      }),
     })),
 
   updateMilestone: (id, updates) =>

@@ -16,7 +16,15 @@ import { useMilestones } from '@/hooks/useMilestones';
 const milestoneSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  due_date: z.string().optional(),
+  due_date: z.string().optional().refine((date) => {
+    if (!date) return true; // Optional field
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    return selectedDate >= today;
+  }, {
+    message: 'Due date must be today or later'
+  }),
   tasks: z.array(z.object({ value: z.string().min(1, 'Task description is required') })).min(1, 'At least one task is required'),
 });
 
@@ -129,12 +137,19 @@ export default function MilestoneForm({ projectId, onSuccess }: MilestoneFormPro
               id="due_date"
               type="date"
               {...register('due_date')}
+              min={new Date().toISOString().split('T')[0]}
               className="w-full"
-              aria-describedby="due-date-help"
+              aria-describedby={errors.due_date ? "due-date-error" : "due-date-help"}
             />
-            <p id="due-date-help" className="text-xs text-gray-500 dark:text-gray-400">
-              Optional: Set a target completion date for this milestone
-            </p>
+            {errors.due_date ? (
+              <p id="due-date-error" className="text-sm text-red-600 dark:text-red-400" role="alert">
+                {errors.due_date.message}
+              </p>
+            ) : (
+              <p id="due-date-help" className="text-xs text-gray-500 dark:text-gray-400">
+                Optional: Set a target completion date for this milestone
+              </p>
+            )}
           </div>
 
           <div className="space-y-4">
