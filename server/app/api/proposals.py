@@ -187,9 +187,9 @@ async def accept_proposal(request: Request, authorization: str = Header(...)):
 
     supabase.table("proposals").update({"status": "accepted"}).eq("id", proposal_id).execute()
 
-    # Update project with society_id and set status to 'accepted'
+    # Update project with society_id and set status to 'active'
     society_id = proposal.data["society_id"]
-    supabase.table("projects").update({"society_id": society_id, "status": "accepted"}).eq("id", project_id).execute()
+    supabase.table("projects").update({"society_id": society_id, "status": "active"}).eq("id", project_id).execute()
 
     business_id = user_id
 
