@@ -25,13 +25,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const getSessionAndType = async (): Promise<void> => {
       const {
         data: { session },
-        error: _error,
+        error: _error, // eslint-disable-line @typescript-eslint/no-unused-vars
       } = await supabase.auth.getSession();
       setSession(session);
 
       if (session) {
         // Fetch user_type from the profiles table
-        const { data: profile, error: _profileError } = await supabase
+        const { data: profile, error: _profileError } = await supabase // eslint-disable-line @typescript-eslint/no-unused-vars
           .from("profiles")
           .select("user_type")
           .eq("id", session.user.id)
@@ -51,7 +51,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Listen for changes and re-check session
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, _session) => {
+    } = supabase.auth.onAuthStateChange((_event, _session) => { // eslint-disable-line @typescript-eslint/no-unused-vars
       getSessionAndType();
     });
 
