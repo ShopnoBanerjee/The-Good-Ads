@@ -111,17 +111,6 @@ const Header = () => {
         >
           Home
         </Link>
-        
-
-        <Link 
-          href="/our-services" 
-          className="text-[#15325a] dark:text-white hover:text-blue-600 dark:hover:text-primary transition-colors duration-200 ease-in-out"
-          style={{
-            transition: 'color 0.2s ease-in-out',
-          }}
-        >
-          Our Services
-        </Link>
       </nav>
 
       {/* Auth buttons and theme toggle (desktop) */}
