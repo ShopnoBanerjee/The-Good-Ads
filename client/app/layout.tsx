@@ -1,6 +1,7 @@
 import { Raleway, Outfit } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import "../styles/lenis.css";
 import { AuthProvider } from "@/app/providers";
 import { ThemeProvider } from "next-themes";
 import NotificationProvider from "@/components/NotificationProvider";
