@@ -135,7 +135,7 @@ function RegisterPageContent() {
   const [availableCities, setAvailableCities] = useState<string[]>([]);
 
   // Define Zod schemas
-  const indianPhone = z.string().regex(/^\+91\s?[6-9]\d{9}$/, "Please enter a valid Indian phone number starting with +91 followed by 10 digits");
+  const indianPhone = z.string().regex(/^(?:\+91\s?)?[6-9]\d{9}$/, "Please enter a valid 10-digit Indian phone number starting with 6-9");
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
   const businessSchema = z.object({
@@ -588,7 +588,7 @@ function RegisterPageContent() {
                   name="phoneNumber"
                   type="tel"
                   icon={Phone}
-                  placeholder="+91 98765 43210"
+                  placeholder="9876543210"
                   value={form.phoneNumber}
                   onChange={handleChange}
                   error={fieldErrors.phoneNumber}
@@ -794,7 +794,7 @@ function RegisterPageContent() {
                   name="phoneNumber"
                   type="tel"
                   icon={Phone}
-                  placeholder="+91 98765 43210"
+                  placeholder="9876543210"
                   value={form.phoneNumber}
                   onChange={handleChange}
                   error={fieldErrors.phoneNumber}
