@@ -21,7 +21,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Checkbox } from "@/components/ui/checkbox"; 
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; 
 
 interface FormData {
   businessName: string;
@@ -133,6 +134,7 @@ function RegisterPageContent() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [customService, setCustomService] = useState<string>("");
   const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [societyType, setSocietyType] = useState<'independent' | 'college_based'>('independent');
 
   // Define Zod schemas
   const indianPhone = z.string().regex(/^(?:\+91\s?)?[6-9]\d{9}$/, "Please enter a valid 10-digit Indian phone number starting with 6-9");
@@ -163,7 +165,7 @@ function RegisterPageContent() {
     domains: z.array(z.string()).min(1, "At least one domain is required"),
     servicesOffered: z.array(z.string()).min(1, "At least one service is required"),
     totalMemberCount: z.number().min(1, "Total member count must be at least 1"),
-    collegeName: z.string().optional(),
+    collegeName: societyType === 'college_based' ? z.string().min(1, "College name is required for college-based societies") : z.string().optional(),
     confirmSociety: z.boolean().refine(val => val === true, "You must confirm that the details are accurate"),
   });
 
@@ -769,17 +771,44 @@ function RegisterPageContent() {
                   onChange={handleChange}
                   error={fieldErrors.societyName}
                 />
-                {/* Optional College Name */}
-                <FormField
-                  label="College Name (optional)"
-                  name="collegeName"
-                  icon={Building2}
-                  placeholder="Enter your college/university name"
-                  value={form.collegeName || ''}
-                  onChange={handleChange}
-                  error={fieldErrors.collegeName}
-                  required={false}
-                />
+                {/* Society Type Selection */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white flex items-center gap-2 font-outfit">
+                    Society Type
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <RadioGroup
+                    value={societyType}
+                    onValueChange={(value) => setSocietyType(value as 'independent' | 'college_based')}
+                    className="flex gap-6"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="independent" id="independent" />
+                      <Label htmlFor="independent" className="text-sm text-gray-300 font-outfit cursor-pointer">
+                        Independent Society
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="college_based" id="college_based" />
+                      <Label htmlFor="college_based" className="text-sm text-gray-300 font-outfit cursor-pointer">
+                        College-Based Society
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                {/* College Name - Only show when college-based is selected */}
+                {societyType === 'college_based' && (
+                  <FormField
+                    label="College Name"
+                    name="collegeName"
+                    icon={Building2}
+                    placeholder="Enter your college/university name"
+                    value={form.collegeName || ''}
+                    onChange={handleChange}
+                    error={fieldErrors.collegeName}
+                    required={true}
+                  />
+                )}
                 <FormField
                   label="Point of Contact Name"
                   name="pocName"
