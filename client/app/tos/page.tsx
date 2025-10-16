@@ -210,7 +210,7 @@ const TermsOfService: React.FC = () => {
                   <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">7.3 Refunds and Disputes</h4>
                   <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300 mb-6">
                     <li>Refund eligibility determined on a case-by-case basis</li>
-                    <li>Disputes regarding payments must be submitted through the Platform's dispute resolution process</li>
+                    <li>Disputes regarding payments must be submitted through the Platform&apos;s dispute resolution process</li>
                     <li>inHalt reserves the right to withhold payments pending investigation of disputes</li>
                   </ul>
 
@@ -374,7 +374,7 @@ const TermsOfService: React.FC = () => {
 
                   <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">13.2 Platform Dispute Resolution</h4>
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                    inHalt offers an optional mediation service for user disputes. However, inHalt's decision in such matters is advisory and non-binding.
+                    inHalt offers an optional mediation service for user disputes. However, inHalt&apos;s decision in such matters is advisory and non-binding.
                   </p>
 
                   <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">13.3 Disputes with inHalt</h4>
@@ -454,7 +454,7 @@ const TermsOfService: React.FC = () => {
 
                   <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">17.4 Assignment</h4>
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                    You may not assign or transfer these Terms without inHalt's prior written consent. inHalt may assign these Terms without restriction.
+                    You may not assign or transfer these Terms without inHalt&apos;s prior written consent. inHalt may assign these Terms without restriction.
                   </p>
 
                   <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">17.5 Force Majeure</h4>
