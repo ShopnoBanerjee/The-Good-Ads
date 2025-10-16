@@ -83,25 +83,16 @@ export default function Footer() {
               Home
             </Link>
             <Link 
-              href="/about" 
+              href="/our-services" 
               className="font-outfit text-base text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-primary transition-colors duration-200 ease-in-out"
               style={{
                 transition: 'color 0.2s ease-in-out',
               }}
             >
-              About
+              Our Services
             </Link>
             <Link 
-              href="/privacy-policy" 
-              className="font-outfit text-base text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-primary transition-colors duration-200 ease-in-out"
-              style={{
-                transition: 'color 0.2s ease-in-out',
-              }}
-            >
-              Privacy Policy
-            </Link>
-            <Link 
-              href="/terms-of-service" 
+              href="/tos" 
               className="font-outfit text-base text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-primary transition-colors duration-200 ease-in-out"
               style={{
                 transition: 'color 0.2s ease-in-out',
