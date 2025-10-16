@@ -71,7 +71,7 @@ const TermsOfService: React.FC = () => {
                 <section>
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 font-outfit">1. AGREEMENT TO TERMS</h3>
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                    These Terms of Service ("Terms") constitute a legally binding agreement between you (whether as a Business or College Society, collectively "User" or "you") and inHalt ("we," "us," or "our"), concerning your access to and use of the inHalt marketplace platform available at [website URL] and any related mobile applications (collectively, the "Platform").
+                    These Terms of Service (&quot;Terms&quot;) constitute a legally binding agreement between you (whether as a Business or College Society, collectively &quot;User&quot; or &quot;you&quot;) and inHalt (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;), concerning your access to and use of the inHalt marketplace platform available at [website URL] and any related mobile applications (collectively, the &quot;Platform&quot;).
                   </p>
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                     By accessing or using the Platform, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree to these Terms, you must immediately discontinue use of the Platform.
@@ -81,11 +81,11 @@ const TermsOfService: React.FC = () => {
                 <section>
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 font-outfit">2. DEFINITIONS</h3>
                   <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
-                    <li>"Business" refers to any company, organisation, startup, or SME seeking consulting services through the Platform.</li>
-                    <li>The "College Society" refers to registered student organisations, consulting clubs, or academic groups that offer consulting services through the Platform.</li>
-                    <li>"Services" refers to the marketplace platform services that connect Businesses with College Societies for consulting projects.</li>
-                    <li>"Project" refers to any consulting engagement arranged between a Business and College Society through the Platform.</li>
-                    <li>"Platform Fee" refers to the service charge collected by inHalt for facilitating connections and transactions.</li>
+                    <li>&quot;Business&quot; refers to any company, organisation, startup, or SME seeking consulting services through the Platform.</li>
+                    <li>The &quot;College Society&quot; refers to registered student organisations, consulting clubs, or academic groups that offer consulting services through the Platform.</li>
+                    <li>&quot;Services&quot; refers to the marketplace platform services that connect Businesses with College Societies for consulting projects.</li>
+                    <li>&quot;Project&quot; refers to any consulting engagement arranged between a Business and College Society through the Platform.</li>
+                    <li>&quot;Platform Fee&quot; refers to the service charge collected by inHalt for facilitating connections and transactions.</li>
                   </ul>
                 </section>
 
@@ -330,7 +330,7 @@ const TermsOfService: React.FC = () => {
 
                   <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">11.1 Disclaimer of Warranties</h4>
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 font-semibold">
-                    THE PLATFORM IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. INHALT DISCLAIMS ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+                    THE PLATFORM IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. INHALT DISCLAIMS ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
                   </p>
 
                   <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">11.2 Liability Limitations</h4>
