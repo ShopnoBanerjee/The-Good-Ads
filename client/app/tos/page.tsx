@@ -486,12 +486,6 @@ const TermsOfService: React.FC = () => {
                     BY USING THE PLATFORM, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THESE TERMS OF SERVICE.
                   </p>
                 </section>
-
-                <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-                  <p className="text-sm text-blue-800 dark:text-blue-300 italic">
-                    <strong>Note:</strong> This Terms of Service document should be reviewed by a qualified legal professional familiar with Indian contract law, IT Act 2000, Consumer Protection Act 2019, and relevant regulations before implementation. Consider consulting with legal counsel to ensure compliance with all applicable laws and to tailor provisions to your specific business needs.
-                  </p>
-                </div>
               </div>
             </div>
           </div>
