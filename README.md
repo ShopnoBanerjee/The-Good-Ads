@@ -1,6 +1,6 @@
-# The GoodAds 📢
+# inHalt 📢
 
-**The GoodAds** is a full-stack, collaborative platform designed to seamlessly connect businesses with creative professionals ("society members"). It provides a comprehensive suite of tools for posting projects, managing proposals, tracking progress with milestones, and communicating in real-time.
+**inHalt** is a full-stack, collaborative platform designed to seamlessly connect businesses with creative professionals ("society members"). It provides a comprehensive suite of tools for posting projects, managing proposals, tracking progress with milestones, and communicating in real-time.
 
 This repository contains the complete monorepo, including the Next.js frontend and the FastAPI backend.
 
